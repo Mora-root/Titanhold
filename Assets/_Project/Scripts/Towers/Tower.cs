@@ -7,11 +7,13 @@ public class Tower : MonoBehaviour, ITargetProvider
 {
     [SerializeField] private TowerConfig _towerConfig;
     [SerializeField] private Transform _firePoint;
-    [SerializeField] private float _fireAngle = 5f;
+    [SerializeField] private int _targetScanBufferSize = 64;
 
     private Transform _transform;
     private float _fireCooldown;
     private Transform _currentTarget;
+    private float _targetRefreshTimer;
+    private Collider[] _targetHits;
     public bool HasTarget => _currentTarget != null;
 
     private void Awake()
@@ -21,12 +23,23 @@ public class Tower : MonoBehaviour, ITargetProvider
         {
             Debug.LogError("TowerConfig is not assigned on " + gameObject.name);
             enabled = false;
+            return;
         }
+
+        _targetHits = new Collider[Mathf.Max(1, _targetScanBufferSize)];
+        _targetRefreshTimer = 0f;
     }
 
     private void Update()
     {
-        FindTarget();
+        _fireCooldown -= Time.deltaTime;
+        _targetRefreshTimer -= Time.deltaTime;
+
+        if (_targetRefreshTimer <= 0f || !HasTarget)
+        {
+            FindTarget();
+            _targetRefreshTimer = Mathf.Max(0.01f, _towerConfig.TargetRefreshInterval);
+        }
         if (HasTarget)
         {
             RotateTowardsTarget();
@@ -36,12 +49,24 @@ public class Tower : MonoBehaviour, ITargetProvider
 
     private void FindTarget()
     {
-        Collider[] hits = Physics.OverlapSphere(_transform.position, _towerConfig.Range);
-        float closestDistance = float.MaxValue;
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            _transform.position,
+            _towerConfig.Range,
+            _targetHits,
+            _towerConfig.TargetMask
+        );
+
+        float closestDistanceSqr = float.MaxValue;
         Transform closestAimPoint = null;
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            var hit = _targetHits[i];
+            if (hit == null)
+            {
+                continue;
+            }
+
             if (hit.TryGetComponent<ITargetable>(out var targetable) && targetable.IsTargetable)
             {
                 Transform aimPoint = targetable.AimPoint;
@@ -50,10 +75,10 @@ public class Tower : MonoBehaviour, ITargetProvider
                     continue;
                 }
 
-                float distance = Vector3.Distance(_transform.position, aimPoint.position);
-                if (distance < closestDistance)
+                float distanceSqr = (aimPoint.position - _transform.position).sqrMagnitude;
+                if (distanceSqr < closestDistanceSqr)
                 {
-                    closestDistance = distance;
+                    closestDistanceSqr = distanceSqr;
                     closestAimPoint = aimPoint;
                 }
             }
@@ -73,7 +98,6 @@ public class Tower : MonoBehaviour, ITargetProvider
         {
             return;
         }
-        _fireCooldown -= Time.deltaTime;
         if (_fireCooldown <= 0)
         {
             Fire();
@@ -85,7 +109,7 @@ public class Tower : MonoBehaviour, ITargetProvider
     {
         Vector3 directionToTarget = (_currentTarget.position - _firePoint.position).normalized;
         float angle = Vector3.Angle(_firePoint.forward, directionToTarget);
-        return angle < _fireAngle;
+        return angle < _towerConfig.AimTolerance;
     }
 
     private void Fire()

@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da939c90cd29cf46a73eba1426396cb, type: 3}
   m_Name: Tower_Default
   m_EditorClassIdentifier: Assembly-CSharp::TowerConfig
-  Range: 10
-  FireRate: 1
+  Range: 100
+  FireRate: 5
   RotationSpeed: 5
-  ProjectileConfig: {fileID: 11400000, guid: 619d8939daa46d24d9c33329b6c549d8, type: 2}
+  AimTolerance: 30
+  TargetRefreshInterval: 0.15
+  TargetMask:
+    serializedVersion: 2
+    m_Bits: 64
   projectilePrefab: {fileID: 4665015321713291488, guid: 2993a5b68ad41a54a996c0426f2ff3b5, type: 3}
+  projectileConfig: {fileID: 11400000, guid: 619d8939daa46d24d9c33329b6c549d8, type: 2}
