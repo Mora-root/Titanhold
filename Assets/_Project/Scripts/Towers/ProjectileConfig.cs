@@ -8,3 +8,4 @@ public class ProjectileConfig : ScriptableObject
     public float Lifetime = 3f;
     public float HomingStrength = 10f;
 }
+

@@ -5,5 +5,5 @@ public class EnemyConfig : ScriptableObject
 {
     public float MoveSpeed = 3f;
     public float MaxHealth = 100f;
-    public float damegeToPlayer = 10f;
+    public float damageToPlayer = 10f;
 }

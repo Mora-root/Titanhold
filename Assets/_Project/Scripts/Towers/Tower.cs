@@ -85,16 +85,16 @@ public class Tower : MonoBehaviour, ITargetProvider
 
     private void Fire()
     {
-        if (_towerConfig.ProjectileConfig == null)
+        if (_towerConfig.projectilePrefab == null || _towerConfig.projectileConfig == null)
         {
-            Debug.LogError("Tower has no ProjectileConfig assigned!");
+            Debug.LogError("Tower missing projectile prefab or config!");
             return;
         }
         GameObject projectileObj = Instantiate(_towerConfig.projectilePrefab, _firePoint.position, _firePoint.rotation);
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         if (projectile != null)
         {
-            projectile.SetTarget(_currentTarget);
+            projectile.SetTarget(_currentTarget, _towerConfig.projectileConfig);
         }
         else
         {

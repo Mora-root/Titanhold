@@ -5,8 +5,8 @@ using UnityEngine;
 /// </summary>
 public class Projectile : MonoBehaviour
 {
-    [SerializeField] private ProjectileConfig _projectileConfig;
 
+    private ProjectileConfig _projectileConfig;
     private Rigidbody _rigidbody;
     private Transform _target;
     private float _timer;
@@ -14,25 +14,26 @@ public class Projectile : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
-
-        if (_projectileConfig == null)
+        if (_rigidbody == null)
         {
-            Debug.LogError("ProjectileConfig is not assigned on " + gameObject.name);
+            Debug.LogError("Rigidbody is missing on " + gameObject.name);
             enabled = false;
+            return;
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (_target != null)
         {
             Vector3 directionToTarget = (_target.position - _rigidbody.position).normalized;
             Quaternion targetRot = Quaternion.LookRotation(directionToTarget);
-            _rigidbody.MoveRotation(Quaternion.Slerp(transform.rotation, targetRot, _projectileConfig.HomingStrength * Time.deltaTime));
+            _rigidbody.MoveRotation(Quaternion.Slerp(_rigidbody.rotation, targetRot, _projectileConfig.HomingStrength * Time.fixedDeltaTime)
+            );
         }
-        _rigidbody.MovePosition(_rigidbody.position + transform.forward * (_projectileConfig.Speed * Time.deltaTime));
-        _timer += Time.deltaTime;
-        if (_timer >= _projectileConfig.Lifetime)
+        _rigidbody.MovePosition(_rigidbody.position + transform.forward * (_projectileConfig.Speed * Time.fixedDeltaTime));
+        _timer -= Time.fixedDeltaTime;
+        if (_timer <= 0)
         {
             Destroy(gameObject);
         }
@@ -47,8 +48,10 @@ public class Projectile : MonoBehaviour
         }
     }
 
-    public void SetTarget(Transform target)
+    public void SetTarget(Transform target, ProjectileConfig config)
     {
         _target = target;
+        _projectileConfig = config;
+        _timer = _projectileConfig.Lifetime;
     }
 }
