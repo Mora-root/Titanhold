@@ -24,6 +24,10 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_projectileConfig == null) 
+        {
+             return;
+        }
         if (_target != null)
         {
             Vector3 directionToTarget = (_target.position - _rigidbody.position).normalized;

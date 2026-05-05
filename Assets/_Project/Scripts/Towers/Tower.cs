@@ -38,22 +38,27 @@ public class Tower : MonoBehaviour, ITargetProvider
     {
         Collider[] hits = Physics.OverlapSphere(_transform.position, _towerConfig.Range);
         float closestDistance = float.MaxValue;
-        Transform closestEnemy = null;
+        Transform closestAimPoint = null;
 
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent<Enemy>(out var enemy))
+            if (hit.TryGetComponent<ITargetable>(out var targetable) && targetable.IsTargetable)
             {
-                Transform enemyTransform = enemy.GetTransform();
-                float distance = Vector3.Distance(_transform.position, enemyTransform.position);
+                Transform aimPoint = targetable.AimPoint;
+                if (aimPoint == null)
+                {
+                    continue;
+                }
+
+                float distance = Vector3.Distance(_transform.position, aimPoint.position);
                 if (distance < closestDistance)
                 {
                     closestDistance = distance;
-                    closestEnemy = enemyTransform;
+                    closestAimPoint = aimPoint;
                 }
             }
         }
-        _currentTarget = closestEnemy;
+        _currentTarget = closestAimPoint;
     }
     private void RotateTowardsTarget()
     {

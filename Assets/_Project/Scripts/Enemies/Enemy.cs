@@ -4,9 +4,10 @@ using UnityEngine;
 /// <summary>
 /// Represents a basic enemy with health, movement towards a target, and death.
 /// </summary>
-public class Enemy : MonoBehaviour, IDamageable
+public class Enemy : MonoBehaviour, IDamageable, ITargetable
 {
     [SerializeField] private EnemyConfig _enemyConfig;
+    [SerializeField] private Transform _aimPoint;
 
     private Transform _transform;
     private float _currentHealth;
@@ -21,6 +22,7 @@ public class Enemy : MonoBehaviour, IDamageable
         {
             Debug.LogError("EnemyConfig is not assigned on " + gameObject.name);
             enabled = false;
+            return;
         }
         _currentHealth = _enemyConfig.MaxHealth;
     }
@@ -45,4 +47,7 @@ public class Enemy : MonoBehaviour, IDamageable
         Destroy(gameObject);
     }
     public Transform GetTransform() => _transform;
+
+    public Transform AimPoint => _aimPoint != null ? _aimPoint : _transform;
+    public bool IsTargetable => enabled && gameObject.activeInHierarchy;
 }
