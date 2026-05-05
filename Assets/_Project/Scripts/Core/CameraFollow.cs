@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Smoothly follows a target transform with configurable offset from PlayerConfig.
+/// </summary>
 public class CameraFollow : MonoBehaviour
 {
     [SerializeField] private Transform _target;

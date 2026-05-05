@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Handles player movement using CharacterController
+/// <summary>
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private PlayerConfig _playerConfig;
@@ -33,7 +36,6 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        // Handles player movement using CharacterController
         float vertical = Input.GetAxisRaw("Vertical");
         float horizontal = Input.GetAxisRaw("Horizontal");
         Vector3 inputVector = new Vector3(horizontal, 0f, vertical);
