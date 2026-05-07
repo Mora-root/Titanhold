@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tower_Default
   m_EditorClassIdentifier: Assembly-CSharp::TowerConfig
   Range: 100
-  FireRate: 5
+  FireRate: 1
   RotationSpeed: 5
   AimTolerance: 30
   TargetRefreshInterval: 0.15

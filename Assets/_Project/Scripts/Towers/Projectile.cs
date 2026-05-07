@@ -6,15 +6,15 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
 
-    private ProjectileConfig _projectileConfig;
-    private Rigidbody _rigidbody;
-    private Transform _target;
-    private float _timer;
+    private ProjectileConfig projectileConfig;
+    private Rigidbody rb;
+    private Transform target;
+    private float timer;
 
     private void Awake()
     {
-        _rigidbody = GetComponent<Rigidbody>();
-        if (_rigidbody == null)
+        rb = GetComponent<Rigidbody>();
+        if (rb == null)
         {
             Debug.LogError("Rigidbody is missing on " + gameObject.name);
             enabled = false;
@@ -24,20 +24,20 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_projectileConfig == null) 
+        if (projectileConfig == null) 
         {
              return;
         }
-        if (_target != null)
+        if (target != null)
         {
-            Vector3 directionToTarget = (_target.position - _rigidbody.position).normalized;
+            Vector3 directionToTarget = (target.position - rb.position).normalized;
             Quaternion targetRot = Quaternion.LookRotation(directionToTarget);
-            _rigidbody.MoveRotation(Quaternion.Slerp(_rigidbody.rotation, targetRot, _projectileConfig.HomingStrength * Time.fixedDeltaTime)
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, projectileConfig.HomingStrength * Time.fixedDeltaTime)
             );
         }
-        _rigidbody.MovePosition(_rigidbody.position + transform.forward * (_projectileConfig.Speed * Time.fixedDeltaTime));
-        _timer -= Time.fixedDeltaTime;
-        if (_timer <= 0)
+        rb.MovePosition(rb.position + transform.forward * (projectileConfig.Speed * Time.fixedDeltaTime));
+        timer -= Time.fixedDeltaTime;
+        if (timer <= 0)
         {
             Destroy(gameObject);
         }
@@ -47,15 +47,15 @@ public class Projectile : MonoBehaviour
     {
         if (other.TryGetComponent<IDamageable>(out var damageable))
         {
-            damageable.TakeDamage(_projectileConfig.Damage);
+            damageable.TakeDamage(projectileConfig.Damage);
             Destroy(gameObject);
         }
     }
 
     public void SetTarget(Transform target, ProjectileConfig config)
     {
-        _target = target;
-        _projectileConfig = config;
-        _timer = _projectileConfig.Lifetime;
+        this.target = target;
+        projectileConfig = config;
+        timer = projectileConfig.Lifetime;
     }
 }

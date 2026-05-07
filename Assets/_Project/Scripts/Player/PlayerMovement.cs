@@ -5,23 +5,21 @@ using UnityEngine;
 /// <summary>
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private PlayerConfig _playerConfig;
-    private CharacterController _characterController;
-    private Transform _transform;
-    private float _verticalVelocity;
-    private float _groundStickVelocity = 2f;
-    private float _gravity = 9.81f;
+    [SerializeField] private PlayerConfig playerConfig;
+    private CharacterController characterController;
+    private float verticalVelocity;
+    private float groundStickVelocity = 2f;
+    private float gravity = 9.81f;
 
     private void Awake()
     {
-        _characterController = GetComponent<CharacterController>();
-        _transform = transform;
-        if (_characterController == null)
+        characterController = GetComponent<CharacterController>();
+        if (characterController == null)
         {
             Debug.LogError("CharacterController is missing on " + gameObject.name);
             enabled = false;
         }
-        if (_playerConfig == null)
+        if (playerConfig == null)
         {
             Debug.LogError("PlayerConfig is not assigned in PlayerMovement on " + gameObject.name);
             enabled = false;
@@ -43,24 +41,24 @@ public class PlayerMovement : MonoBehaviour
         if (inputVector.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(inputVector);
-            _transform.rotation = Quaternion.Slerp(_transform.rotation, targetRotation, _playerConfig.RotationSpeed * Time.deltaTime);
-            float moveDistance = _playerConfig.MoveSpeed * Time.deltaTime;
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, playerConfig.RotationSpeed * Time.deltaTime);
+            float moveDistance = playerConfig.MoveSpeed * Time.deltaTime;
             Vector3 move = inputVector * moveDistance;
-            _characterController.Move(move);
+            characterController.Move(move);
         }
-        if (_characterController.isGrounded)
+        if (characterController.isGrounded)
         {
-            _verticalVelocity = -_groundStickVelocity;
+            verticalVelocity = -groundStickVelocity;
         }
         else
         {
-            _verticalVelocity -= _gravity * Time.deltaTime;
+            verticalVelocity -= gravity * Time.deltaTime;
         }
-        _characterController.Move(Vector3.up * (_verticalVelocity * Time.deltaTime));
+        characterController.Move(Vector3.up * (verticalVelocity * Time.deltaTime));
 
-        Vector3 pos = _transform.position;
-        pos.x = Mathf.Clamp(pos.x, -_playerConfig.ClampX, _playerConfig.ClampX);
-        pos.z = Mathf.Clamp(pos.z, -_playerConfig.ClampZ, _playerConfig.ClampZ);
-        _transform.position = pos;
+        Vector3 pos = transform.position;
+        pos.x = Mathf.Clamp(pos.x, -playerConfig.ClampX, playerConfig.ClampX);
+        pos.z = Mathf.Clamp(pos.z, -playerConfig.ClampZ, playerConfig.ClampZ);
+        transform.position = pos;
     }
 }

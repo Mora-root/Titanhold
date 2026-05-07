@@ -2,40 +2,33 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Represents a basic enemy with health, movement towards a target, and death.
+/// Represents a basic enemy with health and death.
 /// </summary>
 public class Enemy : MonoBehaviour, IDamageable, ITargetable
 {
-    [SerializeField] private EnemyConfig _enemyConfig;
-    [SerializeField] private Transform _aimPoint;
+    [SerializeField] private EnemyConfig enemyConfig;
+    [SerializeField] private Transform aimPoint;
 
-    private Transform _transform;
-    private float _currentHealth;
+    private float currentHealth;
 
     public event Action<Enemy> OnDied;
 
     private void Awake()
     {
-        _transform = transform;
 
-        if (_enemyConfig == null)
+        if (enemyConfig == null)
         {
             Debug.LogError("EnemyConfig is not assigned on " + gameObject.name);
             enabled = false;
             return;
         }
-        _currentHealth = _enemyConfig.MaxHealth;
-    }
-
-    private void Update()
-    {
-        _transform.position += _transform.forward * (_enemyConfig.MoveSpeed * Time.deltaTime);
+        currentHealth = enemyConfig.MaxHealth;
     }
 
     public void TakeDamage(float damage)
     {
-        _currentHealth -= damage;
-        if (_currentHealth <= 0)
+        currentHealth -= damage;
+        if (currentHealth <= 0)
         {
             Die();
         }
@@ -46,8 +39,8 @@ public class Enemy : MonoBehaviour, IDamageable, ITargetable
         OnDied?.Invoke(this);
         Destroy(gameObject);
     }
-    public Transform GetTransform() => _transform;
+    public Transform GetTransform() => transform;
 
-    public Transform AimPoint => _aimPoint != null ? _aimPoint : _transform;
+    public Transform AimPoint => aimPoint != null ? aimPoint : transform;
     public bool IsTargetable => enabled && gameObject.activeInHierarchy;
 }

@@ -5,15 +5,13 @@ using UnityEngine;
 /// </summary>
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] private Transform _target;
-    [SerializeField] private PlayerConfig _playerConfig;
-    [SerializeField] private float _smoothSpeed = 5f;
-    private Transform _transform;
+    [SerializeField] private Transform target;
+    [SerializeField] private PlayerConfig playerConfig;
+    [SerializeField] private float smoothSpeed = 5f;
 
     private void Awake()
     {
-        _transform = transform;
-        if (_playerConfig == null)
+        if (playerConfig == null)
         {
             Debug.LogError("PlayerConfig is not assigned in CameraFollow on " + gameObject.name);
             enabled = false;
@@ -22,26 +20,26 @@ public class CameraFollow : MonoBehaviour
 
     private void Start()
     {
-        if (_target == null || _playerConfig == null)
+        if (target == null || playerConfig == null)
         {
             return;
         }
 
-        _transform.position = _target.position + _playerConfig.CameraOffset;
+        transform.position = target.position + playerConfig.CameraOffset;
     }
 
     private void LateUpdate()
     {
-        if (_target == null || _playerConfig == null)
+        if (target == null || playerConfig == null)
         {
             return;
         }
-        Vector3 desiredPosition = _target.position + _playerConfig.CameraOffset;
+        Vector3 desiredPosition = target.position + playerConfig.CameraOffset;
 
-        _transform.position = Vector3.Lerp(_transform.position, desiredPosition, _smoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
 
-        Vector3 lookAtPoint = _target.position + _playerConfig.CameraLookAtOffset;
+        Vector3 lookAtPoint = target.position + playerConfig.CameraLookAtOffset;
 
-        _transform.LookAt(lookAtPoint);
+        transform.LookAt(lookAtPoint);
     }
 }
