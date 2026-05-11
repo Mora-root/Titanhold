@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.AI;
 
 /// <summary>
 /// Represents a basic enemy with health and death.
@@ -33,11 +34,36 @@ public class Enemy : MonoBehaviour, IDamageable, ITargetable
             Die();
         }
     }
-    
+
     private void Die()
     {
+        enabled = false;
+        var agent = GetComponent<NavMeshAgent>();
+        if (agent != null)
+        {
+            agent.enabled = false;
+        }
+        var movement = GetComponent<EnemyAgentMovement>();
+        if (movement != null)
+        {
+            movement.enabled = false;
+        }
+        var collider = GetComponent<Collider>();
+        if (collider != null)
+        {
+            collider.enabled = false;
+        }
+        var animator = GetComponentInChildren<Animator>();
+        if (animator != null)
+        {
+            animator.SetTrigger("Die");
+        }
+
         OnDied?.Invoke(this);
-        Destroy(gameObject);
+
+        float deathAnimLength = 1.5f;
+        Destroy(gameObject, deathAnimLength);
+
     }
     public Transform GetTransform() => transform;
 

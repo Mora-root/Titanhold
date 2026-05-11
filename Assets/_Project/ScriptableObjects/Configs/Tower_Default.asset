@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da939c90cd29cf46a73eba1426396cb, type: 3}
   m_Name: Tower_Default
   m_EditorClassIdentifier: Assembly-CSharp::TowerConfig
-  Range: 100
-  FireRate: 1
+  Range: 10
+  FireRate: 0.5
   RotationSpeed: 5
   AimTolerance: 30
   TargetRefreshInterval: 0.15

@@ -10,6 +10,7 @@ public class EnemyAgentMovement : MonoBehaviour
     private NavMeshAgent agent;
     private EnemyConfig enemyConfig;
     private WaypointPath path;
+    private Animator animator;
     private int currentWaypointIndex;
 
     private void Update()
@@ -25,6 +26,11 @@ public class EnemyAgentMovement : MonoBehaviour
         {
             currentWaypointIndex++;
             MoveToNextWaypoint();
+        }
+
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", agent.velocity.magnitude);
         }
     }
 
@@ -47,6 +53,7 @@ public class EnemyAgentMovement : MonoBehaviour
         enemyConfig = config;
         this.path = path;
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
 
         if (agent != null)
         {

@@ -56,9 +56,9 @@ public class PlayerMovement : MonoBehaviour
         }
         characterController.Move(Vector3.up * (verticalVelocity * Time.deltaTime));
 
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, -playerConfig.ClampX, playerConfig.ClampX);
-        pos.z = Mathf.Clamp(pos.z, -playerConfig.ClampZ, playerConfig.ClampZ);
-        transform.position = pos;
+        //Vector3 pos = transform.position;
+        //pos.x = Mathf.Clamp(pos.x, -playerConfig.ClampX, playerConfig.ClampX);
+        //pos.z = Mathf.Clamp(pos.z, -playerConfig.ClampZ, playerConfig.ClampZ);
+        //transform.position = pos;
     }
 }

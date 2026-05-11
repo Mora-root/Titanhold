@@ -7,6 +7,7 @@ public class Tower : MonoBehaviour, ITargetProvider
 {
     [SerializeField] private TowerConfig towerConfig;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private Transform cannonPoint;
     [SerializeField] private int targetScanBufferSize = 64;
 
     private float fireCooldown;
@@ -47,6 +48,7 @@ public class Tower : MonoBehaviour, ITargetProvider
         if (HasTarget)
         {
             RotateTowardsTarget();
+            RotateFirePointTarget();
             TryFire();
         }
     }
@@ -89,7 +91,28 @@ public class Tower : MonoBehaviour, ITargetProvider
         }
         currentTarget = closestAimPoint;
     }
+
     private void RotateTowardsTarget()
+    {
+        Vector3 direction = currentTarget.position - cannonPoint.position;
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude < 0.001f)
+        {
+            return;
+        }
+
+        direction = direction.normalized;
+
+        float targetYAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+        float currentYAngle = cannonPoint.eulerAngles.y;
+        float newYAngle = Mathf.LerpAngle(currentYAngle, targetYAngle, towerConfig.RotationSpeed * Time.deltaTime);
+
+        Vector3 currentEuler = cannonPoint.eulerAngles;
+        cannonPoint.rotation = Quaternion.Euler(currentEuler.x, newYAngle, currentEuler.z);
+    }
+
+    private void RotateFirePointTarget()
     {
         Vector3 direction = (currentTarget.position - firePoint.position).normalized;
         Quaternion targetRotation = Quaternion.LookRotation(direction);
