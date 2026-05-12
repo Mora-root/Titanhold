@@ -24,9 +24,13 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (projectileConfig == null) 
+        if (projectileConfig == null)
         {
              return;
+        }
+        if (target != null && !target.gameObject.activeInHierarchy)
+        {
+            target = null;
         }
         if (target != null)
         {

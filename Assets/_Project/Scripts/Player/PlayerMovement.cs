@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private PlayerConfig playerConfig;
     private CharacterController characterController;
+    private Animator animator;
     private float verticalVelocity;
     private float groundStickVelocity = 2f;
     private float gravity = 9.81f;
@@ -14,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
+        animator = GetComponentInChildren<Animator>();
         if (characterController == null)
         {
             Debug.LogError("CharacterController is missing on " + gameObject.name);
@@ -30,6 +32,9 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         HandleMovement();
+        // Test
+        if (Input.GetKeyDown(KeyCode.Mouse0) && animator != null)
+            animator.SetTrigger("Attack");
     }
 
     private void HandleMovement()
@@ -37,7 +42,12 @@ public class PlayerMovement : MonoBehaviour
         float vertical = Input.GetAxisRaw("Vertical");
         float horizontal = Input.GetAxisRaw("Horizontal");
         Vector3 inputVector = new Vector3(horizontal, 0f, vertical);
+        float inputMagnitude = inputVector.magnitude;
         inputVector = inputVector.normalized;
+        if (animator != null)
+        {
+            animator.SetFloat("Speed", inputMagnitude);
+        }
         if (inputVector.sqrMagnitude > 0.01f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(inputVector);

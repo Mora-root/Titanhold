@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Represents a basic enemy with health and death.
@@ -28,6 +29,7 @@ public class Enemy : MonoBehaviour, IDamageable, ITargetable
 
     public void TakeDamage(float damage)
     {
+        Debug.Log("Enemy take damage " + damage);
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
@@ -37,6 +39,10 @@ public class Enemy : MonoBehaviour, IDamageable, ITargetable
 
     private void Die()
     {
+        Debug.Log("Enemy die");
+
+        OnDied?.Invoke(this);
+
         enabled = false;
         var agent = GetComponent<NavMeshAgent>();
         if (agent != null)
@@ -59,7 +65,11 @@ public class Enemy : MonoBehaviour, IDamageable, ITargetable
             animator.SetTrigger("Die");
         }
 
-        OnDied?.Invoke(this);
+        if (aimPoint != null && aimPoint != transform)
+        {
+            Destroy(aimPoint.gameObject);
+            aimPoint = null;
+        }
 
         float deathAnimLength = 1.5f;
         Destroy(gameObject, deathAnimLength);
