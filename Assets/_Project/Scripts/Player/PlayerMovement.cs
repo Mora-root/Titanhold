@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -6,11 +7,13 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private PlayerConfig playerConfig;
+    [SerializeField] private GameObject weaponHitBox;
     private CharacterController characterController;
     private Animator animator;
     private float verticalVelocity;
     private float groundStickVelocity = 2f;
     private float gravity = 9.81f;
+    private bool isAttacking = false;
 
     private void Awake()
     {
@@ -27,18 +30,24 @@ public class PlayerMovement : MonoBehaviour
             enabled = false;
             return;
         }
+        if (weaponHitBox != null)
+            weaponHitBox.SetActive(false);
     }
 
     private void Update()
     {
         HandleMovement();
         // Test
-        if (Input.GetKeyDown(KeyCode.Mouse0) && animator != null)
-            animator.SetTrigger("Attack");
+        TryAttack();
     }
+
 
     private void HandleMovement()
     {
+        if (isAttacking)
+        {
+            return;
+        }
         float vertical = Input.GetAxisRaw("Vertical");
         float horizontal = Input.GetAxisRaw("Horizontal");
         Vector3 inputVector = new Vector3(horizontal, 0f, vertical);
@@ -70,5 +79,45 @@ public class PlayerMovement : MonoBehaviour
         //pos.x = Mathf.Clamp(pos.x, -playerConfig.ClampX, playerConfig.ClampX);
         //pos.z = Mathf.Clamp(pos.z, -playerConfig.ClampZ, playerConfig.ClampZ);
         //transform.position = pos;
+    }
+    private void TryAttack()
+    {
+        if (animator == null)
+            return;
+
+        if (isAttacking)
+            return;
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            StartCoroutine(AttackCoroutine());
+        }
+    }
+
+    private IEnumerator AttackCoroutine()
+    {
+        isAttacking = true;
+
+            animator.SetTrigger("Attack");
+
+        if (weaponHitBox != null)
+            weaponHitBox.GetComponent<WeaponHitBox>()?.EnableHitBox();
+
+
+        float attackDuration = playerConfig.AttackDuration;
+        yield return new WaitForSeconds(attackDuration);
+
+        if (weaponHitBox != null)
+            weaponHitBox.GetComponent<WeaponHitBox>()?.DisableHitBox();
+
+        isAttacking = false;
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        isAttacking = false;
+        if (weaponHitBox != null)
+            weaponHitBox.SetActive(false);
     }
 }
