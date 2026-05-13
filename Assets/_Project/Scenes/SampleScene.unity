@@ -150,6 +150,101 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1664798312}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &165820462
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 165820464}
+  - component: {fileID: 165820463}
+  - component: {fileID: 165820465}
+  - component: {fileID: 165820466}
+  m_Layer: 8
+  m_Name: WeaponHitBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!65 &165820463
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165820462}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.16594124, y: 1.0288948, z: 0.03372255}
+  m_Center: {x: -0.0004415426, y: 0.693461, z: 0.0021664589}
+--- !u!4 &165820464
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165820462}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2070802259437239687}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &165820465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165820462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15a0c413316228f43a883cd6e9ba6ec4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponHitBox
+  damage: 25
+--- !u!54 &165820466
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165820462}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &254095902
 GameObject:
   m_ObjectHideFlags: 0
@@ -985,6 +1080,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Tower_Ballista_Prefab (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1346,6 +1445,10 @@ PrefabInstance:
     - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
       propertyPath: m_Name
       value: Tower_Ballista_Prefab (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1772,6 +1875,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   playerConfig: {fileID: 11400000, guid: 7683dedef6c9f324ba11ec31e614619d, type: 2}
+  weaponHitBox: {fileID: 165820462}
 --- !u!136 &1608982788
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1976,6 +2080,10 @@ PrefabInstance:
     - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
       propertyPath: m_Name
       value: Tower_Ballista_Prefab (3)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2494,7 +2602,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5902350797193590885}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 2.1901524, y: -168.2521, z: 169.58722}
 --- !u!23 &1207501756519498263
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2827,7 +2935,7 @@ GameObject:
   - component: {fileID: 2070802259437239687}
   - component: {fileID: 3103873203187626530}
   - component: {fileID: 934456731948992232}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: OHS03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2886,7 +2994,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0.007}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 165820464}
   m_Father: {fileID: 3023735797543775980}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2079184817297920977
@@ -2903,7 +3012,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8812999057800175977}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 6.492115}
 --- !u!4 &2162697416714692398
 Transform:
   m_ObjectHideFlags: 0
@@ -3277,7 +3386,7 @@ Transform:
   m_Children:
   - {fileID: 2070802259437239687}
   m_Father: {fileID: 5886040299125576024}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!33 &3103873203187626530
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -3420,7 +3529,7 @@ Transform:
   m_Children:
   - {fileID: 8812999057800175977}
   m_Father: {fileID: 6099296486751486785}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -1.2455976, y: 162.03867, z: -21.924845}
 --- !u!1 &3521216591326363598
 GameObject:
   m_ObjectHideFlags: 0
@@ -3564,7 +3673,7 @@ Transform:
   m_Children:
   - {fileID: 1427703560035552560}
   m_Father: {fileID: 6099296486751486785}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 4.773009, y: -90, z: 0}
 --- !u!33 &3969730857056318764
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -3632,6 +3741,10 @@ PrefabInstance:
     - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
       propertyPath: m_Name
       value: Tower_Ballista_Prefab
+      objectReference: {fileID: 0}
+    - target: {fileID: 6353240105912463732, guid: 808f49f1fcfae1b489707f2af2383474, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3726,7 +3839,7 @@ Transform:
   m_Children:
   - {fileID: 6595176750366640125}
   m_Father: {fileID: 2312121290556325450}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &4609321531765849813
 GameObject:
   m_ObjectHideFlags: 0
@@ -4723,7 +4836,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 350880955011299035}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -2.192356, y: 11.759896, z: 10.412304}
 --- !u!1 &8192741405477839464
 GameObject:
   m_ObjectHideFlags: 0
@@ -5138,7 +5251,7 @@ Transform:
   m_Children:
   - {fileID: 2079184817297920977}
   m_Father: {fileID: 3508528094176310910}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.45688188, y: -2.456236, z: 10.523122}
 --- !u!1 &8903734432295639468
 GameObject:
   m_ObjectHideFlags: 0
