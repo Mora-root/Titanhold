@@ -1,67 +1,45 @@
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
+using UnityEngine.AI;
 
-/// <summary>
-/// Moves the enemy towards a target point while respecting ground and gravity.
-/// </summary>
 public class EnemyMovement : MonoBehaviour
 {
-    [SerializeField] private EnemyConfig enemyConfig;
-    [SerializeField] private Transform target;
-    private CharacterController characterController;
+    private NavMeshAgent agent;
+    private EnemyAnimator animator;
 
-    private float verticalVelocity;
-    private float groundStickVelocity = 2f;
-    private float gravity = 9.81f;
+    public bool IsMoving => agent.velocity.sqrMagnitude > 0.01f;
 
     private void Awake()
     {
-        characterController = GetComponent<CharacterController>();
-
-        if (characterController == null)
-        {
-            Debug.LogError("CharacterController is missing on " + gameObject.name);
-            enabled = false;
-        }
-        if (enemyConfig == null)
-        {
-            Debug.LogError("EnemyConfig is not assigned in EnemyMovement on " + gameObject.name);
-            enabled = false;
-            return;
-        }
+        agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<EnemyAnimator>();
     }
 
-    private void Update()
+    public void Tick()
     {
-        HandleMovement();
+        animator.SetSpeed(agent.velocity.magnitude);
     }
 
-    private void HandleMovement()
+    public void MoveTo(Vector3 pos)
     {
-        if (target == null) return;
+        agent.isStopped = false;
+        agent.SetDestination(pos);
+    }
 
-        Vector3 direction = (target.position - base.transform.position).normalized;
-        direction.y = 0f;
-        direction = direction.normalized;
+    public void Stop()
+    {
+        agent.isStopped = true;
+        agent.ResetPath();
+    }
+    public bool HasReachedDestination()
+    {
+        if (agent.pathPending) return false;
 
-        if (direction.sqrMagnitude > 0.01f)
-        {
-            Quaternion targetRot = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(base.transform.rotation, targetRot, 5f * Time.deltaTime);
-        }
+        if (agent.remainingDistance > agent.stoppingDistance)
+            return false;
 
-        Vector3 move = direction * (enemyConfig.MoveSpeed * Time.deltaTime);
+        if (agent.hasPath && agent.velocity.sqrMagnitude != 0f)
+            return false;
 
-        if (characterController.isGrounded)
-        {
-            verticalVelocity -= groundStickVelocity;
-        }
-        else
-        {
-            verticalVelocity -= gravity * Time.deltaTime;
-        }
-
-        move.y = verticalVelocity * Time.deltaTime;
-        characterController.Move(move);
+        return true;
     }
 }

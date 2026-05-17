@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Wave_01
   m_EditorClassIdentifier: Assembly-CSharp::WaveConfig
   EnemyConfig: {fileID: 11400000, guid: 7b1a39c74ee291a4ab6a08e87fe9ecb3, type: 2}
-  EnemyCount: 20
-  SpawnInterval: 1
+  EnemyCount: 40
+  SpawnInterval: 3
   StartDelay: 2

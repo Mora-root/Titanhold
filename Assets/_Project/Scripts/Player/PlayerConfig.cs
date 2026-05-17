@@ -9,5 +9,9 @@ public class PlayerConfig : ScriptableObject
     public Vector3 CameraLookAtOffset = new Vector3(0, 1.5f, 0);
     public float ClampX = 9.5f;
     public float ClampZ = 9.5f;
-    public float AttackDuration = 0.3f;
+    public float AttackDuration = .5f;
+    public float AttackRange = 1.5f;
+    public float Acceleration = 500;
+    public float Damage = 25f;
+    public float AttackCooldown = 1f;
 }
