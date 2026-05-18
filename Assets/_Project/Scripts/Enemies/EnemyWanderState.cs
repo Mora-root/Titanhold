@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyWanderState : IState
 {
     private EnemyBrain brain;
 
+    private Vector3 currentPoint;
 
     public EnemyWanderState(EnemyBrain brain)
     {
@@ -12,28 +14,48 @@ public class EnemyWanderState : IState
 
     public void Enter()
     {
-        var point = brain.Wander.GetNextPoint();
-        brain.Movement.MoveTo(point);
+        PickNewPoint();
+        Debug.Log("Entering Wander State, moving to new point.");
     }
 
     public void Tick()
     {
-        brain.Sensor.UpdateSensor();
+        var target = brain.Sensor.GetTarget();
 
-        if (brain.Sensor.HasTarget)
+        if (target != null)
         {
-            brain.StateMachine.ChangeState(brain.Chase);
-            Debug.Log(brain.StateMachine.CurrentState + " from Wander");
+            brain.ChangeToChase();
+            Debug.Log("Target spotted, switching to chase state.");
             return;
         }
 
-        if (brain.Movement.HasReachedDestination())
+        if (HasReached())
         {
-            brain.StateMachine.ChangeState(brain.Idle);
-            Debug.Log(brain.StateMachine.CurrentState + " from Wander");
+            brain.ChangeToIdle();
+            Debug.Log("Reached point, switching to idle.");
         }
-
     }
 
     public void Exit() { }
+
+    private void PickNewPoint()
+    {
+        currentPoint = brain.Wander.GetNextPoint();
+        brain.MoveTo(currentPoint);
+    }
+
+    private bool HasReached()
+    {
+        var agent = brain.GetComponent<NavMeshAgent>();
+
+        if (agent.pathPending) return false;
+
+        if (agent.remainingDistance > agent.stoppingDistance)
+            return false;
+
+        if (agent.hasPath && agent.velocity.sqrMagnitude > 0.01f)
+            return false;
+
+        return true;
+    }
 }

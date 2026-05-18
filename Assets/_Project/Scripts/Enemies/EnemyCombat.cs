@@ -2,47 +2,67 @@ using UnityEngine;
 
 public class EnemyCombat : MonoBehaviour
 {
-    [SerializeField] private EnemyConfig config;
-
-    private EnemyAnimator animator;
-
-    public float EnemyAttackCooldown => config.EnemyAttackCooldown;
-    public float EnemyAttackRange => config.EnemyAttackRange;
+    [SerializeField] private float attackCooldown = 1f;
+    [SerializeField] private float attackRange = 1f;
+    [SerializeField] private float damage = 10f;
 
     private float lastAttackTime;
     private ITargetable currentTarget;
+
+    private EnemyAnimator animator;
+
+    private bool isAttacking;
+    public bool IsAttacking => isAttacking;
+
+    public float AttackRange => attackRange;
 
     private void Awake()
     {
         animator = GetComponentInChildren<EnemyAnimator>();
     }
 
+    // 🔥 проверка кд
     public bool CanAttack()
     {
-        return Time.time >= lastAttackTime + EnemyAttackCooldown;
+        return Time.time >= lastAttackTime + attackCooldown;
     }
 
-    public void Attack(ITargetable target)
+    // 🔥 попытка атаки (вызывается из State)
+    public void TryAttack(ITargetable target)
     {
-        lastAttackTime = Time.time;
+        if (!CanAttack()) return;
+        if (target == null || !target.IsTargetable) return;
+        Debug.Log("Can attack target");
         currentTarget = target;
+        lastAttackTime = Time.time;
+
+        isAttacking = true;
+
         animator.PlayAttack();
     }
-    public void DoDamage()
+
+    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    public void ApplyDamage()
     {
         if (currentTarget == null) return;
-
+        Debug.Log("Have target");
         float distance = Vector3.Distance(
             transform.position,
             currentTarget.AimPoint.position
         );
 
-        if (distance > EnemyAttackRange)
+        // 🔥 защита от "ударил в воздух"
+        if (distance > attackRange + 0.3f)
             return;
+        Debug.Log("Target in attack range");
+        var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
+        damageable?.TakeDamage(damage);
 
-        if (currentTarget is IDamageable damageable)
-        {
-            damageable.TakeDamage(config.DamageToPlayer);
-        }
+    }
+
+    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    public void OnAttackFinished()
+    {
+        isAttacking = false;
     }
 }

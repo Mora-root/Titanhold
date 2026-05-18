@@ -1325,6 +1325,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 362555766084305464, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: mask.m_Bits
+      value: 128
+      objectReference: {fileID: 0}
+    - target: {fileID: 362555766084305464, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
       propertyPath: targetMask.m_Bits
       value: 128
       objectReference: {fileID: 0}
@@ -1342,7 +1346,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5409151741443721188, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
       propertyPath: m_Enabled
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6602476250708817451, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921093876623538848, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7886035149588280571, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: attackRange
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 8379852873407926100, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
       propertyPath: m_LocalPosition.x

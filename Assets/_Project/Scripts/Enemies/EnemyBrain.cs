@@ -2,58 +2,99 @@ using UnityEngine;
 
 public class EnemyBrain : MonoBehaviour
 {
-    public StateMachine StateMachine { get; private set; }
+    public EnemyMovement Movement { get; private set; }
+    public EnemyCombat Combat { get; private set; }
+    public EnemySensor Sensor { get; private set; }
+    public WanderComponent Wander { get; private set; }
     public EnemyAnimator Animator { get; private set; }
 
-    public EnemyIdleState Idle;
-    public EnemyWanderState WanderState;
-    public EnemyChaseState Chase;
-    public EnemyAttackState Attack;
-    public EnemyReturnState Return;
-
-    public EnemyMovement Movement { get; private set; }
-    public EnemySensor Sensor { get; private set; }
-    public EnemyCombat Combat { get; private set; }
-    public WanderComponent Wander { get; private set; }
-
+    private StateMachine stateMachine;
     private Health health;
+    private bool isDead;
+
+    private IState idleState;
+    private IState wanderState;
+    private IState chaseState;
+    private IState attackState;
+
+    public bool IsDead => isDead;
 
     private void Awake()
     {
+        Animator = GetComponentInChildren<EnemyAnimator>();
         Movement = GetComponent<EnemyMovement>();
-        Sensor = GetComponent<EnemySensor>();
         Combat = GetComponent<EnemyCombat>();
+        Sensor = GetComponent<EnemySensor>();
         Wander = GetComponent<WanderComponent>();
         health = GetComponent<Health>();
-        Animator = GetComponentInChildren<EnemyAnimator>();
 
-        StateMachine = new StateMachine();
+        stateMachine = new StateMachine();
 
-        Idle = new EnemyIdleState(this);
-        WanderState = new EnemyWanderState(this);
-        Chase = new EnemyChaseState(this);
-        Attack = new EnemyAttackState(this);
-        Return = new EnemyReturnState(this);
-
+        idleState = new EnemyIdleState(this);
+        wanderState = new EnemyWanderState(this);
+        chaseState = new EnemyChaseState(this);
+        attackState = new EnemyAttackState(this);
     }
 
     private void Start()
     {
-        Wander.Initialize(transform.position);
         health.OnDeath += Health_OnDeath;
-        StateMachine.ChangeState(Idle);
+        stateMachine.ChangeState(idleState);
+        Wander.Initialize(transform.position);
     }
 
     private void Health_OnDeath()
     {
-        StateMachine.ChangeState(null);
+        isDead = true;
+
+        stateMachine.ChangeState(null);
+
+        Movement.Stop();
+
+        Sensor.enabled = false;
+
+        Animator?.PlayDeath();
     }
 
     private void Update()
     {
-        Wander.Tick();
+        if (isDead) return;
+        stateMachine.Update();
         Movement.Tick();
-        StateMachine.Update();
+        Wander.Tick();
     }
+
+    private void OnDestroy()
+    {
+        if (health != null)
+            health.OnDeath -= Health_OnDeath;
+    }
+
+    // 🔥 API ДЛЯ STATE
+
+    public void MoveTo(Vector3 pos)
+    {
+        Movement.MoveTo(pos);
+    }
+
+    public void Stop()
+    {
+        Movement.Stop();
+    }
+
+    public void Attack(ITargetable target)
+    {
+        Combat.TryAttack(target);
+    }
+
+    public bool CanAttack()
+    {
+        return Combat.CanAttack();
+    }
+
+    public void ChangeToIdle() => stateMachine.ChangeState(idleState);
+    public void ChangeToChase() => stateMachine.ChangeState(chaseState);
+    public void ChangeToAttack() => stateMachine.ChangeState(attackState);
+    public void ChangeToWander() => stateMachine.ChangeState(wanderState);
 }
 

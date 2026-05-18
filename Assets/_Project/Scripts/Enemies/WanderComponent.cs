@@ -3,87 +3,74 @@ using UnityEngine.AI;
 
 public class WanderComponent : MonoBehaviour
 {
-    public Vector3 CurrentCenter { get; private set; }
-
+    [Header("Wander Settings")]
     [SerializeField] private float smallRadius = 5f;
     [SerializeField] private float bigRadius = 20f;
+    [SerializeField] private float centerChangeInterval = 20f;
 
-    [SerializeField] private float centerChangeInterval = 30f;
-
-    private float centerTimer;
     private Vector3 globalCenter;
+    private Vector3 currentCenter;
+
+    private float timer;
+
+    public Vector3 CurrentCenter => currentCenter;
 
     public void Initialize(Vector3 startPos)
     {
         globalCenter = startPos;
-        CurrentCenter = startPos;
+        currentCenter = startPos;
     }
 
     public void Tick()
     {
-        centerTimer += Time.deltaTime;
+        timer += Time.deltaTime;
 
-        // 🔥 меняем центр раз в N секунд
-        if (centerTimer >= centerChangeInterval)
+        if (timer >= centerChangeInterval)
         {
-            ResetCenterTimer();
+            timer = 0f;
             MoveCenter();
         }
     }
 
     private void MoveCenter()
     {
-        Vector3 randomOffset = Random.insideUnitSphere * bigRadius;
-        randomOffset.y = 0;
+        Vector3 offset = Random.insideUnitSphere * bigRadius;
+        offset.y = 0;
 
-        Vector3 newCenter = globalCenter + randomOffset;
+        Vector3 newCenter = globalCenter + offset;
 
-        // 🔥 привязка к NavMesh
         if (NavMesh.SamplePosition(newCenter, out NavMeshHit hit, 5f, NavMesh.AllAreas))
         {
-            CurrentCenter = hit.position;
+            currentCenter = hit.position;
         }
     }
 
     public Vector3 GetNextPoint()
     {
-        Vector3 randomOffset = Random.insideUnitSphere * smallRadius;
-        randomOffset.y = 0;
+        Debug.Log("GetNextPoint called");
+        Vector3 offset = Random.insideUnitSphere * smallRadius;
+        offset.y = 0;
 
-        Vector3 point = CurrentCenter + randomOffset;
+        Vector3 point = currentCenter + offset;
 
-        // 🔥 гарантия что точка достижима
         if (NavMesh.SamplePosition(point, out NavMeshHit hit, 3f, NavMesh.AllAreas))
         {
             return hit.position;
         }
 
-        return CurrentCenter;
+        return currentCenter;
     }
 
-    public void SetCurrentCenter(Vector3 newCenter)
+    public void SetCenter(Vector3 pos)
     {
-        CurrentCenter = newCenter;
+        currentCenter = pos;
     }
-
-    public void ResetCenterTimer()
-    {
-        centerTimer = 0;
-    }
-
-    // 🔥 ВИЗУАЛИЗАЦИЯ
     private void OnDrawGizmosSelected()
     {
-        // 🔵 большая зона (глобальная)
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(globalCenter == Vector3.zero ? transform.position : globalCenter, bigRadius);
 
-        // 🟢 текущий центр блуждания
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(CurrentCenter == Vector3.zero ? transform.position : CurrentCenter, smallRadius);
-
-        // 🔴 точка врага
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(transform.position, 0.3f);
+        Gizmos.DrawWireSphere(currentCenter == Vector3.zero ? transform.position : currentCenter, smallRadius);
     }
 }

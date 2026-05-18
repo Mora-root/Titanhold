@@ -11,35 +11,31 @@ public class EnemyChaseState : IState
 
     public void Tick()
     {
-        brain.Sensor.UpdateSensor();
+        var target = brain.Sensor.GetTarget();
 
-        if (!brain.Sensor.HasTarget)
+        if (target == null)
         {
-            brain.Wander.SetCurrentCenter(brain.transform.position);
-            brain.Wander.ResetCenterTimer();
-
-            brain.StateMachine.ChangeState(brain.Idle);
-            Debug.Log(brain.StateMachine.CurrentState + " from Chase");
+            brain.Wander.SetCenter(brain.transform.position);
+            brain.ChangeToIdle();
+            Debug.Log("No target found, switching to idle.");
             return;
         }
 
-        ITargetable target = brain.Sensor.CurrentTarget;
-
-        float distance = Vector3.Distance(
+        float dist = Vector3.Distance(
             brain.transform.position,
             target.AimPoint.position
         );
 
-        if (distance <= brain.Combat.EnemyAttackRange)
+        if (dist <= brain.Combat.AttackRange)
         {
-            brain.StateMachine.ChangeState(brain.Attack);
-            Debug.Log(brain.StateMachine.CurrentState + " from Chase");
+            brain.ChangeToAttack();
+            Debug.Log("Target within attack range, switching to attack.");
             return;
         }
 
-        brain.Movement.MoveTo(target.AimPoint.position);
+        brain.MoveTo(target.AimPoint.position);
     }
 
     public void Enter() { }
-    public void Exit()  { }
+    public void Exit() { }
 }

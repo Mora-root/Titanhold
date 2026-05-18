@@ -1,7 +1,8 @@
+using GLTFast.Schema;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyMovement : MonoBehaviour
+public class EnemyMovement : MonoBehaviour, IMovable
 {
     private NavMeshAgent agent;
     private EnemyAnimator animator;
@@ -12,17 +13,29 @@ public class EnemyMovement : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<EnemyAnimator>();
+        agent.updateRotation = false;
+    }
+    private void UpdateRotation()
+    {
+        Vector3 velocity = agent.velocity;
+
+        // если двигаемся → смотрим по направлению движения
+        if (velocity.sqrMagnitude > 0.01f)
+        {
+            RotateTowards(transform.position + velocity);
+        }
     }
 
     public void Tick()
     {
+        UpdateRotation();
         animator.SetSpeed(agent.velocity.magnitude);
     }
 
-    public void MoveTo(Vector3 pos)
+    public void MoveTo(Vector3 position)
     {
         agent.isStopped = false;
-        agent.SetDestination(pos);
+        agent.SetDestination(position);
     }
 
     public void Stop()
@@ -30,16 +43,18 @@ public class EnemyMovement : MonoBehaviour
         agent.isStopped = true;
         agent.ResetPath();
     }
-    public bool HasReachedDestination()
+    public void RotateTowards(Vector3 targetPos)
     {
-        if (agent.pathPending) return false;
+        Vector3 direction = (targetPos - transform.position).normalized;
+        direction.y = 0;
 
-        if (agent.remainingDistance > agent.stoppingDistance)
-            return false;
+        if (direction.sqrMagnitude < 0.001f) return;
 
-        if (agent.hasPath && agent.velocity.sqrMagnitude != 0f)
-            return false;
-
-        return true;
+        Quaternion lookRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            lookRotation,
+            Time.deltaTime * 10f // скорость поворота
+        );
     }
 }

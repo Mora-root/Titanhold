@@ -11,41 +11,56 @@ public class EnemyAttackState : IState
 
     public void Enter()
     {
-        brain.Movement.Stop();
+        brain.Stop();
     }
 
     public void Tick()
     {
-        if (!brain.Sensor.HasTarget)
+        var target = brain.Sensor.GetTarget();
+
+        if (target == null)
         {
-            brain.StateMachine.ChangeState(brain.Idle);
-            Debug.Log(brain.StateMachine.CurrentState + " from Attack");
+            brain.ChangeToIdle();
+            Debug.Log("No target found, changing to idle.");
             return;
         }
 
-        ITargetable target = brain.Sensor.CurrentTarget;
+        if (brain.Combat.IsAttacking)
+        {
+            brain.Stop();
+            if (target != null)
+            {
+                brain.Movement.RotateTowards(target.AimPoint.position);
+            }
+            return;
+        }
 
-        float distance = Vector3.Distance(
+        float dist = Vector3.Distance(
             brain.transform.position,
             target.AimPoint.position
         );
 
-        if (distance > brain.Combat.EnemyAttackRange + 0.5f)
+        if (dist > brain.Combat.AttackRange)
         {
-            brain.StateMachine.ChangeState(brain.Chase);
-            Debug.Log(brain.StateMachine.CurrentState + " from Attack");
+            brain.ChangeToChase();
+            Debug.Log("Target out of range, changing to chase.");
+            return;
+        }
+        float angle = Vector3.Angle(
+             brain.transform.forward,
+            (target.AimPoint.position - brain.transform.position)
+);
+
+        if (angle > 45f)
+        {
+            brain.Movement.RotateTowards(target.AimPoint.position);
             return;
         }
 
-        if (brain.Animator.IsAttacking)
+        if (brain.CanAttack())
         {
-            brain.Movement.Stop();
-            return;
-        }
-
-        if (brain.Combat.CanAttack())
-        {
-            brain.Combat.Attack(target);
+            Debug.Log("Can attack");
+            brain.Attack(target);
         }
     }
 

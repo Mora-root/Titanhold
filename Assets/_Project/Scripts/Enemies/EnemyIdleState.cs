@@ -3,6 +3,7 @@ using UnityEngine;
 public class EnemyIdleState : IState
 {
     private EnemyBrain brain;
+
     private float idleTime;
     private float timer;
 
@@ -13,31 +14,33 @@ public class EnemyIdleState : IState
 
     public void Enter()
     {
-        brain.Movement.Stop();
+        brain.Stop();
+        Debug.Log("Entering Idle State");
 
-        idleTime = Random.Range(3f, 5f);
+        idleTime = Random.Range(3f, 6f); // 🔥 вариативность
         timer = 0f;
     }
 
     public void Tick()
     {
-        brain.Sensor.UpdateSensor();
+        // 🔥 1. проверка цели
+        var target = brain.Sensor.GetTarget();
 
-        // 🔴 если увидели цель — сразу в бой
-        if (brain.Sensor.HasTarget)
+        if (target != null)
         {
-            brain.StateMachine.ChangeState(brain.Chase);
-            Debug.Log(brain.StateMachine.CurrentState + " from Idle");
+            brain.ChangeToChase();
+            Debug.Log("Target spotted, switching to Chase State");
             return;
         }
 
+        // 🔥 2. считаем время
         timer += Time.deltaTime;
 
-        // 🟢 постояли → идём гулять
+        // 🔥 3. пошли гулять
         if (timer >= idleTime)
         {
-            brain.StateMachine.ChangeState(brain.WanderState);
-            Debug.Log(brain.StateMachine.CurrentState + " from Idle");
+            brain.ChangeToWander(); // 👈 добавь этот метод в Brain
+            Debug.Log("Idle time over, switching to Wander State");
         }
     }
 

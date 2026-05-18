@@ -22,9 +22,9 @@ public class Health : MonoBehaviour, IDamageable
 
         CurrentHealth -= damage;
 
-        OnDamage?.Invoke(damage);
+        Debug.Log($"{gameObject.name} took {damage} damage. Current health: {CurrentHealth}");
 
-        Debug.Log(gameObject.name + "Health = " + CurrentHealth.ToString());
+        OnDamage?.Invoke(damage);
 
         if (CurrentHealth <= 0)
         {
@@ -34,6 +34,7 @@ public class Health : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        CurrentHealth = 0;
         OnDeath?.Invoke();
     }
 }

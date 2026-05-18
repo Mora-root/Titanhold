@@ -2,27 +2,44 @@ using UnityEngine;
 
 public class EnemySensor : MonoBehaviour
 {
-    [SerializeField] private float aggroRange;
-    [SerializeField] private LayerMask targetMask;
+    [SerializeField] private float aggroRange = 10f;
+    [SerializeField] private LayerMask mask;
 
-    public ITargetable CurrentTarget { get; private set; }
-
-    public bool HasTarget => CurrentTarget != null;
-
-    public void UpdateSensor()
+    public ITargetable GetTarget()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, aggroRange, targetMask);
+        Collider[] hits = Physics.OverlapSphere(transform.position, aggroRange, mask);
+
+        ITargetable best = null;
+        float bestDist = float.MaxValue;
 
         foreach (var hit in hits)
         {
             var target = hit.GetComponentInParent<ITargetable>();
 
-            if (target != null && target.IsTargetable)
+            if (target == null || !target.IsTargetable)
+                continue;
+
+            // не выбираем себя
+            if (target.AimPoint.root == transform)
+                continue;
+
+            float dist = Vector3.Distance(
+                transform.position,
+                target.AimPoint.position
+            );
+
+            if (dist < bestDist)
             {
-                CurrentTarget = target;
-                return;
+                best = target;
+                bestDist = dist;
             }
         }
-        CurrentTarget = null;
+
+        return best;
+    }
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, aggroRange);
     }
 }

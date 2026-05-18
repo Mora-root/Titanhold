@@ -5,6 +5,12 @@ public class StateMachine
 
     public void ChangeState(IState newState)
     {
+        if (newState == null)
+        {
+            CurrentState?.Exit();
+            CurrentState = null;
+            return;
+        }
         CurrentState?.Exit();
         CurrentState = newState;
         CurrentState?.Enter();
