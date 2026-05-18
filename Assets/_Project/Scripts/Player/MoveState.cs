@@ -8,37 +8,30 @@ public class MoveState : IState
         this.brain = brain;
     }
 
-    public void Enter() { }
+    public void Enter()
+    {
+
+    }
 
     public void Tick()
     {
         if (brain.CurrentTarget != null)
         {
-            brain.StateMachine.ChangeState(brain.ChaseState);
+            brain.ChangeToChase();
             return;
         }
 
         if (!brain.Input.HasPosition)
         {
-            brain.StateMachine.ChangeState(brain.IdleState);
+            brain.ChangeToIdle();
             return;
         }
 
-        brain.Movement.MoveTo(brain.Input.TargetPosition);
-
-        Rotate();
+        brain.MoveTo(brain.Input.TargetPosition);
     }
 
     public void Exit()
     {
-        brain.Movement.Stop();
-    }
-
-    private void Rotate()
-    {
-        if (brain.Movement.HasVelocity)
-        {
-            brain.Movement.Rotate(brain.Movement.Velocity.normalized);
-        }
+        brain.Stop();
     }
 }

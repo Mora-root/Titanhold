@@ -10,22 +10,20 @@ public class IdleState : IState
 
     public void Enter()
     {
-        brain.Movement.Stop();
+        brain.Stop();
     }
 
     public void Tick()
     {
-        // враг → chase
         if (brain.CurrentTarget != null)
         {
-            brain.StateMachine.ChangeState(brain.ChaseState);
+            brain.ChangeToChase();
             return;
         }
 
-        // позиция → move
         if (brain.Input.HasPosition)
         {
-            brain.StateMachine.ChangeState(brain.MoveState);
+            brain.ChangeToMove();
         }
     }
 

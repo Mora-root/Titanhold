@@ -3,48 +3,67 @@ using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
 {
-    [SerializeField] private PlayerConfig config;
-
-    private Animator animator;
+    [SerializeField] private float attackCooldown = 1f;
+    [SerializeField] private float attackRange = 1f;
+    [SerializeField] private float damage = 10f;
 
     private float lastAttackTime;
+    private ITargetable currentTarget;
 
-    public float AttackEnterRange => config.AttackRange;
-    public float AttackExitRange => config.AttackRange + 0.3f;
+    private PlayerAnimator animator;
 
-    public float AttackCooldown => config.AttackCooldown;
+    private bool isAttacking;
+    public bool IsAttacking => isAttacking;
+
+    public float AttackRange => attackRange;
 
     private void Awake()
     {
-        animator = GetComponentInChildren<Animator>();
+        animator = GetComponentInChildren<PlayerAnimator>();
     }
 
+    // 🔥 проверка кд
     public bool CanAttack()
     {
-        return Time.time >= lastAttackTime + AttackCooldown;
+        return Time.time >= lastAttackTime + attackCooldown;
     }
 
-    public void TryAttack(Enemy target)
+    // 🔥 попытка атаки (вызывается из State)
+    public void TryAttack(ITargetable target)
     {
         if (!CanAttack()) return;
-
-        Attack(target);
-    }
-
-    private void Attack(Enemy target)
-    {
+        if (target == null || !target.IsTargetable) return;
+        Debug.Log("Can attack target");
+        currentTarget = target;
         lastAttackTime = Time.time;
 
-        animator?.SetTrigger("Attack");
+        isAttacking = true;
 
-        // 👉 момент урона (упрощённо сразу)
-        DealDamage(target);
+        animator.PlayAttack();
     }
 
-    private void DealDamage(Enemy target)
+    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    public void ApplyDamage()
     {
-        if (target == null || !target.IsTargetable) return;
+        if (currentTarget == null) return;
+        Debug.Log("Have target");
+        float distance = Vector3.Distance(
+            transform.position,
+            currentTarget.AimPoint.position
+        );
 
-        target.TakeDamage(config.Damage);
+        // 🔥 защита от "ударил в воздух"
+        if (distance > attackRange + 0.3f)
+            return;
+        Debug.Log("Target in attack range");
+        var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
+        damageable?.TakeDamage(damage);
+
+    }
+
+    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    public void OnAttackFinished()
+    {
+        isAttacking = false;
     }
 }

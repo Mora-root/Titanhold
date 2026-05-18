@@ -11,55 +11,43 @@ public class AttackState : IState
 
     public void Enter()
     {
-        brain.Movement.Stop();
+        brain.Stop();
     }
 
     public void Tick()
     {
-        if (brain.Input.HasPosition)
+        var target = brain.CurrentTarget;
+
+        if (target == null)
         {
-            brain.StateMachine.ChangeState(brain.MoveState);
+            brain.ChangeToIdle();
             return;
         }
 
-        if (brain.CurrentTarget == null)
-        {
-            brain.StateMachine.ChangeState(brain.IdleState);
-            return;
-        }
-
-        float distance = Vector3.Distance(
+        float dist = Vector3.Distance(
             brain.transform.position,
-            brain.CurrentTarget.GetTransform().position
+            target.AimPoint.position
         );
 
-        if (!brain.Combat.CanAttack())
+        if (brain.Combat.IsAttacking)
         {
-            RotateToTarget();
+            brain.Movement.RotateTowards(target.AimPoint.position);
             return;
         }
 
-        // ✅ hysteresis выход
-        if (distance > brain.Combat.AttackExitRange)
+        if (dist > brain.Combat.AttackRange)
         {
-            brain.StateMachine.ChangeState(brain.ChaseState);
+            brain.ChangeToChase();
             return;
         }
 
-        // ✅ атака по кулдауну
-        brain.Combat.TryAttack(brain.CurrentTarget);
+        if (brain.CanAttack())
+        {
+            brain.TryAttack(target);
+        }
 
-        RotateToTarget();
+        brain.Movement.RotateTowards(target.AimPoint.position);
     }
 
     public void Exit() { }
-
-    private void RotateToTarget()
-    {
-        Vector3 dir = brain.CurrentTarget.GetTransform().position - brain.transform.position;
-        dir.y = 0;
-
-        if (dir.sqrMagnitude > 0.01f)
-            brain.Movement.Rotate(dir.normalized);
-    }
 }

@@ -8,56 +8,36 @@ public class ChaseState : IState
     {
         this.brain = brain;
     }
+    public void Enter()
+    {
+    }
 
     public void Tick()
     {
-        if (brain.Input.HasPosition)
+        var target = brain.CurrentTarget;
+
+        if (target == null)
         {
-            brain.StateMachine.ChangeState(brain.MoveState);
+            brain.ChangeToIdle();
             return;
         }
 
-        if (brain.CurrentTarget == null)
-        {
-            brain.StateMachine.ChangeState(brain.IdleState);
-            return;
-        }
-
-        float distance = Vector3.Distance(
+        float dist = Vector3.Distance(
             brain.transform.position,
-            brain.CurrentTarget.GetTransform().position
+            target.AimPoint.position
         );
 
-        // ✅ вход в атаку
-        if (distance <= brain.Combat.AttackEnterRange)
+        if (dist <= brain.Combat.AttackRange)
         {
-            brain.StateMachine.ChangeState(brain.AttackState);
+            brain.ChangeToAttack();
             return;
         }
 
-        brain.Movement.MoveTo(brain.CurrentTarget.GetTransform().position);
-
-        if (!brain.Movement.IsMoving)
-        {
-            brain.Movement.MoveTo(brain.CurrentTarget.GetTransform().position);
-        }
-
-        RotateToTarget();
+        brain.MoveTo(target.AimPoint.position);
     }
-
-    public void Enter() { }
 
     public void Exit()
     {
-        //brain.Movement.Stop();
-    }
-
-    private void RotateToTarget()
-    {
-        Vector3 dir = brain.CurrentTarget.GetTransform().position - brain.transform.position;
-        dir.y = 0;
-
-        if (dir.sqrMagnitude > 0.01f)
-            brain.Movement.Rotate(dir.normalized);
+        brain.Stop();
     }
 }

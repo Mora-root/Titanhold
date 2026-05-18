@@ -803,8 +803,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.4735605, z: 1}
-  m_Center: {x: 0, y: 0.7583819, z: 0}
+  m_Size: {x: 1.45, y: 2.0951843, z: 1.57}
+  m_Center: {x: 0, y: 1.0691936, z: 0}
 --- !u!195 &1599844134348163838
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -814,7 +814,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 2618309436736559858}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.1
   m_Speed: 3
   m_Acceleration: 500
   avoidancePriority: 50
@@ -864,6 +864,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySensor
   aggroRange: 10
+  mask:
+    serializedVersion: 2
+    m_Bits: 128
 --- !u!114 &2336442229512062148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -891,7 +894,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb84c54346b68124a8985d2e8e1a584e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
-  config: {fileID: 11400000, guid: 7b1a39c74ee291a4ab6a08e87fe9ecb3, type: 2}
+  attackCooldown: 1
+  attackRange: 1.4
+  damage: 10
 --- !u!114 &5409151741443721188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -917,7 +922,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
+  maxHealth: 1000
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0

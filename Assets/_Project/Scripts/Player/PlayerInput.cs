@@ -3,17 +3,16 @@ using UnityEngine;
 public class PlayerInput : MonoBehaviour
 {
     [SerializeField] private LayerMask groundMask;
-    [SerializeField] private LayerMask enemyMask;
 
     public Vector3 TargetPosition { get; private set; }
-    public Enemy TargetEnemy { get; private set; }
-
     public bool HasPosition { get; private set; }
-    public bool HasEnemy => TargetEnemy != null && TargetEnemy.IsTargetable;
-
-    public bool IsHoldingMouse { get; private set; }
+    public bool Clicked { get; private set; }
+    public bool IsDragging { get; private set; }
+    public bool IsHolding { get; private set; }
 
     private Camera cam;
+    private float holdTimer;
+    [SerializeField] private float dragThreshold = 0.05f;
 
     private void Awake()
     {
@@ -22,48 +21,59 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
-        IsHoldingMouse = Input.GetMouseButton(0);
+        // 🔥 reset (важно)
+        Clicked = false;
 
+        // 🟢 нажали кнопку
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-
-            // 1. Enemy
-            if (Physics.Raycast(ray, out RaycastHit hit, 200f, enemyMask))
-            {
-                Enemy enemy = hit.collider.GetComponentInParent<Enemy>();
-                if (enemy != null && enemy.IsTargetable)
-                {
-                    TargetEnemy = enemy;
-                    HasPosition = false;
-                    return;
-                }
-            }
-
-            // 2. Ground
-            if (Physics.Raycast(ray, out hit, 200f, groundMask))
-            {
-                TargetPosition = hit.point;
-                HasPosition = true;
-                TargetEnemy = null;
-            }
+            holdTimer = 0f;
+            IsDragging = false;
         }
 
-        // Holding = обновляем позицию
-        if (IsHoldingMouse && TargetEnemy == null)
+        // 🟡 держим кнопку
+        if (Input.GetMouseButton(0))
         {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, 200f, groundMask))
+            IsHolding = true;
+
+            holdTimer += Time.deltaTime;
+
+            if (holdTimer > dragThreshold)
             {
-                TargetPosition = hit.point;
-                HasPosition = true;
+                IsDragging = true;
             }
+
+            UpdateMousePosition();
+        }
+        else
+        {
+            IsHolding = false;
+        }
+
+        // 🔵 отпустили кнопку
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (!IsDragging)
+            {
+                Clicked = true; // 🔥 настоящий клик
+            }
+
+            IsDragging = false;
+        }
+    }
+    private void UpdateMousePosition()
+    {
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, 200f, groundMask))
+        {
+            TargetPosition = hit.point;
+            HasPosition = true;
         }
     }
 
     public void ClearAll()
     {
-        TargetEnemy = null;
         HasPosition = false;
     }
 }

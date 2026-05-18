@@ -51,13 +51,9 @@ public class EnemyAttackState : IState
             (target.AimPoint.position - brain.transform.position)
 );
 
-        if (angle > 45f)
-        {
-            brain.Movement.RotateTowards(target.AimPoint.position);
-            return;
-        }
+        brain.Movement.RotateTowards(target.AimPoint.position);
 
-        if (brain.CanAttack())
+        if (angle > 45f || brain.CanAttack())
         {
             Debug.Log("Can attack");
             brain.Attack(target);

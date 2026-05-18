@@ -4,22 +4,24 @@ public class PlayerBrain : MonoBehaviour
 {
     public PlayerInput Input { get; private set; }
     public PlayerMovement Movement { get; private set; }
+    public PlayerTargeting Targeting { get; private set; }
     public PlayerCombat Combat { get; private set; }
+
+    public ITargetable CurrentTarget => Targeting.CurrentTarget;
 
     public StateMachine StateMachine { get; private set; }
 
     // States
-    public IdleState IdleState { get; private set; }
-    public MoveState MoveState { get; private set; }
-    public ChaseState ChaseState { get; private set; }
-    public AttackState AttackState { get; private set; }
-
-    public Enemy CurrentTarget { get; set; }
+    public IState IdleState { get; private set; }
+    public IState MoveState { get; private set; }
+    public IState ChaseState { get; private set; }
+    public IState AttackState { get; private set; }
 
     private void Awake()
     {
         Input = GetComponent<PlayerInput>();
         Movement = GetComponent<PlayerMovement>();
+        Targeting = GetComponent<PlayerTargeting>();
         Combat = GetComponent<PlayerCombat>();
 
         StateMachine = new StateMachine();
@@ -37,30 +39,51 @@ public class PlayerBrain : MonoBehaviour
 
     private void Update()
     {
-        UpdateTarget();
+        Debug.Log($"Clicked: {Input.Clicked}, Holding: {Input.IsHolding}");
+        HandleInput();
+
         StateMachine.Update();
+        Movement.Tick();
     }
 
-    private void UpdateTarget()
+    private void HandleInput()
     {
-        // 🟢 если кликнули по земле — сбрасываем цель
-        if (Input.HasPosition)
+        // 🔥 КЛИК
+        if (Input.Clicked)
         {
-            CurrentTarget = null;
-            return;
+            Targeting.TrySelectTarget();
+
+            if (Targeting.CurrentTarget != null)
+            {
+                Input.ClearAll();
+                return;
+            }
+
+            Targeting.ClearTarget();
+        }
+        // 🔥 УДЕРЖАНИЕ (ТОЛЬКО ЕСЛИ НЕ БЫЛО КЛИКА)
+        else if (Input.IsDragging)
+        {
+            Targeting.ClearTarget();
         }
 
-        // 🟢 если кликнули по врагу — ставим цель
-        if (Input.HasEnemy)
-        {
-            CurrentTarget = Input.TargetEnemy;
-        }
-
-        // 🟢 если цель умерла — сброс
+        // 🔥 цель умерла
         if (CurrentTarget != null && !CurrentTarget.IsTargetable)
         {
-            CurrentTarget = null;
-            Input.ClearAll();
+            Targeting.ClearTarget();
         }
     }
+
+    // API
+
+    public void MoveTo(Vector3 pos) => Movement.MoveTo(pos);
+    public void Stop() => Movement.Stop();
+
+    public void TryAttack(ITargetable target) => Combat.TryAttack(target);
+    public bool CanAttack() => Combat.CanAttack();
+
+    public void ChangeToIdle() => StateMachine.ChangeState(IdleState);
+    public void ChangeToMove() => StateMachine.ChangeState(MoveState);
+    public void ChangeToChase() => StateMachine.ChangeState(ChaseState);
+    public void ChangeToAttack() => StateMachine.ChangeState(AttackState);
 }

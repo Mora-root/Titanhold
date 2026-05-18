@@ -1,32 +1,29 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-[RequireComponent(typeof(NavMeshAgent))]
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] private PlayerConfig config;
+    [SerializeField] private float rotationSpeed = 10f;
 
     private NavMeshAgent agent;
-    private Animator animator;
-
-    public Vector3 Velocity => agent.velocity;
-    public bool HasVelocity => agent.velocity.sqrMagnitude > 0.1f;
-    public bool IsMoving => agent.velocity.sqrMagnitude > 0.05f;
+    private PlayerAnimator animator;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
-        animator = GetComponentInChildren<Animator>();
+        animator = GetComponentInChildren<PlayerAnimator>();
 
-        agent.speed = config.MoveSpeed;
-        agent.acceleration = config.Acceleration;
         agent.updateRotation = false;
-        agent.stoppingDistance = 0;
     }
 
-    private void Update()
+    public void Tick()
     {
-        animator?.SetFloat("Speed", agent.velocity.magnitude);
+        animator.SetSpeed(agent.velocity.magnitude);
+
+        if (agent.velocity.sqrMagnitude > 0.01f)
+        {
+            RotateTowards(transform.position + agent.velocity);
+        }
     }
 
     public void MoveTo(Vector3 pos)
@@ -41,14 +38,18 @@ public class PlayerMovement : MonoBehaviour
         agent.ResetPath();
     }
 
-    public void Rotate(Vector3 dir)
+    public void RotateTowards(Vector3 targetPos)
     {
-        Quaternion target = Quaternion.LookRotation(dir);
-        transform.rotation = Quaternion.RotateTowards(
+        Vector3 dir = (targetPos - transform.position).normalized;
+        dir.y = 0;
+
+        if (dir.sqrMagnitude < 0.001f) return;
+
+        Quaternion rot = Quaternion.LookRotation(dir);
+        transform.rotation = Quaternion.Slerp(
             transform.rotation,
-            target,
-            config.RotationSpeed * Time.deltaTime
+            rot,
+            Time.deltaTime * rotationSpeed
         );
     }
-
 }
