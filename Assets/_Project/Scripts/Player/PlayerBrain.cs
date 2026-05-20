@@ -67,6 +67,7 @@ public class PlayerBrain : MonoBehaviour
             if (Targeting.CurrentTarget != null)
             {
                 Input.ClearAll();
+                TargetSelection.HandleRightClick();
                 return;
             }
 
