@@ -5,9 +5,12 @@ using UnityEngine;
 /// </summary>
 public class CameraFollow : MonoBehaviour
 {
-    [SerializeField] private Transform target;
     [SerializeField] private PlayerConfig playerConfig;
+    [SerializeField] private Transform target;
+    [SerializeField] private Vector3 offset = new Vector3(0, 10, -10);
     [SerializeField] private float smoothSpeed = 5f;
+    [SerializeField] private Vector3 fixedRotation = new Vector3(45f, 0f, 0f);
+
 
     private void Awake()
     {
@@ -30,16 +33,19 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (target == null || playerConfig == null)
-        {
-            return;
-        }
-        Vector3 desiredPosition = target.position + playerConfig.CameraOffset;
+        if (target == null) return;
 
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
+        // 🔥 следуем за игроком
+        Vector3 desiredPosition = target.position + offset;
 
-        Vector3 lookAtPoint = target.position + playerConfig.CameraLookAtOffset;
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desiredPosition,
+            smoothSpeed * Time.deltaTime
+        );
 
-        transform.LookAt(lookAtPoint);
+        // 🔥 фиксированный угол (НЕ LookAt)
+        transform.rotation = Quaternion.Euler(fixedRotation);
+
     }
 }

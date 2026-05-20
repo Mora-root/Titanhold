@@ -8,6 +8,7 @@ public class PlayerBrain : MonoBehaviour
     public PlayerCombat Combat { get; private set; }
 
     public ITargetable CurrentTarget => Targeting.CurrentTarget;
+    public TargetSelection TargetSelection { get; private set; }
 
     public StateMachine StateMachine { get; private set; }
 
@@ -23,6 +24,7 @@ public class PlayerBrain : MonoBehaviour
         Movement = GetComponent<PlayerMovement>();
         Targeting = GetComponent<PlayerTargeting>();
         Combat = GetComponent<PlayerCombat>();
+        TargetSelection = GetComponent<TargetSelection>();
 
         StateMachine = new StateMachine();
 
@@ -39,7 +41,6 @@ public class PlayerBrain : MonoBehaviour
 
     private void Update()
     {
-        Debug.Log($"Clicked: {Input.Clicked}, Holding: {Input.IsHolding}");
         HandleInput();
 
         StateMachine.Update();
@@ -48,8 +49,18 @@ public class PlayerBrain : MonoBehaviour
 
     private void HandleInput()
     {
+        if (Input.RightClicked)
+        {
+            TargetSelection.HandleRightClick();
+        }
+
+        // 🔥 если цель умерла — сброс
+        if (TargetSelection.CurrentTarget is ITargetable t && !t.IsTargetable)
+        {
+            TargetSelection.ClearTarget();
+        }
         // 🔥 КЛИК
-        if (Input.Clicked)
+        if (Input.LeftClicked)
         {
             Targeting.TrySelectTarget();
 

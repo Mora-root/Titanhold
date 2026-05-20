@@ -6,13 +6,14 @@ public class PlayerInput : MonoBehaviour
 
     public Vector3 TargetPosition { get; private set; }
     public bool HasPosition { get; private set; }
-    public bool Clicked { get; private set; }
+    public bool LeftClicked { get; private set; }
+    public bool RightClicked { get; private set; }
     public bool IsDragging { get; private set; }
     public bool IsHolding { get; private set; }
 
     private Camera cam;
     private float holdTimer;
-    [SerializeField] private float dragThreshold = 0.05f;
+    [SerializeField] private float dragThreshold = 0.25f;
 
     private void Awake()
     {
@@ -22,7 +23,8 @@ public class PlayerInput : MonoBehaviour
     private void Update()
     {
         // 🔥 reset (важно)
-        Clicked = false;
+        LeftClicked = false;
+        RightClicked = Input.GetMouseButtonDown(1);
 
         // 🟢 нажали кнопку
         if (Input.GetMouseButtonDown(0))
@@ -55,7 +57,7 @@ public class PlayerInput : MonoBehaviour
         {
             if (!IsDragging)
             {
-                Clicked = true; // 🔥 настоящий клик
+                LeftClicked = true; // 🔥 настоящий клик
             }
 
             IsDragging = false;
