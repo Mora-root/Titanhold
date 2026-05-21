@@ -1,33 +1,37 @@
+using System;
 using UnityEngine;
 
+/// <summary>
+/// Selects target for action and UI
+/// </summary>
 public class PlayerTargeting : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    [SerializeField] private LayerMask targetMask;
+    [SerializeField] private LayerMask selectableMask;
     [SerializeField] private float maxDistance = 100f;
 
-    public ITargetable CurrentTarget { get; private set; }
+    private void Awake()
+    {
+        if (cam == null)
+            cam = Camera.main;
+    }
 
-    public void TrySelectTarget()
+    public ISelectable GetSelectableUnderMouse()
     {
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, maxDistance, targetMask))
-        {
-            var target = hit.collider.GetComponentInParent<ITargetable>();
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxDistance, selectableMask);
 
-            if (target != null && target.IsTargetable)
-            {
-                CurrentTarget = target;
-                return;
-            }
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (var hit in hits)
+        {
+            var selectable = hit.collider.GetComponentInParent<ISelectable>();
+
+            if (selectable != null && selectable.IsSelectable)
+                return selectable;
         }
 
-        CurrentTarget = null;
-    }
-
-    public void ClearTarget()
-    {
-        CurrentTarget = null;
+        return null;
     }
 }

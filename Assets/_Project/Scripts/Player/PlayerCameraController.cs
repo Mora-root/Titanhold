@@ -5,6 +5,7 @@ public class PlayerCameraController : MonoBehaviour
     [SerializeField] private CameraRigController cameraRig;
 
     private bool isRotatingCamera;
+    private float multiplierRotation = 4f;
 
     private void Update()
     {
@@ -21,7 +22,7 @@ public class PlayerCameraController : MonoBehaviour
         if (isRotatingCamera)
         {
             float mouseX = Input.GetAxis("Mouse X");
-            cameraRig.Rotate(mouseX*4);
+            cameraRig.Rotate(mouseX * multiplierRotation);
         }
     }
 }

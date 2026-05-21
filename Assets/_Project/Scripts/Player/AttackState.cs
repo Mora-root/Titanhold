@@ -37,7 +37,7 @@ public class AttackState : IState
 
         if (dist > brain.Combat.AttackRange)
         {
-            brain.ChangeToChase();
+            brain.ChangeToApproach();
             return;
         }
 

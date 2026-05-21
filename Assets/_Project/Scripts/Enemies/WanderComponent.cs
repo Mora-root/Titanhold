@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+/// <summary>
+/// The component is responsible for finding a route to wander
+/// </summary>
 public class WanderComponent : MonoBehaviour
 {
     [Header("Wander Settings")]
@@ -34,6 +37,7 @@ public class WanderComponent : MonoBehaviour
 
     private void MoveCenter()
     {
+        // Shifting the center of a small radius within a large one
         Vector3 offset = Random.insideUnitSphere * bigRadius;
         offset.y = 0;
 
@@ -47,7 +51,7 @@ public class WanderComponent : MonoBehaviour
 
     public Vector3 GetNextPoint()
     {
-        Debug.Log("GetNextPoint called");
+        // Search for a new point to move to
         Vector3 offset = Random.insideUnitSphere * smallRadius;
         offset.y = 0;
 
@@ -63,6 +67,7 @@ public class WanderComponent : MonoBehaviour
 
     public void SetCenter(Vector3 pos)
     {
+        // New center of the small radius after the loss of the target
         currentCenter = pos;
     }
     private void OnDrawGizmosSelected()

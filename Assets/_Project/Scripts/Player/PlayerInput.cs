@@ -22,18 +22,15 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
-        // 🔥 reset (важно)
         LeftClicked = false;
         RightClicked = Input.GetMouseButtonDown(1);
 
-        // 🟢 нажали кнопку
         if (Input.GetMouseButtonDown(0))
         {
             holdTimer = 0f;
             IsDragging = false;
         }
 
-        // 🟡 держим кнопку
         if (Input.GetMouseButton(0))
         {
             IsHolding = true;
@@ -52,12 +49,11 @@ public class PlayerInput : MonoBehaviour
             IsHolding = false;
         }
 
-        // 🔵 отпустили кнопку
         if (Input.GetMouseButtonUp(0))
         {
             if (!IsDragging)
             {
-                LeftClicked = true; // 🔥 настоящий клик
+                LeftClicked = true;
             }
 
             IsDragging = false;

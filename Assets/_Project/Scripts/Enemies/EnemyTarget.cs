@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Сomponent that makes the enemy accessible to targetSelection and hover systems
+/// </summary>
 public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
 {
     [SerializeField] private Transform aimPoint;
@@ -8,6 +11,8 @@ public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
     private TargetVisual visual;
 
     public Transform AimPoint => aimPoint != null ? aimPoint : transform;
+
+    public bool IsSelectable => health != null && health.IsAlive;
     public bool IsTargetable => health != null && health.IsAlive;
 
     private void Awake()
@@ -15,7 +20,7 @@ public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
         health = GetComponent<Health>();
         visual = GetComponent<TargetVisual>();
     }
-    // 🔥 SELECT
+
     public void OnSelected()
     {
         visual?.SetSelected(true);
@@ -26,7 +31,6 @@ public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
         visual?.SetSelected(false);
     }
 
-    // 🔥 HOVER
     public void OnHoverEnter()
     {
         visual?.SetHover(true);

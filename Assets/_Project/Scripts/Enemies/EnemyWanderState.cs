@@ -15,7 +15,6 @@ public class EnemyWanderState : IState
     public void Enter()
     {
         PickNewPoint();
-        Debug.Log("Entering Wander State, moving to new point.");
     }
 
     public void Tick()
@@ -25,14 +24,12 @@ public class EnemyWanderState : IState
         if (target != null)
         {
             brain.ChangeToChase();
-            Debug.Log("Target spotted, switching to chase state.");
             return;
         }
 
         if (HasReached())
         {
             brain.ChangeToIdle();
-            Debug.Log("Reached point, switching to idle.");
         }
     }
 
@@ -40,12 +37,14 @@ public class EnemyWanderState : IState
 
     private void PickNewPoint()
     {
+        // Search a new point and go to it
         currentPoint = brain.Wander.GetNextPoint();
         brain.MoveTo(currentPoint);
     }
 
     private bool HasReached()
     {
+        // Checks if the enemy has reached the current wandering point
         var agent = brain.GetComponent<NavMeshAgent>();
 
         if (agent.pathPending) return false;

@@ -4,6 +4,8 @@ public class EnemyAttackState : IState
 {
     private EnemyBrain brain;
 
+    private float attackAngle = 45f;
+
     public EnemyAttackState(EnemyBrain brain)
     {
         this.brain = brain;
@@ -21,7 +23,6 @@ public class EnemyAttackState : IState
         if (target == null)
         {
             brain.ChangeToIdle();
-            Debug.Log("No target found, changing to idle.");
             return;
         }
 
@@ -43,7 +44,6 @@ public class EnemyAttackState : IState
         if (dist > brain.Combat.AttackRange)
         {
             brain.ChangeToChase();
-            Debug.Log("Target out of range, changing to chase.");
             return;
         }
         float angle = Vector3.Angle(
@@ -53,9 +53,8 @@ public class EnemyAttackState : IState
 
         brain.Movement.RotateTowards(target.AimPoint.position);
 
-        if (angle > 45f || brain.CanAttack())
+        if (angle > attackAngle || brain.CanAttack())
         {
-            Debug.Log("Can attack");
             brain.Attack(target);
         }
     }

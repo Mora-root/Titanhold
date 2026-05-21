@@ -761,6 +761,7 @@ GameObject:
   - component: {fileID: 7886035149588280571}
   - component: {fileID: 5409151741443721188}
   - component: {fileID: 6602476250708817451}
+  - component: {fileID: 6698423454645219180}
   m_Layer: 6
   m_Name: Enemy_Skelet
   m_TagString: Untagged
@@ -937,7 +938,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 1000
+  maxHealth: 100
+--- !u!114 &6698423454645219180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dde0bd43179ff742b5b8106bf66936d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetInfo
+  displayName: Skelet
+  level: 1
+  icon: {fileID: 0}
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0

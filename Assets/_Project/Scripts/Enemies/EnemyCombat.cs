@@ -7,6 +7,7 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private float damage = 10f;
 
     private float lastAttackTime;
+    private float multiplierDamageRadius = 1.5f;
     private ITargetable currentTarget;
 
     private EnemyAnimator animator;
@@ -21,18 +22,17 @@ public class EnemyCombat : MonoBehaviour
         animator = GetComponentInChildren<EnemyAnimator>();
     }
 
-    // 🔥 проверка кд
+    // Check kd
     public bool CanAttack()
     {
         return Time.time >= lastAttackTime + attackCooldown;
     }
 
-    // 🔥 попытка атаки (вызывается из State)
+    // Try attack(called from State)
     public void TryAttack(ITargetable target)
     {
         if (!CanAttack()) return;
         if (target == null || !target.IsTargetable) return;
-        Debug.Log("Can attack target");
         currentTarget = target;
         lastAttackTime = Time.time;
 
@@ -41,26 +41,24 @@ public class EnemyCombat : MonoBehaviour
         animator.PlayAttack();
     }
 
-    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    // Called fron animation (Event)
     public void ApplyDamage()
     {
         if (currentTarget == null) return;
-        Debug.Log("Have target");
         float distance = Vector3.Distance(
             transform.position,
             currentTarget.AimPoint.position
         );
 
-        // 🔥 защита от "ударил в воздух"
-        if (distance > attackRange + 0.3f)
+        // Damage radius
+        if (distance > attackRange * multiplierDamageRadius)
             return;
-        Debug.Log("Target in attack range");
         var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
         damageable?.TakeDamage(damage);
 
     }
 
-    // 🔥 вызывается ИЗ АНИМАЦИИ (Event)
+    // Called fron animation (Event)
     public void OnAttackFinished()
     {
         isAttacking = false;

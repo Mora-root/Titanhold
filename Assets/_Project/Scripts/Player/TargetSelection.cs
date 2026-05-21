@@ -1,59 +1,39 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// Receives target for UI
+/// </summary>
 public class TargetSelection : MonoBehaviour
 {
-    public ISelectable CurrentTarget { get; private set; }
+    public ISelectable CurrentSelection { get; private set; }
 
-    public event Action<ISelectable> OnTargetSelected;
-    public event Action OnTargetCleared;
+    public event Action<ISelectable> OnSelected;
+    public event Action OnCleared;
 
-    [SerializeField] private LayerMask selectableMask;
-
-    private Camera cam;
-
-    private void Awake()
+    public void Select(ISelectable selectable)
     {
-        cam = Camera.main;
+        if (selectable == null || !selectable.IsSelectable)
+            return;
+
+        if (CurrentSelection == selectable)
+            return;
+
+        Clear();
+
+        CurrentSelection = selectable;
+        CurrentSelection.OnSelected();
+        OnSelected?.Invoke(CurrentSelection);
     }
 
-    public void HandleRightClick()
+    public void Clear()
     {
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        if (CurrentSelection == null)
+            return;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, 200f, selectableMask))
-        {
-            var selectable = hit.collider.GetComponentInParent<ISelectable>();
+        CurrentSelection.OnDeselected();
+        CurrentSelection = null;
 
-            if (selectable != null)
-            {
-                SetTarget(selectable);
-                return;
-            }
-        }
-
-        ClearTarget();
-    }
-
-    private void SetTarget(ISelectable target)
-    {
-        if (CurrentTarget == target) return;
-
-        CurrentTarget?.OnDeselected();
-
-        CurrentTarget = target;
-        CurrentTarget.OnSelected();
-
-        OnTargetSelected?.Invoke(target);
-    }
-
-    public void ClearTarget()
-    {
-        if (CurrentTarget == null) return;
-
-        CurrentTarget.OnDeselected();
-        CurrentTarget = null;
-
-        OnTargetCleared?.Invoke();
+        OnCleared?.Invoke();
     }
 }

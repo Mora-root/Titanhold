@@ -6,6 +6,7 @@ public class EnemyMovement : MonoBehaviour, IMovable
 {
     private NavMeshAgent agent;
     private EnemyAnimator animator;
+    private float rotationSpeed = 10f;
 
     public bool IsMoving => agent.velocity.sqrMagnitude > 0.01f;
 
@@ -19,7 +20,7 @@ public class EnemyMovement : MonoBehaviour, IMovable
     {
         Vector3 velocity = agent.velocity;
 
-        // если двигаемся → смотрим по направлению движения
+        // if we are moving - we are looking in the direction of movement
         if (velocity.sqrMagnitude > 0.01f)
         {
             RotateTowards(transform.position + velocity);
@@ -54,7 +55,7 @@ public class EnemyMovement : MonoBehaviour, IMovable
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
             lookRotation,
-            Time.deltaTime * 10f // скорость поворота
+            Time.deltaTime * rotationSpeed
         );
     }
 }

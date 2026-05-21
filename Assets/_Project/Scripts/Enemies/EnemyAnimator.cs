@@ -16,40 +16,37 @@ public class EnemyAnimator : MonoBehaviour
         combat = GetComponentInParent<EnemyCombat>();
     }
 
-    // 🔥 движение
+    // Move speed
     public void SetSpeed(float speed)
     {
         animator.SetFloat(SpeedHash, speed);
     }
 
-    // 🔥 атака
+    // Start attack
     public void PlayAttack()
     {
-        Debug.Log("Start attack");
         animator.SetTrigger(AttackHash);
     }
 
-    // 🔥 Animation Event (момент удара)
+    // Deal damage
     public void OnAttackHit()
     {
-        Debug.Log("Deal damage");
         combat.ApplyDamage();
     }
 
-    // 🔥 Animation Event (конец анимации)
+    // End animation
     public void OnAttackFinished()
     {
-        Debug.Log("Attack finished");
         combat.OnAttackFinished();
     }
 
-    // 🔥 реакция на урон
+    // Get damage
     public void PlayHit()
     {
         animator.SetTrigger(HitHash);
     }
 
-    // 🔥 смерть
+    // Die
     public void PlayDeath()
     {
         animator.SetTrigger(DeathHash);

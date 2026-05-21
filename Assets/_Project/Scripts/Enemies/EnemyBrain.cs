@@ -70,7 +70,7 @@ public class EnemyBrain : MonoBehaviour
             health.OnDeath -= Health_OnDeath;
     }
 
-    // 🔥 API ДЛЯ STATE
+    // API for state
 
     public void MoveTo(Vector3 pos)
     {

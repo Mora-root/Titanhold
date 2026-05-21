@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// Component for highlighting targets when pointing
+/// </summary>
 public class HoverSystem : MonoBehaviour
 {
     [SerializeField] private LayerMask hoverMask;

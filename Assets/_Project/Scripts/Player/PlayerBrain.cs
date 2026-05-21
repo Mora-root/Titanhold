@@ -6,17 +6,24 @@ public class PlayerBrain : MonoBehaviour
     public PlayerMovement Movement { get; private set; }
     public PlayerTargeting Targeting { get; private set; }
     public PlayerCombat Combat { get; private set; }
-
-    public ITargetable CurrentTarget => Targeting.CurrentTarget;
     public TargetSelection TargetSelection { get; private set; }
 
     public StateMachine StateMachine { get; private set; }
 
-    // States
+    public ISelectable SelectedObject => TargetSelection.CurrentSelection;
+
+    public ISelectable ActionSelection { get; private set; } // get selected target
+
+    public ITargetable CurrentTarget => ActionSelection as ITargetable; // for attack stage
+    public IInteractable CurrentInteractable => ActionSelection as IInteractable; // for interact stage
+    public ILootable CurrentLoot => ActionSelection as ILootable; // for loot stage
+
     public IState IdleState { get; private set; }
     public IState MoveState { get; private set; }
-    public IState ChaseState { get; private set; }
+    public IState ApproachState { get; private set; }
     public IState AttackState { get; private set; }
+    public IState InteractState { get; private set; }
+    public IState LootState { get; private set; }
 
     private void Awake()
     {
@@ -30,8 +37,10 @@ public class PlayerBrain : MonoBehaviour
 
         IdleState = new IdleState(this);
         MoveState = new MoveState(this);
-        ChaseState = new ChaseState(this);
+        ApproachState = new ApproachState(this);
         AttackState = new AttackState(this);
+        InteractState = new InteractState(this);
+        LootState = new LootState(this);
     }
 
     private void Start()
@@ -49,44 +58,81 @@ public class PlayerBrain : MonoBehaviour
 
     private void HandleInput()
     {
+        // Right click = for UI-selection
         if (Input.RightClicked)
         {
-            TargetSelection.HandleRightClick();
+            var selectable = Targeting.GetSelectableUnderMouse();
+
+            if (selectable != null)
+            {
+                TargetSelection.Select(selectable);
+            }
+            else
+            {
+                TargetSelection.Clear();
+            }
+
+            return;
         }
 
-        // 🔥 если цель умерла — сброс
-        if (TargetSelection.CurrentTarget is ITargetable t && !t.IsTargetable)
-        {
-            TargetSelection.ClearTarget();
-        }
-        // 🔥 КЛИК
+        // Left click = action
         if (Input.LeftClicked)
         {
-            Targeting.TrySelectTarget();
+            var selectable = Targeting.GetSelectableUnderMouse();
 
-            if (Targeting.CurrentTarget != null)
+            if (selectable != null)
             {
+                // Left click on an object also highlights it for the UI
+                TargetSelection.Select(selectable);
+
+                // But the action is stored separately
+                ActionSelection = selectable;
+
                 Input.ClearAll();
-                TargetSelection.HandleRightClick();
                 return;
             }
 
-            Targeting.ClearTarget();
-        }
-        // 🔥 УДЕРЖАНИЕ (ТОЛЬКО ЕСЛИ НЕ БЫЛО КЛИКА)
-        else if (Input.IsDragging)
-        {
-            Targeting.ClearTarget();
+            // Left click:
+            // action is being reset, UI-selection is NOT being touched
+            ClearActionSelection();
+            return;
         }
 
-        // 🔥 цель умерла
-        if (CurrentTarget != null && !CurrentTarget.IsTargetable)
+        // Left click hold = movement only
+        if (Input.IsDragging)
         {
-            Targeting.ClearTarget();
+            // action is being reset, UI-selection is NOT being touched
+            ClearActionSelection();
+        }
+
+        // If the action object has become invalid
+        if (ActionSelection != null && !ActionSelection.IsSelectable)
+        {
+            ClearActionSelection();
+        }
+
+        // If the UI-selected object has become invalid
+        if (SelectedObject != null && !SelectedObject.IsSelectable)
+        {
+            TargetSelection.Clear();
         }
     }
 
-    // API
+    public void SetActionSelection(ISelectable selectable)
+    {
+        ActionSelection = selectable;
+    }
+
+    public void ClearActionSelection()
+    {
+        ActionSelection = null;
+    }
+
+    public void ClearAllSelections()
+    {
+        ClearActionSelection();
+        TargetSelection.Clear();
+    }
 
     public void MoveTo(Vector3 pos) => Movement.MoveTo(pos);
     public void Stop() => Movement.Stop();
@@ -96,6 +142,8 @@ public class PlayerBrain : MonoBehaviour
 
     public void ChangeToIdle() => StateMachine.ChangeState(IdleState);
     public void ChangeToMove() => StateMachine.ChangeState(MoveState);
-    public void ChangeToChase() => StateMachine.ChangeState(ChaseState);
+    public void ChangeToApproach() => StateMachine.ChangeState(ApproachState);
     public void ChangeToAttack() => StateMachine.ChangeState(AttackState);
+    public void ChangeToInteract() => StateMachine.ChangeState(InteractState);
+    public void ChangeToLoot() => StateMachine.ChangeState(LootState);
 }

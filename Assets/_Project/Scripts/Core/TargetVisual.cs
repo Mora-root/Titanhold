@@ -1,45 +1,37 @@
 using UnityEngine;
 
+/// <summary>
+/// It is responsible for highlighting the target when pointing and displaying the effect when the target is selected
+/// </summary>
 public class TargetVisual : MonoBehaviour
 {
     [SerializeField] private GameObject selectedCircle;
 
     private Renderer[] renderers;
 
-    private bool isSelected;
-    private Color originalEmission;
-
     private void Awake()
     {
         renderers = GetComponentsInChildren<Renderer>();
-        originalEmission = renderers[0].material.GetColor("_EmissionColor");
 
         if (selectedCircle != null)
             selectedCircle.SetActive(false);
     }
 
-    // 🔥 HOVER
     public void SetHover(bool value)
     {
+        // Highlighting
         foreach (var r in renderers)
         {
             if (value)
-            {
                 r.material.EnableKeyword("_EMISSION");
-                r.material.SetColor("_EmissionColor", originalEmission);
-            }
             else
-            {
-                r.material.SetColor("_EmissionColor", Color.black);
-            }
+                r.material.DisableKeyword("_EMISSION");
         }
     }
 
-    // 🔥 SELECT
     public void SetSelected(bool value)
     {
-        isSelected = value;
-
+        // Displaying the effect
         if (selectedCircle != null)
             selectedCircle.SetActive(value);
     }

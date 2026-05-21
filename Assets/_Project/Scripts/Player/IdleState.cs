@@ -15,15 +15,16 @@ public class IdleState : IState
 
     public void Tick()
     {
-        if (brain.CurrentTarget != null)
+        if (brain.ActionSelection != null)
         {
-            brain.ChangeToChase();
+            brain.ChangeToApproach();
             return;
         }
 
         if (brain.Input.HasPosition)
         {
             brain.ChangeToMove();
+            return;
         }
     }
 

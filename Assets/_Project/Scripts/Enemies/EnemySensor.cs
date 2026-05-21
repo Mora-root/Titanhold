@@ -19,7 +19,7 @@ public class EnemySensor : MonoBehaviour
             if (target == null || !target.IsTargetable)
                 continue;
 
-            // не выбираем себя
+            // We don't choose ourselves
             if (target.AimPoint.root == transform)
                 continue;
 

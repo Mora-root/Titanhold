@@ -17,7 +17,6 @@ public class EnemyChaseState : IState
         {
             brain.Wander.SetCenter(brain.transform.position);
             brain.ChangeToIdle();
-            Debug.Log("No target found, switching to idle.");
             return;
         }
 
@@ -29,7 +28,6 @@ public class EnemyChaseState : IState
         if (dist <= brain.Combat.AttackRange)
         {
             brain.ChangeToAttack();
-            Debug.Log("Target within attack range, switching to attack.");
             return;
         }
 
