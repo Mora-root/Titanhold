@@ -4,6 +4,7 @@ public class PlayerAnimator : MonoBehaviour
 {
     private Animator animator;
     private PlayerCombat combat;
+    private PlayerSkillExecutor skillExecutor;
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
@@ -14,6 +15,7 @@ public class PlayerAnimator : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         combat = GetComponentInParent<PlayerCombat>();
+        skillExecutor = GetComponentInParent<PlayerSkillExecutor>();
     }
 
     // Move speed
@@ -38,6 +40,21 @@ public class PlayerAnimator : MonoBehaviour
     public void OnAttackFinished()
     {
         combat.OnAttackFinished();
+    }
+
+    public void PlaySkill(string triggerName)
+    {
+        animator.SetTrigger(triggerName);
+    }
+
+    public void OnSkillHit()
+    {
+        skillExecutor.ApplyCurrentSkill();
+    }
+
+    public void OnSkillFinished()
+    {
+        skillExecutor.FinishCurrentSkill();
     }
 
     // Get damage

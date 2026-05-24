@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a65d2b45d6667d4e812c9ee5ad66037, type: 3}
+  m_Name: Spin
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  SkillName: Spin Attack
+  Icon: {fileID: 0}
+  ResourceCost: 20
+  Cooldown: 3
+  DamageMultiplier: 1.5
+  Radius: 2.5
+  TargetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  AnimatorTrigger: Spin

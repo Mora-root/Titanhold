@@ -5,9 +5,24 @@ public class Health : MonoBehaviour, IDamageable
 {
     [SerializeField] private float maxHealth = 100f;
 
-    public float MaxHealth => maxHealth;
-    public float CurrentHealth { get; private set; }
+    private CharacterStats stats;
 
+    public float MaxHealth
+    {
+        get
+        {
+            if (stats != null)
+            {
+                float statValue = stats.GetValue(StatType.MaxHealth);
+                if (statValue > 0f)
+                    return statValue;
+            }
+
+            return maxHealth;
+        }
+    }
+
+    public float CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0f;
 
     public event Action<float> OnDamage;
@@ -18,8 +33,22 @@ public class Health : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        CurrentHealth = maxHealth;
+        stats = GetComponent<CharacterStats>();
+
+        CurrentHealth = MaxHealth;
         isDead = false;
+    }
+
+    private void OnEnable()
+    {
+        if (stats != null)
+            stats.OnStatChanged += HandleStatChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (stats != null)
+            stats.OnStatChanged -= HandleStatChanged;
     }
 
     private void Start()
@@ -37,8 +66,6 @@ public class Health : MonoBehaviour, IDamageable
 
         OnDamage?.Invoke(damage);
         NotifyHealthChanged();
-
-        Debug.Log($"{gameObject.name} took {damage} damage. HP: {CurrentHealth}/{MaxHealth}");
 
         if (CurrentHealth <= 0f)
         {
@@ -65,6 +92,15 @@ public class Health : MonoBehaviour, IDamageable
         NotifyHealthChanged();
     }
 
+    private void HandleStatChanged(StatType type)
+    {
+        if (type != StatType.MaxHealth)
+            return;
+
+        CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+        NotifyHealthChanged();
+    }
+
     private void Die()
     {
         if (isDead) return;
@@ -80,4 +116,5 @@ public class Health : MonoBehaviour, IDamageable
     {
         OnHealthChanged?.Invoke(CurrentHealth, MaxHealth);
     }
+
 }

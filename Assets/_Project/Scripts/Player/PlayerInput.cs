@@ -10,6 +10,7 @@ public class PlayerInput : MonoBehaviour
     public bool RightClicked { get; private set; }
     public bool IsDragging { get; private set; }
     public bool IsHolding { get; private set; }
+    public bool Skill1Pressed { get; private set; }
 
     private Camera cam;
     private float holdTimer;
@@ -24,6 +25,7 @@ public class PlayerInput : MonoBehaviour
     {
         LeftClicked = false;
         RightClicked = Input.GetMouseButtonDown(1);
+        Skill1Pressed = Input.GetKeyDown(KeyCode.Alpha1);
 
         if (Input.GetMouseButtonDown(0))
         {

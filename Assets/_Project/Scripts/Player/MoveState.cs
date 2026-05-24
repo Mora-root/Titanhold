@@ -28,6 +28,12 @@ public class MoveState : IState
         }
 
         brain.MoveTo(brain.Input.TargetPosition);
+
+        if (brain.Movement.HasReachedDestination())
+        {
+            brain.Input.ClearAll();
+            brain.ChangeToIdle();
+        }
     }
 
     public void Exit()

@@ -7,6 +7,7 @@ public class PlayerBrain : MonoBehaviour
     public PlayerTargeting Targeting { get; private set; }
     public PlayerCombat Combat { get; private set; }
     public TargetSelection TargetSelection { get; private set; }
+    public PlayerSkillExecutor Skills { get; private set; }
 
     public StateMachine StateMachine { get; private set; }
 
@@ -17,10 +18,10 @@ public class PlayerBrain : MonoBehaviour
     public ITargetable CurrentTarget => ActionSelection as ITargetable; // for attack stage
     public IInteractable CurrentInteractable => ActionSelection as IInteractable; // for interact stage
     public ILootable CurrentLoot => ActionSelection as ILootable; // for loot stage
-
     public IState IdleState { get; private set; }
     public IState MoveState { get; private set; }
     public IState ApproachState { get; private set; }
+    public IState SkillState { get; private set; }
     public IState AttackState { get; private set; }
     public IState InteractState { get; private set; }
     public IState LootState { get; private set; }
@@ -31,6 +32,7 @@ public class PlayerBrain : MonoBehaviour
         Movement = GetComponent<PlayerMovement>();
         Targeting = GetComponent<PlayerTargeting>();
         Combat = GetComponent<PlayerCombat>();
+        Skills = GetComponent<PlayerSkillExecutor>();
         TargetSelection = GetComponent<TargetSelection>();
 
         StateMachine = new StateMachine();
@@ -38,6 +40,7 @@ public class PlayerBrain : MonoBehaviour
         IdleState = new IdleState(this);
         MoveState = new MoveState(this);
         ApproachState = new ApproachState(this);
+        SkillState = new SkillState(this);
         AttackState = new AttackState(this);
         InteractState = new InteractState(this);
         LootState = new LootState(this);
@@ -53,11 +56,28 @@ public class PlayerBrain : MonoBehaviour
         HandleInput();
 
         StateMachine.Update();
+        Debug.Log(StateMachine.CurrentState.GetType().Name);
         Movement.Tick();
     }
 
     private void HandleInput()
     {
+        if (Skills.IsUsingSkill)
+        {
+            return;
+        }
+
+        if (Input.Skill1Pressed)
+        {
+            if (Skills.TryUseSkill1())
+            {
+                Combat.CancelAttack();
+
+                Stop();
+                ChangeToSkill();
+                return;
+            }
+        }
         // Right click = for UI-selection
         if (Input.RightClicked)
         {
@@ -143,6 +163,7 @@ public class PlayerBrain : MonoBehaviour
     public void ChangeToIdle() => StateMachine.ChangeState(IdleState);
     public void ChangeToMove() => StateMachine.ChangeState(MoveState);
     public void ChangeToApproach() => StateMachine.ChangeState(ApproachState);
+    public void ChangeToSkill() => StateMachine.ChangeState(SkillState);
     public void ChangeToAttack() => StateMachine.ChangeState(AttackState);
     public void ChangeToInteract() => StateMachine.ChangeState(InteractState);
     public void ChangeToLoot() => StateMachine.ChangeState(LootState);
