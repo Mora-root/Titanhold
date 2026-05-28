@@ -78,3 +78,7 @@ crashlytics-build.properties
 McpUnitySettings.json
 *.url
 .vsconfig
+
+# Internal/private GDD documents
+/Docs/GDD/Full/
+/Docs/GDD/Archive/

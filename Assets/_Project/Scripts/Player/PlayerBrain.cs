@@ -56,7 +56,7 @@ public class PlayerBrain : MonoBehaviour
         HandleInput();
 
         StateMachine.Update();
-        Debug.Log(StateMachine.CurrentState.GetType().Name);
+        // Debug.Log(StateMachine.CurrentState.GetType().Name);
         Movement.Tick();
     }
 
