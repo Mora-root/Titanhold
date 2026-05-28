@@ -16,7 +16,7 @@ public class AttackState : IState
 
     public void Tick()
     {
-        var target = brain.CurrentTarget;
+        var target = brain.CombatTarget;
 
         if (target == null)
         {

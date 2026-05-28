@@ -11,11 +11,14 @@ public class PlayerBrain : MonoBehaviour
 
     public StateMachine StateMachine { get; private set; }
 
-    public ISelectable SelectedObject => TargetSelection.CurrentSelection;
+    public ISelectable InspectTarget => TargetSelection.CurrentSelection;
+    public ISelectable SelectedObject => InspectTarget;
 
     public ISelectable ActionSelection { get; private set; } // get selected target
+    public ISelectable ActionTarget => ActionSelection;
 
-    public ITargetable CurrentTarget => ActionSelection as ITargetable; // for attack stage
+    public ITargetable CombatTarget => ActionSelection as ITargetable;
+    public ITargetable CurrentTarget => CombatTarget; // for attack stage
     public IInteractable CurrentInteractable => ActionSelection as IInteractable; // for interact stage
     public ILootable CurrentLoot => ActionSelection as ILootable; // for loot stage
     public bool HasMoveTarget => Input.CurrentIntent.HasMoveTarget;
