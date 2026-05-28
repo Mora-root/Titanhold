@@ -221,7 +221,34 @@ Basic enemy groups should be satisfying to clear, but the game should avoid beco
 
 ## Threat Meter Direction
 
-Threat Meter is tied to the active Main Camp.
+Threat Meter belongs to the currently active Main Camp, not to a scene, location, act, enemy, or wave spawner.
+
+Player actions anywhere in the world can increase threat for the currently active Main Camp as long as that camp has not been transferred.
+
+The player may travel to previous act locations, future act locations, optional dungeons, event zones, or other exploration areas. Enemy kills and other threat sources still increase threat for the active Main Camp.
+
+Changing location, scene, or act does not reset threat by itself.
+
+Threat resets only when the player confirms the story/gameplay transfer of the Main Camp to a new active camp.
+
+When camp transfer is confirmed:
+
+- the previous Main Camp becomes inactive or becomes an outpost;
+- the new Main Camp becomes the active Main Camp;
+- current threat is reset;
+- pending wave state is cleared;
+- a new active camp threat cycle begins.
+
+Threat can grow from:
+
+- killing regular enemies;
+- killing elite enemies;
+- killing mini-bosses;
+- completing events;
+- progressing story actions;
+- gathering important resources;
+- activating special artifacts;
+- possibly slow passive growth during active gameplay.
 
 When Threat Meter reaches 100%:
 
@@ -232,6 +259,8 @@ When Threat Meter reaches 100%:
 - camp resources or altar systems may delay it later.
 
 Threat should create pressure, not constant annoyance.
+
+For MVP, `ThreatMeter` may exist as a scene component in the prototype scene. Long-term, it should represent the active Main Camp threat and be saved/restored as part of game state.
 
 ## Camp Defense Direction
 

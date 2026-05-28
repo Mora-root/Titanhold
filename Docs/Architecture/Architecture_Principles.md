@@ -267,6 +267,44 @@ Health should not directly handle:
 
 Other systems should react to Health events.
 
+## Threat Architecture Rule
+
+Threat is owned by the currently active Main Camp.
+
+Threat must not be tied directly to:
+
+- Unity scenes;
+- locations;
+- acts;
+- individual enemies;
+- generic Health;
+- legacy WaveSpawner.
+
+Any threat source in the world should report threat gain to the active camp threat system.
+
+Generic Health must not know about threat.
+
+Enemy-specific adapters may convert enemy deaths into threat gain, but the final owner of threat is the currently active Main Camp.
+
+Changing scene, location, or act must not reset threat automatically.
+
+Threat resets only when Main Camp transfer is explicitly confirmed by story/gameplay flow.
+
+For MVP, scene-level components may be used as temporary adapters, but they should be easy to replace with an active camp threat model later.
+
+Good temporary MVP flow:
+
+EnemyDeathNotifier  
+→ EnemyDeathThreatListener  
+→ ThreatMeter.AddThreat(amount)
+
+Long-term direction:
+
+World threat source  
+→ active camp threat system  
+→ active Main Camp threat state  
+→ wave pending / camp defense flow
+
 ## ScriptableObject Usage
 
 ScriptableObjects are useful for:
