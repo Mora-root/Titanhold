@@ -16,7 +16,7 @@ public class IdleState : IState
 
     public void Tick()
     {
-        if (brain.ActionSelection != null)
+        if (brain.ActionTarget != null)
         {
             brain.ChangeToApproach();
             return;

@@ -13,7 +13,7 @@ public class ApproachState : IState
 
     public void Tick()
     {
-        var selection = brain.ActionSelection;
+        var selection = brain.ActionTarget;
 
         if (selection == null || !selection.IsSelectable)
         {
