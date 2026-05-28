@@ -18,9 +18,6 @@ public class IdleState : IState
     {
         if (brain.ActionSelection != null)
         {
-            Debug.Log("Idle sees ActionSelection: " + brain.ActionSelection.GetType().Name);
-            Debug.Log("CurrentTarget null: " + (brain.CurrentTarget == null));
-
             brain.ChangeToApproach();
             return;
         }

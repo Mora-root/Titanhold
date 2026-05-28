@@ -60,7 +60,6 @@ public class PlayerCombat : MonoBehaviour
     // Try attack(called from State)
     public void TryAttack(ITargetable target)
     {
-        Debug.Log($"TryAttack. isAttacking={isAttacking}, canAttack={CanAttack()}");
         if (isAttacking) return;
         if (!CanAttack()) return;
         if (target == null || !target.IsTargetable) return;

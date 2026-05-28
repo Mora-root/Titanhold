@@ -54,10 +54,6 @@ public class PlayerResource : MonoBehaviour
     private void Update()
     {
         Regenerate();
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            TrySpend(20f);
-        }
     }
 
     public bool CanSpend(float amount)
