@@ -11,6 +11,7 @@ public class PlayerInput : MonoBehaviour
     public bool IsDragging { get; private set; }
     public bool IsHolding { get; private set; }
     public bool Skill1Pressed { get; private set; }
+    public PlayerInputIntent CurrentIntent { get; private set; }
 
     private Camera cam;
     private float holdTimer;
@@ -60,6 +61,7 @@ public class PlayerInput : MonoBehaviour
 
             IsDragging = false;
         }
+        RefreshCurrentIntent();
     }
     private void UpdateMousePosition()
     {
@@ -75,5 +77,19 @@ public class PlayerInput : MonoBehaviour
     public void ClearAll()
     {
         HasPosition = false;
+        RefreshCurrentIntent();
+    }
+
+    private void RefreshCurrentIntent()
+    {
+        CurrentIntent = new PlayerInputIntent(
+            TargetPosition,
+            HasPosition,
+            LeftClicked,
+            RightClicked,
+            IsDragging,
+            IsHolding,
+            Skill1Pressed
+        );
     }
 }

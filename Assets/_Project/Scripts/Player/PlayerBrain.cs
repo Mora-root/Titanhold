@@ -18,6 +18,8 @@ public class PlayerBrain : MonoBehaviour
     public ITargetable CurrentTarget => ActionSelection as ITargetable; // for attack stage
     public IInteractable CurrentInteractable => ActionSelection as IInteractable; // for interact stage
     public ILootable CurrentLoot => ActionSelection as ILootable; // for loot stage
+    public bool HasMoveTarget => Input.CurrentIntent.HasMoveTarget;
+    public Vector3 MoveTargetPosition => Input.CurrentIntent.TargetPosition;
     public IState IdleState { get; private set; }
     public IState MoveState { get; private set; }
     public IState ApproachState { get; private set; }
@@ -62,12 +64,14 @@ public class PlayerBrain : MonoBehaviour
 
     private void HandleInput()
     {
+        PlayerInputIntent intent = Input.CurrentIntent;
+
         if (Skills.IsUsingSkill)
         {
             return;
         }
 
-        if (Input.Skill1Pressed)
+        if (intent.Skill1Pressed)
         {
             if (Skills.TryUseSkill1())
             {
@@ -79,7 +83,7 @@ public class PlayerBrain : MonoBehaviour
             }
         }
         // Right click = for UI-selection
-        if (Input.RightClicked)
+        if (intent.RightClicked)
         {
             var selectable = Targeting.GetSelectableUnderMouse();
 
@@ -96,7 +100,7 @@ public class PlayerBrain : MonoBehaviour
         }
 
         // Left click = action
-        if (Input.LeftClicked)
+        if (intent.LeftClicked)
         {
             var selectable = Targeting.GetSelectableUnderMouse();
 
@@ -119,7 +123,7 @@ public class PlayerBrain : MonoBehaviour
         }
 
         // Left click hold = movement only
-        if (Input.IsDragging)
+        if (intent.IsDragging)
         {
             // action is being reset, UI-selection is NOT being touched
             ClearActionSelection();

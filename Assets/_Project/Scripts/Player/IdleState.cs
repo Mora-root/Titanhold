@@ -22,7 +22,7 @@ public class IdleState : IState
             return;
         }
 
-        if (brain.Input.HasPosition)
+        if (brain.HasMoveTarget)
         {
             brain.ChangeToMove();
             return;

@@ -21,13 +21,13 @@ public class MoveState : IState
             return;
         }
 
-        if (!brain.Input.HasPosition)
+        if (!brain.HasMoveTarget)
         {
             brain.ChangeToIdle();
             return;
         }
 
-        brain.MoveTo(brain.Input.TargetPosition);
+        brain.MoveTo(brain.MoveTargetPosition);
 
         if (brain.Movement.HasReachedDestination())
         {
