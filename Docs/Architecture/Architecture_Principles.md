@@ -288,7 +288,19 @@ Enemy-specific adapters may convert enemy deaths into threat gain, but the final
 
 Changing scene, location, or act must not reset threat automatically.
 
-Threat resets only when Main Camp transfer is explicitly confirmed by story/gameplay flow.
+Threat resets when the current active camp threat cycle is resolved.
+
+The current active camp threat cycle can be resolved by:
+
+- successful camp defense;
+- confirmed Main Camp transfer;
+- camp recovery after failed defense.
+
+If camp defense fails, threat is not reset immediately. The camp enters a broken/unresolved state.
+
+During the broken/unresolved state, threat gain should be disabled, frozen, or ignored until recovery.
+
+The full camp recovery system is future scope.
 
 For MVP, scene-level components may be used as temporary adapters, but they should be easy to replace with an active camp threat model later.
 

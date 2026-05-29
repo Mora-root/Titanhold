@@ -229,7 +229,19 @@ The player may travel to previous act locations, future act locations, optional 
 
 Changing location, scene, or act does not reset threat by itself.
 
-Threat resets only when the player confirms the story/gameplay transfer of the Main Camp to a new active camp.
+Threat resets when the current active camp threat cycle is resolved.
+
+The current active camp threat cycle can be resolved by:
+
+- successful camp defense;
+- confirmed Main Camp transfer;
+- camp recovery after failed defense.
+
+If camp defense fails, threat is not reset immediately. The camp enters a broken/unresolved state until a future repair or recovery flow resolves it.
+
+During the broken/unresolved state, threat gain should be disabled, frozen, or ignored until recovery.
+
+The full camp recovery system is future scope.
 
 When camp transfer is confirmed:
 
