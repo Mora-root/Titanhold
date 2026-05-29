@@ -95,6 +95,18 @@ public sealed class CampDefenseWaveController : MonoBehaviour
         return true;
     }
 
+    public bool ResetToIdle()
+    {
+        if (State == CampDefenseWaveState.Running)
+            return false;
+
+        if (State == CampDefenseWaveState.Idle)
+            return false;
+
+        SetState(CampDefenseWaveState.Idle);
+        return true;
+    }
+
     private void HandlePendingStarted()
     {
         if (State == CampDefenseWaveState.Running)

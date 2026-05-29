@@ -5,12 +5,14 @@ public sealed class CampDefenseResolutionController : MonoBehaviour
     [SerializeField] private CampDefenseResultState resultState;
     [SerializeField] private ThreatPendingState pendingState;
     [SerializeField] private ThreatMeter threatMeter;
+    [SerializeField] private CampDefenseWaveController waveController;
 
     private void Awake()
     {
         resultState ??= GetComponent<CampDefenseResultState>();
         pendingState ??= GetComponent<ThreatPendingState>();
         threatMeter ??= GetComponent<ThreatMeter>();
+        waveController ??= GetComponent<CampDefenseWaveController>();
     }
 
     private void OnEnable()
@@ -35,6 +37,7 @@ public sealed class CampDefenseResolutionController : MonoBehaviour
     {
         pendingState?.ClearPending();
         threatMeter?.ResetThreat();
+        waveController?.ResetToIdle();
     }
 
     private void HandleDefenseFailed()

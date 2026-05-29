@@ -7,6 +7,7 @@ public sealed class CampBrokenState : MonoBehaviour
     [SerializeField] private ThreatPendingState pendingState;
     [SerializeField] private ThreatMeter threatMeter;
     [SerializeField] private CampCore campCore;
+    [SerializeField] private CampDefenseWaveController waveController;
 
     public bool IsBroken { get; private set; }
 
@@ -19,6 +20,7 @@ public sealed class CampBrokenState : MonoBehaviour
         pendingState ??= GetComponent<ThreatPendingState>();
         threatMeter ??= GetComponent<ThreatMeter>();
         campCore ??= FindAnyObjectByType<CampCore>();
+        waveController ??= GetComponent<CampDefenseWaveController>();
     }
 
     private void OnEnable()
@@ -46,6 +48,7 @@ public sealed class CampBrokenState : MonoBehaviour
         campCore?.Health?.RestoreFull();
         pendingState?.ClearPending();
         threatMeter?.ResetThreat();
+        waveController?.ResetToIdle();
         OnCampRestored?.Invoke();
     }
 
