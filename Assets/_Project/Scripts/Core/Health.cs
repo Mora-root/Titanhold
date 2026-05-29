@@ -86,9 +86,8 @@ public class Health : MonoBehaviour, IDamageable
 
     public void RestoreFull()
     {
-        if (isDead) return;
-
         CurrentHealth = MaxHealth;
+        isDead = false;
         NotifyHealthChanged();
     }
 
