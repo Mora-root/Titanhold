@@ -15,6 +15,7 @@ public sealed class CampDefenseWaveController : MonoBehaviour
     [SerializeField] private ThreatPendingState pendingState;
     [SerializeField] private CampCore campCore;
     [SerializeField] private CampDefenseEnemyRegistry enemyRegistry;
+    [SerializeField] private CampDefenseEnemySpawner enemySpawner;
 
     public CampDefenseWaveState State { get; private set; } = CampDefenseWaveState.Idle;
     public bool IsPending => State == CampDefenseWaveState.Pending;
@@ -29,7 +30,8 @@ public sealed class CampDefenseWaveController : MonoBehaviour
     {
         pendingState ??= GetComponent<ThreatPendingState>();
         enemyRegistry ??= GetComponent<CampDefenseEnemyRegistry>();
-        campCore ??= FindFirstObjectByType<CampCore>();
+        enemySpawner ??= GetComponent<CampDefenseEnemySpawner>();
+        campCore ??= FindAnyObjectByType<CampCore>();
     }
 
     private void OnEnable()
@@ -79,6 +81,13 @@ public sealed class CampDefenseWaveController : MonoBehaviour
             return false;
 
         if (campCore == null || campCore.IsDestroyed)
+            return false;
+
+        if (enemySpawner == null)
+            return false;
+
+        int spawnedEnemies = enemySpawner.SpawnEnemies();
+        if (spawnedEnemies <= 0)
             return false;
 
         SetState(CampDefenseWaveState.Running);
