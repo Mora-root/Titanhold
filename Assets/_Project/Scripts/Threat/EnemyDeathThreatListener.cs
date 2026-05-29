@@ -3,6 +3,7 @@ using UnityEngine;
 public sealed class EnemyDeathThreatListener : MonoBehaviour
 {
     [SerializeField] private ThreatMeter threatMeter;
+    [SerializeField] private CampBrokenState campBrokenState;
     [SerializeField] private float threatAmountPerEnemy = 10f;
 
     private EnemyDeathNotifier[] notifiers;
@@ -13,6 +14,8 @@ public sealed class EnemyDeathThreatListener : MonoBehaviour
         {
             threatMeter = GetComponent<ThreatMeter>();
         }
+
+        campBrokenState ??= GetComponent<CampBrokenState>();
 
         notifiers = FindObjectsByType<EnemyDeathNotifier>(FindObjectsSortMode.None);
     }
@@ -48,6 +51,9 @@ public sealed class EnemyDeathThreatListener : MonoBehaviour
     private void HandleEnemyDied(EnemyDeathNotifier notifier)
     {
         if (threatMeter == null)
+            return;
+
+        if (campBrokenState != null && campBrokenState.IsBroken)
             return;
 
         threatMeter.AddThreat(threatAmountPerEnemy);
