@@ -6,12 +6,19 @@ using UnityEngine;
 public class TargetVisual : MonoBehaviour
 {
     [SerializeField] private GameObject selectedCircle;
+    [SerializeField] private Color hoverEmissionColor = new Color(77f / 255f, 75f / 255f, 75f / 255f);
+    [SerializeField] private float hoverEmissionIntensity = 0.5f;
 
     private Renderer[] renderers;
+    private Material[] materials;
 
     private void Awake()
     {
         renderers = GetComponentsInChildren<Renderer>();
+        materials = new Material[renderers.Length];
+
+        for (int i = 0; i < renderers.Length; i++)
+            materials[i] = renderers[i].material;
 
         if (selectedCircle != null)
             selectedCircle.SetActive(false);
@@ -20,12 +27,20 @@ public class TargetVisual : MonoBehaviour
     public void SetHover(bool value)
     {
         // Highlighting
-        foreach (var r in renderers)
+        foreach (var material in materials)
         {
+            if (material == null)
+                continue;
+
             if (value)
-                r.material.EnableKeyword("_EMISSION");
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", hoverEmissionColor * hoverEmissionIntensity);
+            }
             else
-                r.material.DisableKeyword("_EMISSION");
+            {
+                material.DisableKeyword("_EMISSION");
+            }
         }
     }
 

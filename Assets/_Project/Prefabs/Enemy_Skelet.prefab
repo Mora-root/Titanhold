@@ -844,6 +844,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TargetVisual
   selectedCircle: {fileID: 7477833869656331802}
+  hoverEmissionColor: {r: 0.3019608, g: 0.29411766, b: 0.29411766, a: 1}
+  hoverEmissionIntensity: 0.5
 --- !u!114 &3836056628169683021
 MonoBehaviour:
   m_ObjectHideFlags: 0
