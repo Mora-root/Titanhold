@@ -20,6 +20,8 @@ Threat belongs to the currently active Main Camp.
 
 Threat does not belong to the current scene, location, or act.
 
+Threat Meter represents accumulated Camp Crystal resonance / charge for the active Main Camp.
+
 ## Camp Defense Loop
 
 Current prototype chain:
@@ -49,6 +51,18 @@ Main components in the current loop:
 - `CampBrokenState`
 - `CampCore`
 
+Camp Crystal / CampCore is the primary camp-defense command object. In the prototype scene, this object may be named Camp Crystal.
+
+Camp Crystal concentrates monster death energy / resonance, powers the camp, and is the main target of camp-defense enemies.
+
+The player interacts with Camp Crystal to start a pending camp-defense wave, restore/recover a broken camp, and later open camp overview / management UI.
+
+If Camp Crystal is destroyed, many camp buildings/functions stop working until recovery.
+
+`CampCommandInteractable` may be used on the Camp Crystal object for the current MVP. In the prototype scene, Camp Crystal / CampCore is the intended player-facing start/recovery interactable.
+
+Altar / Resonance Altar is future secondary building for wave modifiers/resources, not the primary start/restore object.
+
 `EnemyThreatSource` is the current MVP path for enemy threat gain. It lives on enemy prefabs that should grant threat when they die.
 
 MVP: any death of an enemy with `EnemyThreatSource` grants threat.
@@ -61,15 +75,23 @@ World enemies may have `EnemyThreatSource`. Future wave enemies may use a separa
 
 World enemy prefabs and camp-defense wave enemy prefabs should be separate long-term.
 
-World enemies may have `EnemyThreatSource` and generate active Main Camp threat.
+World enemies can use `EnemyThreatSource` and normal `EnemySensor` targeting.
 
 Camp-defense wave enemies should usually not have `EnemyThreatSource`, because the wave is already the result of accumulated threat.
+
+Wave enemies use `WaveEnemyTargetProvider`.
+
+Wave enemies target CampCore through `CampCoreTarget` as their primary objective.
+
+Wave enemies may temporarily switch to nearby local aggro targets through `EnemySensor`.
 
 Wave enemies need separate behavior focused on CampCore / camp attack logic.
 
 `CampDefenseEnemySpawner` should use wave-specific enemy prefabs long-term, not generic world enemy prefabs.
 
 For the current MVP, shared prefab usage is acceptable temporarily only for testing.
+
+Current MVP still uses `AimPoint` for CampCore targeting. Large target approach points / closest-point targeting are future scope.
 
 ## Temporary Debug Helpers
 
@@ -105,7 +127,7 @@ Do not build new systems on top of:
 
 Replace debug keys with player-facing flows:
 
-- interactable camp altar or camp command object;
+- interactable Camp Crystal / CampCore command object;
 - player-facing start-wave action;
 - player-facing camp recovery action;
 - minimal UI feedback for threat, pending wave, camp broken state, and camp defense result;

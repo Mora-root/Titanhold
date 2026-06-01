@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PlayerInput : MonoBehaviour
 {
@@ -27,6 +28,17 @@ public class PlayerInput : MonoBehaviour
         LeftClicked = false;
         RightClicked = Input.GetMouseButtonDown(1);
         Skill1Pressed = Input.GetKeyDown(KeyCode.Alpha1);
+
+        if (IsPointerOverUi())
+        {
+            LeftClicked = false;
+            RightClicked = false;
+            Skill1Pressed = false;
+            IsHolding = false;
+            IsDragging = false;
+            RefreshCurrentIntent();
+            return;
+        }
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -78,6 +90,11 @@ public class PlayerInput : MonoBehaviour
     {
         HasPosition = false;
         RefreshCurrentIntent();
+    }
+
+    private bool IsPointerOverUi()
+    {
+        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
     }
 
     private void RefreshCurrentIntent()

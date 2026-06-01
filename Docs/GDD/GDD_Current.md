@@ -223,6 +223,10 @@ Basic enemy groups should be satisfying to clear, but the game should avoid beco
 
 Threat Meter belongs to the currently active Main Camp, not to a scene, location, act, enemy, or wave spawner.
 
+Threat Meter represents accumulated Camp Crystal resonance / charge for the currently active Main Camp.
+
+The Camp Crystal / CampCore concentrates monster death energy and resonance. This energy powers the camp and attracts camp-defense pressure.
+
 Player actions anywhere in the world can increase threat for the currently active Main Camp as long as that camp has not been transferred.
 
 The player may travel to previous act locations, future act locations, optional dungeons, event zones, or other exploration areas. Enemy kills and other threat sources still increase threat for the active Main Camp.
@@ -278,6 +282,20 @@ For MVP, `ThreatMeter` may exist as a scene component in the prototype scene. Lo
 
 Waves are not strictly lane-based tower defense.
 
+The Camp Crystal / CampCore is the primary camp-defense command object.
+
+In prototype scenes, this object may be named Camp Crystal.
+
+The player interacts with the Camp Crystal to:
+
+- start a pending camp-defense wave;
+- restore or recover a broken camp;
+- later open camp overview / management UI.
+
+The Altar / Resonance Altar is a future secondary building for wave modifiers and resource interactions. It is not the primary start / restore object.
+
+For the current MVP, the `CampCommandInteractable` code component may be used on the Camp Crystal object.
+
 Enemies may spawn from:
 
 - portals;
@@ -286,6 +304,10 @@ Enemies may spawn from:
 - invasion routes.
 
 Enemies move toward the active camp, especially CampCore.
+
+Wave enemies attack the Camp Crystal because it powers the camp.
+
+If the Camp Crystal is destroyed, many camp buildings and functions stop working until recovery.
 
 The player may help defend the camp directly.
 

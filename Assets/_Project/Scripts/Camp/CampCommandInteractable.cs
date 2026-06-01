@@ -6,6 +6,7 @@ public sealed class CampCommandInteractable : MonoBehaviour, ISelectable, IInter
     [SerializeField] private float interactionRange = 2f;
     [SerializeField] private CampDefenseWaveController waveController;
     [SerializeField] private CampBrokenState campBrokenState;
+    [SerializeField] private CampCrystalUIController uiController;
 
     private TargetVisual visual;
 
@@ -19,6 +20,7 @@ public sealed class CampCommandInteractable : MonoBehaviour, ISelectable, IInter
         interactionPoint ??= transform;
         waveController ??= GetComponent<CampDefenseWaveController>();
         campBrokenState ??= GetComponent<CampBrokenState>();
+        uiController ??= FindAnyObjectByType<CampCrystalUIController>();
         visual = GetComponent<TargetVisual>();
         visual ??= GetComponentInChildren<TargetVisual>();
     }
@@ -40,16 +42,7 @@ public sealed class CampCommandInteractable : MonoBehaviour, ISelectable, IInter
 
     public void Interact(GameObject interactor)
     {
-        if (campBrokenState != null && campBrokenState.IsBroken)
-        {
-            campBrokenState.RestoreCamp();
-            return;
-        }
-
-        if (waveController != null && waveController.IsPending)
-        {
-            waveController.StartWave();
-            return;
-        }
+        if (uiController != null)
+            uiController.Open();
     }
 }
