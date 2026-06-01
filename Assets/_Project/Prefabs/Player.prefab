@@ -427,6 +427,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3599715022753898514}
   - component: {fileID: 2050383354791928277}
+  - component: {fileID: 6483142943095348885}
   - component: {fileID: 3229633119767605518}
   - component: {fileID: 5016212933671212991}
   - component: {fileID: 3672375579921866964}
@@ -487,6 +488,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.6251631, y: 1.5330794, z: 0.6628883}
   m_Center: {x: -0.029882908, y: 0.68999994, z: -0.012971997}
+--- !u!54 &6483142943095348885
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!195 &3229633119767605518
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -523,7 +551,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HoverSystem
   hoverMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 3136
 --- !u!114 &3672375579921866964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -604,7 +632,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 500
+  maxHealth: 1000
 --- !u!114 &641616322222190009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -620,7 +648,7 @@ MonoBehaviour:
   cam: {fileID: 0}
   selectableMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 3136
   maxDistance: 100
 --- !u!114 &3828318251305199153
 MonoBehaviour:

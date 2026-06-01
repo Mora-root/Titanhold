@@ -751,22 +751,22 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8379852873407926100}
-  - component: {fileID: 2959683033640946707}
+  - component: {fileID: 4462649946470709643}
   - component: {fileID: 1599844134348163838}
-  - component: {fileID: 6847053182177605283}
-  - component: {fileID: 1731386706897058923}
   - component: {fileID: 3836056628169683021}
-  - component: {fileID: 6639298528611623125}
-  - component: {fileID: 362555766084305464}
-  - component: {fileID: 2336442229512062148}
   - component: {fileID: 7886035149588280571}
+  - component: {fileID: 6639298528611623125}
+  - component: {fileID: 6847053182177605283}
+  - component: {fileID: 362555766084305464}
   - component: {fileID: 5409151741443721188}
-  - component: {fileID: 6602476250708817451}
-  - component: {fileID: 6698423454645219180}
   - component: {fileID: 1053468204614456103}
   - component: {fileID: -2720458880653430516}
+  - component: {fileID: 2336442229512062148}
+  - component: {fileID: 1731386706897058923}
+  - component: {fileID: 6698423454645219180}
+  - component: {fileID: 6602476250708817451}
   m_Layer: 6
-  m_Name: Enemy_Skelet
+  m_Name: Skelet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -790,8 +790,8 @@ Transform:
   - {fileID: 2458892883378750400}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &2959683033640946707
-BoxCollider:
+--- !u!136 &4462649946470709643
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -808,9 +808,11 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.72, y: 3.45, z: 1.73}
-  m_Center: {x: 0, y: 1.0691936, z: 0}
+  serializedVersion: 2
+  m_Radius: 1
+  m_Height: 3.0928967
+  m_Direction: 1
+  m_Center: {x: 0, y: 1.046447, z: 0}
 --- !u!195 &1599844134348163838
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -833,6 +835,46 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 0
+--- !u!114 &3836056628169683021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b7a05a851e823248965a610cf911c84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyBrain
+  targetProviderBehaviour: {fileID: 0}
+--- !u!114 &7886035149588280571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb84c54346b68124a8985d2e8e1a584e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
+  attackCooldown: 1
+  attackRange: 1.4
+  damage: 10
+--- !u!114 &6639298528611623125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71390a4d299589c449fc8bd94f761f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
 --- !u!114 &6847053182177605283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -849,46 +891,6 @@ MonoBehaviour:
   threatMeter: {fileID: 0}
   campBrokenState: {fileID: 0}
   threatAmount: 10
---- !u!114 &1731386706897058923
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 27bbb0710c88d3747996e1cff35fbfcc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TargetVisual
-  selectedCircle: {fileID: 7477833869656331802}
-  hoverEmissionColor: {r: 0.3019608, g: 0.29411766, b: 0.29411766, a: 1}
-  hoverEmissionIntensity: 0.5
---- !u!114 &3836056628169683021
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b7a05a851e823248965a610cf911c84, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyBrain
-  targetProviderBehaviour: {fileID: 0}
---- !u!114 &6639298528611623125
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71390a4d299589c449fc8bd94f761f1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyMovement
 --- !u!114 &362555766084305464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -905,36 +907,6 @@ MonoBehaviour:
   mask:
     serializedVersion: 2
     m_Bits: 128
---- !u!114 &2336442229512062148
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3ca1d78f0a48364b89119da8020e4d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WanderComponent
-  smallRadius: 5
-  bigRadius: 15
-  centerChangeInterval: 20
---- !u!114 &7886035149588280571
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb84c54346b68124a8985d2e8e1a584e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
-  attackCooldown: 1
-  attackRange: 1.4
-  damage: 10
 --- !u!114 &5409151741443721188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -948,34 +920,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyTarget
   aimPoint: {fileID: 7498689799498869675}
---- !u!114 &6602476250708817451
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
---- !u!114 &6698423454645219180
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2618309436736559858}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5dde0bd43179ff742b5b8106bf66936d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TargetInfo
-  displayName: Skelet
-  level: 1
-  icon: {fileID: 0}
 --- !u!114 &1053468204614456103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1002,6 +946,64 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathDespawn
   deathNotifier: {fileID: 1053468204614456103}
   despawnDelay: 3
+--- !u!114 &2336442229512062148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ca1d78f0a48364b89119da8020e4d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WanderComponent
+  smallRadius: 5
+  bigRadius: 15
+  centerChangeInterval: 20
+--- !u!114 &1731386706897058923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27bbb0710c88d3747996e1cff35fbfcc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetVisual
+  selectedCircle: {fileID: 7477833869656331802}
+  hoverEmissionColor: {r: 0.3019608, g: 0.29411766, b: 0.29411766, a: 1}
+  hoverEmissionIntensity: 0.5
+--- !u!114 &6698423454645219180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dde0bd43179ff742b5b8106bf66936d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetInfo
+  displayName: Skelet
+  level: 1
+  icon: {fileID: 0}
+--- !u!114 &6602476250708817451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Health
+  maxHealth: 100
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0
