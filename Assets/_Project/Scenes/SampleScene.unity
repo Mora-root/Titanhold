@@ -1652,7 +1652,7 @@ Transform:
   m_GameObject: {fileID: 305495722}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.5, z: 14.8}
+  m_LocalPosition: {x: -3.53, y: 0.5, z: 22.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2127,7 +2127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c28475a67ae93846afc91c98f74d4fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CampDefenseEnemySpawner
-  enemyPrefab: {fileID: 2618309436736559858, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+  enemyPrefab: {fileID: 2618309436736559858, guid: 9ff5294e7da63264cbb224154c55ef00, type: 3}
   spawnPoints:
   - {fileID: 1390466413}
   - {fileID: 26511948}
@@ -4102,6 +4102,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 777805781}
   m_CullTransparentMesh: 1
+--- !u!1 &816686411
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 816686412}
+  m_Layer: 11
+  m_Name: AimPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &816686412
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816686411}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 5.158, y: 0.746, z: 1.795}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1040821014}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &830074646
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4667,6 +4698,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 1000
+--- !u!4 &1040821014 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6326981041706057930, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+  m_PrefabInstance: {fileID: 6957221806455858554}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1040821015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4679,7 +4715,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43fa67a698738d14cb9fa143cf1028a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CampCoreTarget
-  aimPoint: {fileID: 0}
+  aimPoint: {fileID: 816686412}
   campCore: {fileID: 1040821012}
   health: {fileID: 1040821013}
 --- !u!1001 &1078681756
@@ -7878,20 +7914,40 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 590089129049037201, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 590089129049037201, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 1090293674448991389, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 1090293674448991389, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 2376660392561580725, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2376660392561580725, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 3189138101698002095, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3189138101698002095, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 3552337862096364383, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 3552337862096364383, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -7902,28 +7958,56 @@ PrefabInstance:
       value: Castle
       objectReference: {fileID: 0}
     - target: {fileID: 3664640628839066610, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 3664640628839066610, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 4246405224737102489, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 4246405224737102489, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 4827826958627375087, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4827826958627375087, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 5047444676211560604, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 5047444676211560604, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 5422333559981645191, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5422333559981645191, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 5730801549288204204, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5730801549288204204, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 6228463459814936879, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 6228463459814936879, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -7970,8 +8054,16 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7849042968759881741, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 7849042968759881741, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 9068835563359683603, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      propertyPath: m_Layer
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 9068835563359683603, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       propertyPath: m_StaticEditorFlags
@@ -7979,7 +8071,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6326981041706057930, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 816686412}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3664640628839066610, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       insertIndex: -1
