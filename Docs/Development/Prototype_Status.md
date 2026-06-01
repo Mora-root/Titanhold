@@ -15,6 +15,7 @@ This document summarizes the current prototype state for daily development.
 - Registry tracks alive enemies.
 - Victory/defeat.
 - Resolution/recovery.
+- Camp Crystal UI for player-facing start/recovery actions.
 
 Threat belongs to the currently active Main Camp.
 
@@ -50,12 +51,32 @@ Main components in the current loop:
 - `CampDefenseResolutionController`
 - `CampBrokenState`
 - `CampCore`
+- `CampCommandInteractable`
+- `CampCrystalUIController`
 
 Camp Crystal / CampCore is the primary camp-defense command object. In the prototype scene, this object may be named Camp Crystal.
 
 Camp Crystal concentrates monster death energy / resonance, powers the camp, and is the main target of camp-defense enemies.
 
-The player interacts with Camp Crystal to start a pending camp-defense wave, restore/recover a broken camp, and later open camp overview / management UI.
+Camp Crystal / CampCore is now the primary player-facing camp command object.
+
+The player interacts with Camp Crystal to open Camp Crystal UI.
+
+Camp Crystal UI can:
+
+- show threat current/max;
+- show pending state;
+- show wave state;
+- show broken state;
+- show CampCore health;
+- start a pending camp-defense wave;
+- restore a broken camp.
+
+`CampCommandInteractable` now opens Camp Crystal UI instead of directly starting a wave or restoring the camp.
+
+Player gameplay input is ignored while the pointer is over UI, so UI button clicks should not create movement commands.
+
+Long-term, Camp Crystal UI can also open camp overview / management UI.
 
 If Camp Crystal is destroyed, many camp buildings/functions stop working until recovery.
 
@@ -104,6 +125,8 @@ These components are prototype helpers and should be replaced before production-
 
 Debug helpers are acceptable only for prototype scenes and local testing. Do not build player-facing gameplay on top of debug key input.
 
+They still exist as temporary fallback/local testing tools only. Player-facing camp defense flow should go through Camp Crystal interaction and Camp Crystal UI.
+
 ## Legacy Tower-Defense Systems
 
 The old tower-defense prototype should not be used as the foundation for the new camp-defense architecture.
@@ -132,3 +155,10 @@ Replace debug keys with player-facing flows:
 - player-facing camp recovery action;
 - minimal UI feedback for threat, pending wave, camp broken state, and camp defense result;
 - next implementation direction should replace prototype input with interaction-driven gameplay, not expand debug helpers.
+
+Next intended enemy work:
+
+- enemy death animation;
+- delayed cleanup/despawn after death;
+- respawn flow for world enemies;
+- keep wave enemies and world enemies separate.

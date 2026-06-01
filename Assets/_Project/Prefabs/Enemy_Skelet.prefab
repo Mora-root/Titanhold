@@ -764,6 +764,7 @@ GameObject:
   - component: {fileID: 6602476250708817451}
   - component: {fileID: 6698423454645219180}
   - component: {fileID: 1053468204614456103}
+  - component: {fileID: -2720458880653430516}
   m_Layer: 6
   m_Name: Enemy_Skelet
   m_TagString: Untagged
@@ -875,6 +876,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b7a05a851e823248965a610cf911c84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBrain
+  targetProviderBehaviour: {fileID: 0}
 --- !u!114 &6639298528611623125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -986,6 +988,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a598a0b1d3e2924f8606ab26e76a169, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathNotifier
+--- !u!114 &-2720458880653430516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67f3b9157a54d4b4bbaed0fef870dc99, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathDespawn
+  deathNotifier: {fileID: 1053468204614456103}
+  despawnDelay: 3
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0
