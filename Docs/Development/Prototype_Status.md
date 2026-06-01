@@ -9,7 +9,7 @@ This document summarizes the current prototype state for daily development.
 - Basic combat.
 - Health.
 - Enemy death.
-- Enemy death -> active Main Camp threat.
+- Enemy death -> `EnemyThreatSource` on enemy prefab -> active Main Camp threat.
 - Threat -> pending wave.
 - Start wave -> spawn enemies.
 - Registry tracks alive enemies.
@@ -38,7 +38,7 @@ enemy death
 Main components in the current loop:
 
 - `EnemyDeathNotifier`
-- `EnemyDeathThreatListener`
+- `EnemyThreatSource`
 - `ThreatMeter`
 - `ThreatPendingState`
 - `CampDefenseWaveController`
@@ -48,6 +48,28 @@ Main components in the current loop:
 - `CampDefenseResolutionController`
 - `CampBrokenState`
 - `CampCore`
+
+`EnemyThreatSource` is the current MVP path for enemy threat gain. It lives on enemy prefabs that should grant threat when they die.
+
+MVP: any death of an enemy with `EnemyThreatSource` grants threat.
+
+Future: threat gain should require player-attributed `DeathContext` / `DamageContext`.
+
+World enemies may have `EnemyThreatSource`. Future wave enemies may use a separate prefab without `EnemyThreatSource` if wave enemies should not generate threat.
+
+`EnemyDeathThreatListener` is an older temporary scene-level adapter. It should not be used as the foundation for respawn/spawn enemies because it only tracks notifiers found in the scene during its initialization.
+
+World enemy prefabs and camp-defense wave enemy prefabs should be separate long-term.
+
+World enemies may have `EnemyThreatSource` and generate active Main Camp threat.
+
+Camp-defense wave enemies should usually not have `EnemyThreatSource`, because the wave is already the result of accumulated threat.
+
+Wave enemies need separate behavior focused on CampCore / camp attack logic.
+
+`CampDefenseEnemySpawner` should use wave-specific enemy prefabs long-term, not generic world enemy prefabs.
+
+For the current MVP, shared prefab usage is acceptable temporarily only for testing.
 
 ## Temporary Debug Helpers
 

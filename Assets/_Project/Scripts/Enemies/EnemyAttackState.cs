@@ -18,7 +18,7 @@ public class EnemyAttackState : IState
 
     public void Tick()
     {
-        var target = brain.Sensor.GetTarget();
+        var target = brain.GetTarget();
 
         if (target == null)
         {

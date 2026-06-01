@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EnemyBrain : MonoBehaviour
 {
+    [SerializeField] private MonoBehaviour targetProviderBehaviour;
+
     public EnemyMovement Movement { get; private set; }
     public EnemyCombat Combat { get; private set; }
     public EnemySensor Sensor { get; private set; }
@@ -10,6 +12,7 @@ public class EnemyBrain : MonoBehaviour
 
     private StateMachine stateMachine;
     private Health health;
+    private IEnemyTargetProvider targetProvider;
     private bool isDead;
 
     private IState idleState;
@@ -27,6 +30,11 @@ public class EnemyBrain : MonoBehaviour
         Sensor = GetComponent<EnemySensor>();
         Wander = GetComponent<WanderComponent>();
         health = GetComponent<Health>();
+
+        if (targetProviderBehaviour != null)
+            targetProvider = targetProviderBehaviour as IEnemyTargetProvider;
+        else
+            targetProvider = GetComponent<IEnemyTargetProvider>();
 
         stateMachine = new StateMachine();
 
@@ -90,6 +98,14 @@ public class EnemyBrain : MonoBehaviour
     public bool CanAttack()
     {
         return Combat.CanAttack();
+    }
+
+    public ITargetable GetTarget()
+    {
+        if (targetProvider != null)
+            return targetProvider.GetTarget();
+
+        return Sensor != null ? Sensor.GetTarget() : null;
     }
 
     public void ChangeToIdle() => stateMachine.ChangeState(idleState);

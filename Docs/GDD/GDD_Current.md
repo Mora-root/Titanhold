@@ -291,6 +291,18 @@ The player may help defend the camp directly.
 
 Camp defenses may help, but the player character remains important.
 
+World enemy prefabs and camp-defense wave enemy prefabs should be separate long-term.
+
+World enemies may have `EnemyThreatSource` and generate threat for the currently active Main Camp.
+
+Camp-defense wave enemies should usually not have `EnemyThreatSource`, because the wave is already the result of accumulated threat.
+
+Wave enemies need separate behavior focused on CampCore / camp attack logic.
+
+`CampDefenseEnemySpawner` should use wave-specific enemy prefabs long-term, not generic world enemy prefabs.
+
+For the current MVP, shared prefab usage is acceptable temporarily only for testing.
+
 ## Failure Direction
 
 If CampCore is destroyed:

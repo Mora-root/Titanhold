@@ -2034,7 +2034,6 @@ GameObject:
   - component: {fileID: 372994636}
   - component: {fileID: 372994638}
   - component: {fileID: 372994639}
-  - component: {fileID: 372994635}
   - component: {fileID: 372994640}
   - component: {fileID: 372994641}
   - component: {fileID: 372994644}
@@ -2047,21 +2046,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &372994635
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 372994634}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fee7245e363bd3b4ebae61faa1d331a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathThreatListener
-  threatMeter: {fileID: 372994636}
-  campBrokenState: {fileID: 372994645}
-  threatAmountPerEnemy: 10
 --- !u!114 &372994636
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4683,6 +4667,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 1000
+--- !u!114 &1040821015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1040821010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43fa67a698738d14cb9fa143cf1028a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CampCoreTarget
+  aimPoint: {fileID: 0}
+  campCore: {fileID: 1040821012}
+  health: {fileID: 1040821013}
 --- !u!1001 &1078681756
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7756,10 +7755,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Enemy_Skelet
       objectReference: {fileID: 0}
-    - target: {fileID: 2618309436736559858, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
+    - target: {fileID: 6847053182177605283, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: threatMeter
+      value: 
+      objectReference: {fileID: 372994636}
+    - target: {fileID: 6847053182177605283, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+      propertyPath: campBrokenState
+      value: 
+      objectReference: {fileID: 372994645}
     - target: {fileID: 8379852873407926100, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.05358
@@ -7984,6 +7987,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3664640628839066610, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1040821012}
+    - targetCorrespondingSourceObject: {fileID: 3664640628839066610, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1040821015}
   m_SourcePrefab: {fileID: 100100000, guid: 11198d0cac967ae47a6934782cc7b8a7, type: 3}
 --- !u!4 &8744477821165718855 stripped
 Transform:
