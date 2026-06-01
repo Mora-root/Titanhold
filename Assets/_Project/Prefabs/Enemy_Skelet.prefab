@@ -753,6 +753,7 @@ GameObject:
   - component: {fileID: 8379852873407926100}
   - component: {fileID: 2959683033640946707}
   - component: {fileID: 1599844134348163838}
+  - component: {fileID: 6847053182177605283}
   - component: {fileID: 1731386706897058923}
   - component: {fileID: 3836056628169683021}
   - component: {fileID: 6639298528611623125}
@@ -831,6 +832,22 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 0
+--- !u!114 &6847053182177605283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22287dd1ac5a2d74a8e72733e8d5cd0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyThreatSource
+  deathNotifier: {fileID: 1053468204614456103}
+  threatMeter: {fileID: 0}
+  campBrokenState: {fileID: 0}
+  threatAmount: 10
 --- !u!114 &1731386706897058923
 MonoBehaviour:
   m_ObjectHideFlags: 0
