@@ -21,6 +21,22 @@ public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
         visual = GetComponent<TargetVisual>();
     }
 
+    private void OnEnable()
+    {
+        if (health != null)
+        {
+            health.OnDeath += HandleDeath;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (health != null)
+        {
+            health.OnDeath -= HandleDeath;
+        }
+    }
+
     public void OnSelected()
     {
         visual?.SetSelected(true);
@@ -33,11 +49,20 @@ public class EnemyTarget : MonoBehaviour, ITargetable, ISelectable, IHoverable
 
     public void OnHoverEnter()
     {
+        if (!IsSelectable)
+            return;
+
         visual?.SetHover(true);
     }
 
     public void OnHoverExit()
     {
         visual?.SetHover(false);
+    }
+
+    private void HandleDeath()
+    {
+        visual?.SetHover(false);
+        visual?.SetSelected(false);
     }
 }
