@@ -10,6 +10,7 @@ This document summarizes the current prototype state for daily development.
 - Health.
 - Enemy death.
 - Enemy death -> `EnemyThreatSource` on enemy prefab -> active Main Camp threat.
+- Enemy death -> `EnemyRewardSource` on enemy prefab -> `PlayerExperience`.
 - Threat -> pending wave.
 - Start wave -> spawn enemies.
 - Registry tracks alive enemies.
@@ -42,6 +43,9 @@ Main components in the current loop:
 
 - `EnemyDeathNotifier`
 - `EnemyThreatSource`
+- `EnemyRewardSource`
+- `PlayerExperience`
+- `PlayerExperienceHUD`
 - `ThreatMeter`
 - `ThreatPendingState`
 - `CampDefenseWaveController`
@@ -93,6 +97,49 @@ Future: threat gain should require player-attributed `DeathContext` / `DamageCon
 World enemies may have `EnemyThreatSource`. Future wave enemies may use a separate prefab without `EnemyThreatSource` if wave enemies should not generate threat.
 
 `EnemyDeathThreatListener` is an older temporary scene-level adapter. It should not be used as the foundation for respawn/spawn enemies because it only tracks notifiers found in the scene during its initialization.
+
+`PlayerExperience` is the current MVP runtime XP component.
+
+It currently:
+
+- stores `CurrentExperience`;
+- exposes `AddExperience(int amount)`;
+- invokes `OnExperienceChanged` when XP changes.
+
+`EnemyRewardSource` is the current enemy-side XP reward adapter.
+
+It currently:
+
+- listens to `EnemyDeathNotifier.Died`;
+- adds XP to `PlayerExperience`;
+- uses an `experienceAmount` value on the enemy component.
+
+MVP: any death of an enemy with `EnemyRewardSource` grants XP.
+
+Future: XP gain should require player-attributed `DeathContext` / `DamageContext` before granting XP.
+
+World enemies and wave enemies can both give XP through `EnemyRewardSource`.
+
+`PlayerExperienceHUD` shows the current XP value in the HUD through TMP text.
+
+Current XP HUD scope:
+
+- text-only XP display;
+- no level-up;
+- no XP curve;
+- no XP bar;
+- no save/load.
+
+Threat and XP are separate systems:
+
+- world enemies can give Threat through `EnemyThreatSource`;
+- wave enemies usually should not give Threat;
+- both world enemies and wave enemies can give XP through `EnemyRewardSource`.
+
+Current tested behavior:
+
+- world enemy death -> XP text grows and Threat grows;
+- wave enemy death -> XP text grows, Threat does not grow.
 
 Current enemy death flow:
 
@@ -195,6 +242,15 @@ Replace debug keys with player-facing flows:
 Next intended enemy work:
 
 - visually verify and polish `Death_A` animation in Play Mode;
-- later add loot/XP;
+- later add loot;
 - consider pooling only after enemy lifecycle is stable;
 - keep wave enemies and world enemies separate.
+
+Future progression work:
+
+- XP bar;
+- level-up thresholds;
+- level-up rewards;
+- stat/talent points;
+- player-attributed reward routing;
+- save/load.
