@@ -38,7 +38,7 @@ public sealed class PlayerExperienceHUD : MonoBehaviour
 
         if (playerExperience != null)
         {
-            experienceText.text = $"Lv {playerExperience.CurrentLevel} | XP: {playerExperience.CurrentExperience} / {playerExperience.ExperienceToNextLevel}";
+            experienceText.text = $"XP: {playerExperience.CurrentExperience} / {playerExperience.ExperienceToNextLevel}";
         }
         else
         {

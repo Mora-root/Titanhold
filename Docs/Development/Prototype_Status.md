@@ -102,9 +102,20 @@ World enemies may have `EnemyThreatSource`. Future wave enemies may use a separa
 
 It currently:
 
+- stores `CurrentLevel`;
 - stores `CurrentExperience`;
+- exposes `ExperienceToNextLevel`;
 - exposes `AddExperience(int amount)`;
-- invokes `OnExperienceChanged` when XP changes.
+- can level up through `AddExperience(int amount)`;
+- invokes `OnExperienceChanged` when XP changes;
+- invokes `OnLevelChanged` when level changes.
+
+MVP level progression:
+
+- Level 1 starts at 0 XP;
+- base XP to next level is 100;
+- each next level requirement increases by 50;
+- `CurrentExperience` is XP within the current level, not lifetime XP.
 
 `EnemyRewardSource` is the current enemy-side XP reward adapter.
 
@@ -120,15 +131,36 @@ Future: XP gain should require player-attributed `DeathContext` / `DamageContext
 
 World enemies and wave enemies can both give XP through `EnemyRewardSource`.
 
-`PlayerExperienceHUD` shows the current XP value in the HUD through TMP text.
+`PlayerExperienceHUD` shows the current level and XP value in the HUD through TMP text.
 
 Current XP HUD scope:
 
 - text-only XP display;
-- no level-up;
-- no XP curve;
+- displays `XP: current / required`;
+- does not duplicate level text in the bottom XP HUD;
 - no XP bar;
+- no level-up popup;
 - no save/load.
+
+Current MVP progression does not include:
+
+- stat points;
+- talent points;
+- class rewards;
+- level-up popup;
+- XP bar;
+- save/load.
+
+`PlayerExperience` is the runtime source of XP and level.
+
+`PlayerInfo` remains profile/static display data, such as player name.
+
+`PlayerHUDController` composes both sources for player HUD display:
+
+- player name comes from `PlayerInfo`;
+- player level comes from `PlayerExperience.CurrentLevel`.
+
+`PlayerInfo.Level` remains legacy/fallback only and should not be treated as the main runtime level source.
 
 Threat and XP are separate systems:
 
@@ -248,6 +280,8 @@ Next intended enemy work:
 
 Future progression work:
 
+- Character Info panel can show level/details;
+- eventually remove or replace old `PlayerInfo.Level` if no longer needed;
 - XP bar;
 - level-up thresholds;
 - level-up rewards;

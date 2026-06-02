@@ -6,6 +6,7 @@ public class PlayerHUDController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInfo playerInfo;
+    [SerializeField] private PlayerExperience playerExperience;
     [SerializeField] private Health playerHealth;
     [SerializeField] private PlayerResource playerResource;
 
@@ -26,6 +27,8 @@ public class PlayerHUDController : MonoBehaviour
 
     private void Awake()
     {
+        playerExperience ??= FindAnyObjectByType<PlayerExperience>();
+
         if (root != null)
             root.SetActive(true);
     }
@@ -41,6 +44,11 @@ public class PlayerHUDController : MonoBehaviour
         if (playerResource != null)
         {
             playerResource.OnResourceChanged += UpdateResource;
+        }
+
+        if (playerExperience != null)
+        {
+            playerExperience.OnLevelChanged += HandleLevelChanged;
         }
     }
 
@@ -67,17 +75,38 @@ public class PlayerHUDController : MonoBehaviour
         {
             playerResource.OnResourceChanged -= UpdateResource;
         }
+
+        if (playerExperience != null)
+        {
+            playerExperience.OnLevelChanged -= HandleLevelChanged;
+        }
     }
 
     private void UpdateStaticInfo()
     {
-        if (playerInfo == null) return;
-
-        if (nameText != null)
+        if (playerInfo != null && nameText != null)
             nameText.text = playerInfo.PlayerName;
 
-        if (levelText != null)
+        RefreshLevel();
+    }
+
+    private void RefreshLevel()
+    {
+        if (levelText == null)
+            return;
+
+        if (playerExperience != null)
+        {
+            levelText.text = $"Lv {playerExperience.CurrentLevel}";
+        }
+        else if (playerInfo != null)
+        {
             levelText.text = $"Lv {playerInfo.Level}";
+        }
+        else
+        {
+            levelText.text = "Lv -";
+        }
     }
 
     private void UpdateHealth(float current, float max)
@@ -101,5 +130,10 @@ public class PlayerHUDController : MonoBehaviour
     private void HandleDeath()
     {
         Debug.Log("Player died");
+    }
+
+    private void HandleLevelChanged(int currentLevel)
+    {
+        RefreshLevel();
     }
 }
