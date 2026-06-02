@@ -1035,9 +1035,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyLootDropper
   deathNotifier: {fileID: 1053468204614456103}
-  pickupPrefab: {fileID: 743065920725331345, guid: fe31bfc66237bad41bf5820903439abc, type: 3}
   dropPoint: {fileID: 0}
-  dropChance: 0.5
+  drops:
+  - PickupPrefab: {fileID: 743065920725331345, guid: fe31bfc66237bad41bf5820903439abc, type: 3}
+    DropChance: 0.5
+    MinAmount: 1
+    MaxAmount: 1
+  - PickupPrefab: {fileID: 743065920725331345, guid: fe31bfc66237bad41bf5820903439abc, type: 3}
+    DropChance: 0.2
+    MinAmount: 2
+    MaxAmount: 2
+  dropRadius: 0.35
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0
