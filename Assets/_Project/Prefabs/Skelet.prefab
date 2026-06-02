@@ -765,6 +765,7 @@ GameObject:
   - component: {fileID: 1731386706897058923}
   - component: {fileID: 6698423454645219180}
   - component: {fileID: 6602476250708817451}
+  - component: {fileID: 6383613624202774284}
   m_Layer: 6
   m_Name: Skelet
   m_TagString: Untagged
@@ -848,6 +849,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBrain
   targetProviderBehaviour: {fileID: 0}
+  gameplayCollider: {fileID: 0}
 --- !u!114 &7886035149588280571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1004,6 +1006,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 100
+--- !u!114 &6383613624202774284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2618309436736559858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2feaf1beeaae88478fbf8c06456815d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyRewardSource
+  deathNotifier: {fileID: 0}
+  playerExperience: {fileID: 0}
+  experienceAmount: 10
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0

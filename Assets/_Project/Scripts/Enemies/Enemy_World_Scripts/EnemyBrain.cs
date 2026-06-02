@@ -3,6 +3,7 @@ using UnityEngine;
 public class EnemyBrain : MonoBehaviour
 {
     [SerializeField] private MonoBehaviour targetProviderBehaviour;
+    [SerializeField] private Collider gameplayCollider;
 
     public EnemyMovement Movement { get; private set; }
     public EnemyCombat Combat { get; private set; }
@@ -30,6 +31,7 @@ public class EnemyBrain : MonoBehaviour
         Sensor = GetComponent<EnemySensor>();
         Wander = GetComponent<WanderComponent>();
         health = GetComponent<Health>();
+        gameplayCollider ??= GetComponent<Collider>();
 
         if (targetProviderBehaviour != null)
             targetProvider = targetProviderBehaviour as IEnemyTargetProvider;
@@ -60,6 +62,9 @@ public class EnemyBrain : MonoBehaviour
         Movement.Stop();
 
         Sensor.enabled = false;
+
+        if (gameplayCollider != null)
+            gameplayCollider.enabled = false;
 
         Animator?.PlayDeath();
     }

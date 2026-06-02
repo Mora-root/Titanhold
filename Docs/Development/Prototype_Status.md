@@ -94,9 +94,43 @@ World enemies may have `EnemyThreatSource`. Future wave enemies may use a separa
 
 `EnemyDeathThreatListener` is an older temporary scene-level adapter. It should not be used as the foundation for respawn/spawn enemies because it only tracks notifiers found in the scene during its initialization.
 
+Current enemy death flow:
+
+- `Health.OnDeath` is raised.
+- `EnemyBrain` stops the state machine, movement, and sensor logic.
+- `EnemyBrain` disables the root gameplay collider.
+- `EnemyAnimator` triggers the `Death` animation.
+- `EnemyDeathNotifier` notifies external systems.
+- `EnemyDeathDespawn` removes the corpse after a delay.
+
+Current animator setup appears valid:
+
+- `Death` trigger exists.
+- `Any State -> Death_A` transition exists.
+- The death transition has no exit time.
+- `Death_A` uses a non-looping death clip.
+- Current `despawnDelay` gives enough time for the death animation to play.
+
 World enemy prefabs and camp-defense wave enemy prefabs should be separate long-term.
 
 World enemies can use `EnemyThreatSource` and normal `EnemySensor` targeting.
+
+For MVP location areas, world enemies should now be spawned through `WorldEnemySpawnZone`.
+
+`WorldEnemySpawnZone` supports:
+
+- one `enemyPrefab` per zone;
+- `maxAlive` enemies per zone;
+- random spawn positions inside `spawnRadius`;
+- `NavMesh.SamplePosition` validation for spawn positions;
+- per-death respawn timers.
+
+Per-death respawn behavior:
+
+- enemies killed together respawn together after the delay;
+- enemies killed over time respawn with matching staggered intervals.
+
+`WorldEnemyRespawnPoint` is now a simple/older point prototype and should not be the main world spawning model.
 
 Camp-defense wave enemies should usually not have `EnemyThreatSource`, because the wave is already the result of accumulated threat.
 
@@ -109,6 +143,8 @@ Wave enemies may temporarily switch to nearby local aggro targets through `Enemy
 Wave enemies need separate behavior focused on CampCore / camp attack logic.
 
 `CampDefenseEnemySpawner` should use wave-specific enemy prefabs long-term, not generic world enemy prefabs.
+
+Wave enemies still use `CampDefenseEnemySpawner` and are separate from world spawn zones.
 
 For the current MVP, shared prefab usage is acceptable temporarily only for testing.
 
@@ -158,7 +194,7 @@ Replace debug keys with player-facing flows:
 
 Next intended enemy work:
 
-- enemy death animation;
-- delayed cleanup/despawn after death;
-- respawn flow for world enemies;
+- visually verify and polish `Death_A` animation in Play Mode;
+- later add loot/XP;
+- consider pooling only after enemy lifecycle is stable;
 - keep wave enemies and world enemies separate.
