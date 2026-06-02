@@ -5,8 +5,6 @@ public sealed class LootPickup : MonoBehaviour, ISelectable, ILootable
     [SerializeField] private Transform lootPoint;
     [SerializeField] private float pickupRange = 1.5f;
     [SerializeField] private bool isLootable = true;
-    [SerializeField] private int amount = 1;
-    [SerializeField] private PlayerCurrency playerCurrency;
 
     public bool IsSelectable => isLootable;
 
@@ -23,17 +21,21 @@ public sealed class LootPickup : MonoBehaviour, ISelectable, ILootable
         if (!isLootable)
             return;
 
-        PlayerCurrency currency = playerCurrency;
-
-        if (currency == null && picker != null)
-            currency = picker.GetComponent<PlayerCurrency>();
-
-        currency ??= FindAnyObjectByType<PlayerCurrency>();
-
-        if (currency == null)
+        ILootReward[] rewards = GetComponents<ILootReward>();
+        if (rewards == null || rewards.Length == 0)
             return;
 
-        currency.Add(amount);
+        bool collectedAny = false;
+
+        foreach (ILootReward reward in rewards)
+        {
+            if (reward != null && reward.Collect(picker))
+                collectedAny = true;
+        }
+
+        if (!collectedAny)
+            return;
+
         isLootable = false;
         Destroy(gameObject);
     }

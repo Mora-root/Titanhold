@@ -66,7 +66,7 @@ Health.OnDeath
 
 Bottom XP HUD shows XP current / required only, without level text.
 
-Loot: MVP enemy loot drops spawn `LootPickup`; pickup uses existing approach / loot flow and disappears on pickup.
+Loot/Resources: enemy loot drops spawn `LootPickup`; pickup grants `PlayerCurrency` shards and updates Shards HUD.
 
 ## Temporary / Legacy
 
