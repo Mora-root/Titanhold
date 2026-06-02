@@ -66,6 +66,8 @@ Health.OnDeath
 
 Bottom XP HUD shows XP current / required only, without level text.
 
+Loot: MVP enemy loot drops spawn `LootPickup`; pickup uses existing approach / loot flow and disappears on pickup.
+
 ## Temporary / Legacy
 
 Debug helpers are temporary and should not become player-facing gameplay foundations.

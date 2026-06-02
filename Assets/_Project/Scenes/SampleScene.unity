@@ -10504,6 +10504,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 8744477821165718894}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 8744477821165718880}
   m_SourcePrefab: {fileID: 100100000, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
 --- !u!1001 &603811380282966698
@@ -10689,6 +10692,19 @@ MonoBehaviour:
   currentExperience: 0
   baseExperienceToNextLevel: 100
   experienceIncreasePerLevel: 50
+--- !u!114 &8744477821165718894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11cb3990d08f0d34eb26d2dbfb08ecbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCurrency
+  amount: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
