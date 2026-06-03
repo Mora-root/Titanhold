@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4270950452812727371}
   - component: {fileID: 4268851918280318500}
   - component: {fileID: 6607962174038422967}
+  - component: {fileID: 1421612219492435439}
   m_Layer: 12
   m_Name: LootPickup_Loot_Base
   m_TagString: Untagged
@@ -128,3 +129,18 @@ MonoBehaviour:
   lootPoint: {fileID: 1743507457838854389}
   pickupRange: 1.5
   isLootable: 1
+--- !u!114 &1421612219492435439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 743065920725331345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f43afd490545ba04a96a17fc0c80a20d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LootDropMotion
+  lootPickup: {fileID: 0}
+  duration: 0.45
+  arcHeight: 1.25

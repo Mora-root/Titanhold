@@ -2008,6 +2008,42 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 254095902}
   m_CullTransparentMesh: 1
+--- !u!1 &262504054
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 262504055}
+  m_Layer: 5
+  m_Name: Footer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &262504055
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 262504054}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1049667459}
+  m_Father: {fileID: 941223445}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 19}
+  m_SizeDelta: {x: -24, y: 36}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &265544871
 GameObject:
   m_ObjectHideFlags: 0
@@ -4395,9 +4431,8 @@ RectTransform:
   - {fileID: 1453368495}
   - {fileID: 2110475700}
   - {fileID: 1749489188}
-  - {fileID: 1049667459}
-  - {fileID: 1675008345}
   - {fileID: 941223445}
+  - {fileID: 1675008345}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -4991,8 +5026,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 10.249992, y: 0}
-  m_SizeDelta: {x: -20.500015, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -24, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &709981491
 MonoBehaviour:
@@ -6385,6 +6420,7 @@ RectTransform:
   - {fileID: 1837563462}
   - {fileID: 229615270}
   - {fileID: 1062313397}
+  - {fileID: 262504055}
   m_Father: {fileID: 540920803}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -7007,6 +7043,7 @@ GameObject:
   - component: {fileID: 1049667459}
   - component: {fileID: 1049667461}
   - component: {fileID: 1049667460}
+  - component: {fileID: 1049667462}
   m_Layer: 5
   m_Name: GoldHUD
   m_TagString: Untagged
@@ -7021,18 +7058,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1049667458}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 709981490}
-  m_Father: {fileID: 540920803}
+  m_Father: {fileID: 262504055}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -152, y: 47}
-  m_SizeDelta: {x: 232.3, y: 43.2}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -85, y: 0}
+  m_SizeDelta: {x: -170, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1049667460
 MonoBehaviour:
@@ -7072,6 +7109,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1049667458}
   m_CullTransparentMesh: 1
+--- !u!114 &1049667462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1049667458}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59fe73236c27bb243b958ad4ec81c1f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerGoldHUD
+  playerGold: {fileID: 8744477821165718895}
+  goldText: {fileID: 709981491}
 --- !u!1 &1052436707
 GameObject:
   m_ObjectHideFlags: 0
@@ -7656,7 +7707,6 @@ GameObject:
   - component: {fileID: 1110076649}
   - component: {fileID: 1110076650}
   - component: {fileID: 1110076651}
-  - component: {fileID: 1110076652}
   - component: {fileID: 1110076653}
   m_Layer: 5
   m_Name: PlayerHUDControllerObject
@@ -7737,20 +7787,6 @@ MonoBehaviour:
   root: {fileID: 1749489187}
   messageText: {fileID: 358555952}
   visibleDuration: 2
---- !u!114 &1110076652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1110076647}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59fe73236c27bb243b958ad4ec81c1f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerGoldHUD
-  playerGold: {fileID: 8744477821165718895}
-  goldText: {fileID: 709981491}
 --- !u!114 &1110076653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8413,7 +8449,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -27}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1307427590

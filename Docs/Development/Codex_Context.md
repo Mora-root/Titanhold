@@ -70,7 +70,9 @@ Loot: `EnemyLootDropper` rolls independent entries; pickups can use `LootDropMot
 
 Gold uses `PlayerGold`; Materials/Trophies use stack-based `PlayerLootInventory` with `LootItemDefinition`.
 
-Inventory: Materials/Trophies use stack-based `PlayerLootInventory`; quick Shards HUD and temporary I-key inventory panel are active.
+Inventory: Materials/Trophies use `PlayerLootInventory` panel; Gold is shown in inventory/services, not permanent gameplay HUD.
+
+Inventory panel currently uses temporary I-key debug opener; move opening/closing to global UI manager later.
 
 ## Temporary / Legacy
 
