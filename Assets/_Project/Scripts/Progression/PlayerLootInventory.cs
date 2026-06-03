@@ -4,6 +4,18 @@ using UnityEngine;
 
 public sealed class PlayerLootInventory : MonoBehaviour
 {
+    public readonly struct LootItemStackView
+    {
+        public LootItemStackView(LootItemDefinition item, int amount)
+        {
+            Item = item;
+            Amount = amount;
+        }
+
+        public LootItemDefinition Item { get; }
+        public int Amount { get; }
+    }
+
     [Serializable]
     private sealed class LootItemStack
     {
@@ -70,6 +82,24 @@ public sealed class PlayerLootInventory : MonoBehaviour
 
         amount = stack.Amount;
         return true;
+    }
+
+    public int GetStacks(List<LootItemStackView> results)
+    {
+        if (results == null)
+            return 0;
+
+        results.Clear();
+
+        foreach (LootItemStack stack in stacks)
+        {
+            if (stack == null || stack.Item == null || stack.Amount <= 0)
+                continue;
+
+            results.Add(new LootItemStackView(stack.Item, stack.Amount));
+        }
+
+        return results.Count;
     }
 
     private LootItemStack FindStack(LootItemDefinition item)
