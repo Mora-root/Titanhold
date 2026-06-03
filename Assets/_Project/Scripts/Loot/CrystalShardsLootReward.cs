@@ -3,7 +3,7 @@ using UnityEngine;
 public sealed class CrystalShardsLootReward : MonoBehaviour, ILootReward, IAmountLootReward
 {
     [SerializeField] private int amount = 1;
-    [SerializeField] private PlayerCurrency playerCurrency;
+    [SerializeField] private PlayerLootInventory playerLootInventory;
 
     public void SetAmount(int amount)
     {
@@ -15,17 +15,17 @@ public sealed class CrystalShardsLootReward : MonoBehaviour, ILootReward, IAmoun
         if (amount <= 0)
             return false;
 
-        PlayerCurrency currency = playerCurrency;
+        PlayerLootInventory storage = playerLootInventory;
 
-        if (currency == null && picker != null)
-            currency = picker.GetComponent<PlayerCurrency>();
+        if (storage == null && picker != null)
+            storage = picker.GetComponent<PlayerLootInventory>();
 
-        currency ??= FindAnyObjectByType<PlayerCurrency>();
+        storage ??= FindAnyObjectByType<PlayerLootInventory>();
 
-        if (currency == null)
+        if (storage == null)
             return false;
 
-        currency.Add(amount);
+        storage.AddCrystalShards(amount);
         return true;
     }
 }

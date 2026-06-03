@@ -66,7 +66,7 @@ Health.OnDeath
 
 Bottom XP HUD shows XP current / required only, without level text.
 
-Loot/Resources: enemy loot drops spawn `LootPickup`; pickup grants `PlayerCurrency` shards and updates Shards HUD.
+Loot: `EnemyLootDropper` rolls independent drop entries; each successful entry spawns a `LootPickup` with reward components.
 
 ## Temporary / Legacy
 

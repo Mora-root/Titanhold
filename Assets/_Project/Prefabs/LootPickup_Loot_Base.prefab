@@ -13,9 +13,8 @@ GameObject:
   - component: {fileID: 4270950452812727371}
   - component: {fileID: 4268851918280318500}
   - component: {fileID: 6607962174038422967}
-  - component: {fileID: 5304563071679184102}
   m_Layer: 12
-  m_Name: TestLootPickup
+  m_Name: LootPickup_Loot_Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 743065920725331345}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.183, z: 14.79}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -112,8 +111,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 2, y: 1.539138, z: 2}
+  m_Center: {x: 0, y: 0.23043102, z: 0}
 --- !u!114 &6607962174038422967
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129,17 +128,3 @@ MonoBehaviour:
   lootPoint: {fileID: 1743507457838854389}
   pickupRange: 1.5
   isLootable: 1
---- !u!114 &5304563071679184102
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 743065920725331345}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d014c71f324c9544b1d02bef624b62d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CrystalShardsLootReward
-  amount: 1
-  playerCurrency: {fileID: 0}
