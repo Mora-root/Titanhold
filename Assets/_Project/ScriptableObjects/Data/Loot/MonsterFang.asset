@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df17b0933ed6cde47bb09e9bbda39da7, type: 3}
   m_Name: MonsterFang
   m_EditorClassIdentifier: Assembly-CSharp::LootItemDefinition
-  displayName: MonsterFang
+  displayName: Monster Fang
+  shortName: Fang
+  description: A monster trophy that can be sold or used in future crafting.
+  icon: {fileID: 0}
   category: 1

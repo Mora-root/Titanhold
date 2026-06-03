@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df17b0933ed6cde47bb09e9bbda39da7, type: 3}
   m_Name: CrystalShard
   m_EditorClassIdentifier: Assembly-CSharp::LootItemDefinition
-  displayName: CrystalShard
+  displayName: Crystal Shard
+  shortName: Shard
+  description: A resonant crystal fragment used in camp rituals and upgrades.
+  icon: {fileID: 0}
   category: 0
