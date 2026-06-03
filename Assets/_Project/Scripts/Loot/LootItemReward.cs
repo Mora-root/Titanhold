@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class CrystalShardsLootReward : MonoBehaviour, ILootReward, IAmountLootReward
+public sealed class LootItemReward : MonoBehaviour, ILootReward, IAmountLootReward
 {
     [SerializeField] private LootItemDefinition item;
     [SerializeField] private int amount = 1;
@@ -19,17 +19,17 @@ public sealed class CrystalShardsLootReward : MonoBehaviour, ILootReward, IAmoun
         if (amount <= 0)
             return false;
 
-        PlayerLootInventory storage = playerLootInventory;
+        PlayerLootInventory inventory = playerLootInventory;
 
-        if (storage == null && picker != null)
-            storage = picker.GetComponent<PlayerLootInventory>();
+        if (inventory == null && picker != null)
+            inventory = picker.GetComponent<PlayerLootInventory>();
 
-        storage ??= FindAnyObjectByType<PlayerLootInventory>();
+        inventory ??= FindAnyObjectByType<PlayerLootInventory>();
 
-        if (storage == null)
+        if (inventory == null)
             return false;
 
-        storage.Add(item, amount);
+        inventory.Add(item, amount);
         return true;
     }
 }

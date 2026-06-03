@@ -7252,7 +7252,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLootInventoryHUD
   playerLootInventory: {fileID: 8744477821165718896}
-  shardsText: {fileID: 1681294325}
+  trackedItem: {fileID: 11400000, guid: 67c73ffa4d1b5994e8030c1cf117527f, type: 2}
+  amountText: {fileID: 1681294325}
 --- !u!4 &1153503342 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8379852873407926100, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
@@ -11121,7 +11122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f49c45236d49d7479181ff5cd556fd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLootInventory
-  crystalShards: 0
+  stacks: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

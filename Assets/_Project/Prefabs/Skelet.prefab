@@ -172,6 +172,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f140895ed93e244fa572fd3155f4520, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimator
+--- !u!1 &364406905866271014
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3401578461478899309}
+  m_Layer: 0
+  m_Name: DropPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3401578461478899309
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 364406905866271014}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.199, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8379852873407926100}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &556307271123271114
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,6 +821,7 @@ Transform:
   - {fileID: 682364002521256009}
   - {fileID: 7498689799498869675}
   - {fileID: 2458892883378750400}
+  - {fileID: 3401578461478899309}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &4462649946470709643
@@ -1035,7 +1067,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyLootDropper
   deathNotifier: {fileID: 1053468204614456103}
-  dropPoint: {fileID: 0}
+  dropPoint: {fileID: 3401578461478899309}
   drops:
   - PickupPrefab: {fileID: 1364990022469115226, guid: ad7ef15c957d0e144953177e70f8b968, type: 3}
     DropChance: 0.3

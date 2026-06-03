@@ -4,7 +4,8 @@ using UnityEngine;
 public sealed class PlayerLootInventoryHUD : MonoBehaviour
 {
     [SerializeField] private PlayerLootInventory playerLootInventory;
-    [SerializeField] private TMP_Text shardsText;
+    [SerializeField] private LootItemDefinition trackedItem;
+    [SerializeField] private TMP_Text amountText;
 
     private void Awake()
     {
@@ -14,7 +15,7 @@ public sealed class PlayerLootInventoryHUD : MonoBehaviour
     private void OnEnable()
     {
         if (playerLootInventory != null)
-            playerLootInventory.OnCrystalShardsChanged += HandleCrystalShardsChanged;
+            playerLootInventory.OnChanged += HandleInventoryChanged;
 
         Refresh();
     }
@@ -22,25 +23,25 @@ public sealed class PlayerLootInventoryHUD : MonoBehaviour
     private void OnDisable()
     {
         if (playerLootInventory != null)
-            playerLootInventory.OnCrystalShardsChanged -= HandleCrystalShardsChanged;
+            playerLootInventory.OnChanged -= HandleInventoryChanged;
     }
 
     public void Refresh()
     {
-        if (shardsText == null)
+        if (amountText == null)
             return;
 
-        if (playerLootInventory != null)
+        if (playerLootInventory == null || trackedItem == null)
         {
-            shardsText.text = $"Shards: {playerLootInventory.CrystalShards}";
+            amountText.text = "Loot: Missing";
+            return;
         }
-        else
-        {
-            shardsText.text = "Shards: Missing";
-        }
+
+        int amount = playerLootInventory.GetAmount(trackedItem);
+        amountText.text = $"{trackedItem.DisplayName}: {amount}";
     }
 
-    private void HandleCrystalShardsChanged(int amount)
+    private void HandleInventoryChanged()
     {
         Refresh();
     }

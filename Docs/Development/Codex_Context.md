@@ -68,6 +68,8 @@ Bottom XP HUD shows XP current / required only, without level text.
 
 Loot: `EnemyLootDropper` rolls independent drop entries; each successful entry spawns a `LootPickup` with reward components.
 
+Gold uses `PlayerGold`; Materials/Trophies use `PlayerLootInventory`.
+
 ## Temporary / Legacy
 
 Debug helpers are temporary and should not become player-facing gameplay foundations.
