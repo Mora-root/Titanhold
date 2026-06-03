@@ -14,6 +14,8 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
 
     private readonly List<PlayerLootInventory.LootItemStackView> cachedStacks = new();
 
+    public bool IsOpen { get; private set; }
+
     private void Awake()
     {
         if (root == null)
@@ -23,6 +25,8 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
 
         if (root != null)
             root.SetActive(false);
+
+        IsOpen = false;
     }
 
     private void OnEnable()
@@ -48,6 +52,7 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
         if (root != null)
             root.SetActive(true);
 
+        IsOpen = true;
         Refresh();
     }
 
@@ -55,6 +60,8 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
     {
         if (root != null)
             root.SetActive(false);
+
+        IsOpen = false;
     }
 
     public void Refresh()

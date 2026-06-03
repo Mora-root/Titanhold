@@ -70,6 +70,8 @@ Loot: `EnemyLootDropper` rolls independent entries; pickups can use `LootDropMot
 
 Gold uses `PlayerGold`; Materials/Trophies use stack-based `PlayerLootInventory` with `LootItemDefinition`.
 
+Inventory: Materials/Trophies use stack-based `PlayerLootInventory`; quick Shards HUD and temporary I-key inventory panel are active.
+
 ## Temporary / Legacy
 
 Debug helpers are temporary and should not become player-facing gameplay foundations.
