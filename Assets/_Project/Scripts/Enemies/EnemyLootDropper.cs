@@ -17,6 +17,7 @@ public sealed class EnemyLootDropper : MonoBehaviour
     [SerializeField] private Transform dropPoint;
     [SerializeField] private DropEntry[] drops;
     [SerializeField] private float dropRadius = 0.35f;
+    [SerializeField] private float dropSpawnHeight = 1.2f;
 
     private void Awake()
     {
@@ -55,15 +56,22 @@ public sealed class EnemyLootDropper : MonoBehaviour
 
             Vector3 basePosition = dropPoint != null ? dropPoint.position : transform.position;
             Vector2 circle = Random.insideUnitCircle * dropRadius;
-            Vector3 position = basePosition + new Vector3(circle.x, 0f, circle.y);
+            Vector3 landingPosition = basePosition + new Vector3(circle.x, 0f, circle.y);
+            Vector3 startPosition = basePosition + Vector3.up * dropSpawnHeight;
+            bool hasMotion = entry.PickupPrefab.GetComponent<LootDropMotion>() != null;
+            Vector3 spawnPosition = hasMotion ? startPosition : landingPosition;
 
-            GameObject pickup = Instantiate(entry.PickupPrefab, position, Quaternion.identity);
+            GameObject pickup = Instantiate(entry.PickupPrefab, spawnPosition, Quaternion.identity);
             IAmountLootReward[] amountRewards = pickup.GetComponents<IAmountLootReward>();
 
             foreach (IAmountLootReward amountReward in amountRewards)
             {
                 amountReward.SetAmount(amount);
             }
+
+            LootDropMotion motion = pickup.GetComponent<LootDropMotion>();
+            if (motion != null)
+                motion.Play(startPosition, landingPosition);
         }
     }
 }

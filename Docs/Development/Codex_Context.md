@@ -66,9 +66,9 @@ Health.OnDeath
 
 Bottom XP HUD shows XP current / required only, without level text.
 
-Loot: `EnemyLootDropper` rolls independent drop entries; each successful entry spawns a `LootPickup` with reward components.
+Loot: `EnemyLootDropper` rolls independent drop entries; each successful entry spawns a `LootPickup` with reward components, and `CrystalShardPickup` uses generic `LootItemReward`.
 
-Gold uses `PlayerGold`; Materials/Trophies use `PlayerLootInventory`.
+Gold uses `PlayerGold`; Materials/Trophies use stack-based `PlayerLootInventory` with `LootItemDefinition`.
 
 ## Temporary / Legacy
 

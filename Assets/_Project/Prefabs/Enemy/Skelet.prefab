@@ -1077,7 +1077,8 @@ MonoBehaviour:
     DropChance: 0.1
     MinAmount: 1
     MaxAmount: 2
-  dropRadius: 0.35
+  dropRadius: 0.8
+  dropSpawnHeight: 1
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0

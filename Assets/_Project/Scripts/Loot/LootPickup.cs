@@ -16,6 +16,11 @@ public sealed class LootPickup : MonoBehaviour, ISelectable, ILootable
 
     public void OnDeselected() { }
 
+    public void SetLootable(bool value)
+    {
+        isLootable = value;
+    }
+
     public void Pickup(GameObject picker)
     {
         if (!isLootable)
