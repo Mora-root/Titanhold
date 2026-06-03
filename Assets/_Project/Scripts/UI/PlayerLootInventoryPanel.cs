@@ -8,11 +8,11 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
     [SerializeField] private GameObject root;
     [SerializeField] private PlayerLootInventory playerLootInventory;
     [SerializeField] private Transform contentRoot;
-    [SerializeField] private LootInventoryItemRow rowPrefab;
+    [SerializeField] private LootInventorySlotView slotPrefab;
     [SerializeField] private Button closeButton;
     [SerializeField] private TMP_Text emptyText;
 
-    private readonly List<PlayerLootInventory.LootItemStackView> cachedStacks = new();
+    private readonly List<PlayerLootInventory.LootInventorySlotView> cachedSlots = new();
 
     public bool IsOpen { get; private set; }
 
@@ -68,7 +68,7 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
     {
         ClearRows();
 
-        if (playerLootInventory == null || contentRoot == null || rowPrefab == null)
+        if (playerLootInventory == null || contentRoot == null || slotPrefab == null)
         {
             if (emptyText != null)
                 emptyText.gameObject.SetActive(true);
@@ -76,16 +76,16 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
             return;
         }
 
-        playerLootInventory.GetStacks(cachedStacks);
+        playerLootInventory.GetSlots(cachedSlots, includeEmpty: true);
 
-        foreach (PlayerLootInventory.LootItemStackView stack in cachedStacks)
+        foreach (PlayerLootInventory.LootInventorySlotView slot in cachedSlots)
         {
-            LootInventoryItemRow row = Instantiate(rowPrefab, contentRoot);
-            row.Setup(stack.Item, stack.Amount);
+            LootInventorySlotView view = Instantiate(slotPrefab, contentRoot);
+            view.Setup(slot);
         }
 
         if (emptyText != null)
-            emptyText.gameObject.SetActive(cachedStacks.Count == 0);
+            emptyText.gameObject.SetActive(cachedSlots.Count == 0);
     }
 
     private void ClearRows()
