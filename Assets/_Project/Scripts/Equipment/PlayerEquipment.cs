@@ -71,6 +71,13 @@ public sealed class PlayerEquipment : MonoBehaviour
 
         EnsureSlots();
 
+        if (item.Kind == EquipmentKind.Weapon &&
+            item.Handedness != WeaponHandedness.None &&
+            item.WeaponType == WeaponType.None)
+        {
+            return false;
+        }
+
         if (item.Kind == EquipmentKind.Armor || item.Kind == EquipmentKind.Jewelry)
             return targetSlot == item.DefaultSlot;
 
@@ -160,13 +167,20 @@ public sealed class PlayerEquipment : MonoBehaviour
         if (!CanEquip(item, targetSlot))
             return CreateFailedResult(item);
 
+        EquipmentSlot equippedSlot = GetResolvedEquipSlot(item, targetSlot);
+
+        if (!HasSlot(equippedSlot))
+            return CreateFailedResult(item);
+
         List<EquipmentItemDefinition> unequippedItems = new List<EquipmentItemDefinition>();
 
         if (item.Kind == EquipmentKind.Weapon && item.Handedness == WeaponHandedness.TwoHand)
         {
             ClearSlot(EquipmentSlot.MainHand, unequippedItems);
             ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            SetSlotItem(EquipmentSlot.MainHand, item);
+            if (!SetSlotItem(EquipmentSlot.MainHand, item))
+                return CreateFailedResult(item);
+
             return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
         }
 
@@ -178,7 +192,9 @@ public sealed class PlayerEquipment : MonoBehaviour
                 ClearSlot(EquipmentSlot.MainHand, unequippedItems);
 
             ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            SetSlotItem(EquipmentSlot.OffHand, item);
+            if (!SetSlotItem(EquipmentSlot.OffHand, item))
+                return CreateFailedResult(item);
+
             return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
         }
 
@@ -192,17 +208,23 @@ public sealed class PlayerEquipment : MonoBehaviour
                     ClearSlot(EquipmentSlot.OffHand, unequippedItems);
 
                 ClearSlot(EquipmentSlot.MainHand, unequippedItems);
-                SetSlotItem(EquipmentSlot.MainHand, item);
+                if (!SetSlotItem(EquipmentSlot.MainHand, item))
+                    return CreateFailedResult(item);
+
                 return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
             }
 
             ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            SetSlotItem(EquipmentSlot.OffHand, item);
+            if (!SetSlotItem(EquipmentSlot.OffHand, item))
+                return CreateFailedResult(item);
+
             return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
         }
 
         ClearSlot(targetSlot, unequippedItems);
-        SetSlotItem(targetSlot, item);
+        if (!SetSlotItem(targetSlot, item))
+            return CreateFailedResult(item);
+
         return CreateSuccessResult(targetSlot, item, unequippedItems);
     }
 
@@ -294,6 +316,23 @@ public sealed class PlayerEquipment : MonoBehaviour
                item.Handedness == WeaponHandedness.OneHand &&
                item.WeaponType == weaponType &&
                item.WeaponType != WeaponType.None;
+    }
+
+    private EquipmentSlot GetResolvedEquipSlot(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    {
+        if (item.Kind == EquipmentKind.Weapon && item.Handedness == WeaponHandedness.TwoHand)
+            return EquipmentSlot.MainHand;
+
+        if (item.Kind == EquipmentKind.Shield)
+            return EquipmentSlot.OffHand;
+
+        return targetSlot;
+    }
+
+    private bool HasSlot(EquipmentSlot slot)
+    {
+        EnsureSlots();
+        return FindEntry(slot) != null;
     }
 
     private EquipmentChangeResult CreateFailedResult(EquipmentItemDefinition item)

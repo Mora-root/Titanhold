@@ -13065,6 +13065,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8744477821165718880}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718911}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718910}
   m_SourcePrefab: {fileID: 100100000, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
 --- !u!1001 &4087903443641857175
 PrefabInstance:
@@ -13219,6 +13225,47 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLootInventory
   capacity: 24
   slots: []
+--- !u!114 &8744477821165718898 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1468254328002215119, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+  m_PrefabInstance: {fileID: 225097633904936934}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddaf28df8e66919459fab5f5028b34e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStats
+--- !u!114 &8744477821165718910
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a742da4f37bf57842bf98523818bdaaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentDebugEquipper
+  playerEquipment: {fileID: 0}
+  itemToEquip: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+  equipKey: 111
+  unequipKey: 112
+--- !u!114 &8744477821165718911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d3e27efe9f23d440b7dc93bc094a920, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
+  characterStats: {fileID: 8744477821165718898}
+  equippedItems: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
