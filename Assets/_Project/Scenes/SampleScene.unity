@@ -12442,7 +12442,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLootInventoryDebugOpener
   panel: {fileID: 1359868934}
-  toggleKey: 105
+  toggleKey: 99
 --- !u!114 &1359868936
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12536,6 +12536,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1396952619}
   - component: {fileID: 1396952620}
+  - component: {fileID: 1396952621}
   m_Layer: 5
   m_Name: EquipmentUIControllerObject
   m_TagString: Untagged
@@ -12588,6 +12589,20 @@ MonoBehaviour:
   - {fileID: 230942562}
   - {fileID: 2111766035}
   closeButton: {fileID: 1584854958}
+--- !u!114 &1396952621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1396952618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69a3ab80c6e4fcc489160daf9053fb5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentPanelDebugOpener
+  panel: {fileID: 0}
+  toggleKey: 105
 --- !u!1 &1419427062
 GameObject:
   m_ObjectHideFlags: 0

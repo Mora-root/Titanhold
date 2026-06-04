@@ -8,6 +8,8 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
     [SerializeField] private PlayerEquipmentSlotView[] slotViews;
     [SerializeField] private Button closeButton;
 
+    public bool IsOpen { get; private set; }
+
     private void Awake()
     {
         if (root == null)
@@ -17,6 +19,8 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
 
         if (root != null)
             root.SetActive(false);
+
+        IsOpen = false;
     }
 
     private void OnEnable()
@@ -44,6 +48,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
         if (root != null)
             root.SetActive(true);
 
+        IsOpen = true;
         Refresh();
     }
 
@@ -51,6 +56,8 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
     {
         if (root != null)
             root.SetActive(false);
+
+        IsOpen = false;
     }
 
     public void Refresh()
