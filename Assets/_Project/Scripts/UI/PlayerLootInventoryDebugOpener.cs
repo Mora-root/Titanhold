@@ -3,35 +3,35 @@ using UnityEngine;
 // Temporary prototype helper. Do not use in production.
 public sealed class PlayerLootInventoryDebugOpener : MonoBehaviour
 {
-    [SerializeField] private PlayerLootInventoryPanel panel;
+    [SerializeField] private PlayerInventoryWindow window;
     [SerializeField] private KeyCode toggleKey = KeyCode.I;
 
     private void Awake()
     {
-        panel ??= FindAnyObjectByType<PlayerLootInventoryPanel>();
+        window ??= FindAnyObjectByType<PlayerInventoryWindow>();
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) && panel != null && panel.IsOpen)
+        if (Input.GetKeyDown(KeyCode.Escape) && window != null && window.IsOpen)
         {
-            panel.Close();
+            window.Close();
             return;
         }
 
         if (!Input.GetKeyDown(toggleKey))
             return;
 
-        if (panel == null)
+        if (window == null)
             return;
 
-        if (panel.IsOpen)
+        if (window.IsOpen)
         {
-            panel.Close();
+            window.Close();
         }
         else
         {
-            panel.Open();
+            window.Open();
         }
     }
 }
