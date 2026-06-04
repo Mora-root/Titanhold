@@ -1,8 +1,29 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class PlayerEquipment : MonoBehaviour
 {
+    public readonly struct EquipmentChangeResult
+    {
+        public EquipmentChangeResult(
+            bool success,
+            EquipmentSlot equippedSlot,
+            EquipmentItemDefinition equippedItem,
+            IReadOnlyList<EquipmentItemDefinition> unequippedItems)
+        {
+            Success = success;
+            EquippedSlot = equippedSlot;
+            EquippedItem = equippedItem;
+            UnequippedItems = unequippedItems ?? Array.Empty<EquipmentItemDefinition>();
+        }
+
+        public bool Success { get; }
+        public EquipmentSlot EquippedSlot { get; }
+        public EquipmentItemDefinition EquippedItem { get; }
+        public IReadOnlyList<EquipmentItemDefinition> UnequippedItems { get; }
+    }
+
     [Serializable]
     private sealed class EquippedItem
     {
@@ -86,15 +107,67 @@ public sealed class PlayerEquipment : MonoBehaviour
 
     public bool Equip(EquipmentItemDefinition item, EquipmentSlot targetSlot)
     {
-        if (!CanEquip(item, targetSlot))
+        return EquipWithResult(item, targetSlot).Success;
+    }
+
+    public bool Equip(EquipmentItemDefinition item)
+    {
+        if (item == null)
             return false;
+
+        return Equip(item, item.DefaultSlot);
+    }
+
+    public EquipmentChangeResult AutoEquip(EquipmentItemDefinition item)
+    {
+        if (item == null)
+            return CreateFailedResult(item);
+
+        if (item.Kind == EquipmentKind.Armor || item.Kind == EquipmentKind.Jewelry)
+            return EquipWithResult(item, item.DefaultSlot);
+
+        if (item.Kind == EquipmentKind.Shield)
+            return EquipWithResult(item, EquipmentSlot.OffHand);
+
+        if (item.Kind != EquipmentKind.Weapon)
+            return CreateFailedResult(item);
+
+        if (item.Handedness == WeaponHandedness.TwoHand)
+            return EquipWithResult(item, EquipmentSlot.MainHand);
+
+        if (item.Handedness != WeaponHandedness.OneHand)
+            return CreateFailedResult(item);
+
+        EquipmentItemDefinition mainHandItem = GetEquipped(EquipmentSlot.MainHand);
+        EquipmentItemDefinition offHandItem = GetEquipped(EquipmentSlot.OffHand);
+
+        if (mainHandItem == null)
+            return EquipWithResult(item, EquipmentSlot.MainHand);
+
+        if (IsMatchingOneHandWeapon(mainHandItem, item.WeaponType))
+        {
+            if (offHandItem == null)
+                return EquipWithResult(item, EquipmentSlot.OffHand);
+
+            return EquipWithResult(item, EquipmentSlot.MainHand);
+        }
+
+        return EquipWithResult(item, EquipmentSlot.MainHand);
+    }
+
+    public EquipmentChangeResult EquipWithResult(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    {
+        if (!CanEquip(item, targetSlot))
+            return CreateFailedResult(item);
+
+        List<EquipmentItemDefinition> unequippedItems = new List<EquipmentItemDefinition>();
 
         if (item.Kind == EquipmentKind.Weapon && item.Handedness == WeaponHandedness.TwoHand)
         {
-            ClearSlot(EquipmentSlot.MainHand);
-            ClearSlot(EquipmentSlot.OffHand);
+            ClearSlot(EquipmentSlot.MainHand, unequippedItems);
+            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
             SetSlotItem(EquipmentSlot.MainHand, item);
-            return true;
+            return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
         }
 
         if (item.Kind == EquipmentKind.Shield)
@@ -102,11 +175,11 @@ public sealed class PlayerEquipment : MonoBehaviour
             EquipmentItemDefinition mainHandItem = GetEquipped(EquipmentSlot.MainHand);
 
             if (mainHandItem != null && mainHandItem.OccupiesBothHands)
-                ClearSlot(EquipmentSlot.MainHand);
+                ClearSlot(EquipmentSlot.MainHand, unequippedItems);
 
-            ClearSlot(EquipmentSlot.OffHand);
+            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
             SetSlotItem(EquipmentSlot.OffHand, item);
-            return true;
+            return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
         }
 
         if (item.Kind == EquipmentKind.Weapon && item.Handedness == WeaponHandedness.OneHand)
@@ -116,29 +189,21 @@ public sealed class PlayerEquipment : MonoBehaviour
                 EquipmentItemDefinition offHandItem = GetEquipped(EquipmentSlot.OffHand);
 
                 if (IsIncompatibleOffHandWeapon(item, offHandItem))
-                    ClearSlot(EquipmentSlot.OffHand);
+                    ClearSlot(EquipmentSlot.OffHand, unequippedItems);
 
-                ClearSlot(EquipmentSlot.MainHand);
+                ClearSlot(EquipmentSlot.MainHand, unequippedItems);
                 SetSlotItem(EquipmentSlot.MainHand, item);
-                return true;
+                return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
             }
 
-            ClearSlot(EquipmentSlot.OffHand);
+            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
             SetSlotItem(EquipmentSlot.OffHand, item);
-            return true;
+            return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
         }
 
-        ClearSlot(targetSlot);
+        ClearSlot(targetSlot, unequippedItems);
         SetSlotItem(targetSlot, item);
-        return true;
-    }
-
-    public bool Equip(EquipmentItemDefinition item)
-    {
-        if (item == null)
-            return false;
-
-        return Equip(item, item.DefaultSlot);
+        return CreateSuccessResult(targetSlot, item, unequippedItems);
     }
 
     public bool Unequip(EquipmentSlot slot)
@@ -168,6 +233,11 @@ public sealed class PlayerEquipment : MonoBehaviour
 
     private bool ClearSlot(EquipmentSlot slot)
     {
+        return ClearSlot(slot, null);
+    }
+
+    private bool ClearSlot(EquipmentSlot slot, List<EquipmentItemDefinition> unequippedItems)
+    {
         EnsureSlots();
 
         EquippedItem equippedItem = FindEntry(slot);
@@ -178,7 +248,9 @@ public sealed class PlayerEquipment : MonoBehaviour
         if (equippedItem == null || equippedItem.Item == null)
             return false;
 
+        EquipmentItemDefinition removedItem = equippedItem.Item;
         equippedItem.SetItem(null);
+        unequippedItems?.Add(removedItem);
         OnEquipmentChanged?.Invoke(slot, null);
         return true;
     }
@@ -213,6 +285,32 @@ public sealed class PlayerEquipment : MonoBehaviour
             return true;
 
         return mainHandItem.WeaponType != offHandItem.WeaponType;
+    }
+
+    private bool IsMatchingOneHandWeapon(EquipmentItemDefinition item, WeaponType weaponType)
+    {
+        return item != null &&
+               item.Kind == EquipmentKind.Weapon &&
+               item.Handedness == WeaponHandedness.OneHand &&
+               item.WeaponType == weaponType &&
+               item.WeaponType != WeaponType.None;
+    }
+
+    private EquipmentChangeResult CreateFailedResult(EquipmentItemDefinition item)
+    {
+        return new EquipmentChangeResult(false, default, item, Array.Empty<EquipmentItemDefinition>());
+    }
+
+    private EquipmentChangeResult CreateSuccessResult(
+        EquipmentSlot equippedSlot,
+        EquipmentItemDefinition equippedItem,
+        List<EquipmentItemDefinition> unequippedItems)
+    {
+        IReadOnlyList<EquipmentItemDefinition> resultItems = unequippedItems != null && unequippedItems.Count > 0
+            ? unequippedItems.ToArray()
+            : Array.Empty<EquipmentItemDefinition>();
+
+        return new EquipmentChangeResult(true, equippedSlot, equippedItem, resultItems);
     }
 
     private void EnsureSlots()
