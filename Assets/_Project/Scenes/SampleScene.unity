@@ -2448,6 +2448,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &206775845
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2735,6 +2736,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &230942563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3229,6 +3231,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &265153722
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4100,6 +4103,7 @@ MonoBehaviour:
   playerItemInventory: {fileID: 8744477821165718912}
   contentRoot: {fileID: 433978637}
   slotPrefab: {fileID: 6860036689815028703, guid: 0a485b06c2f52f445820bcd329d56309, type: 3}
+  equipAdapter: {fileID: 1359868938}
   emptyText: {fileID: 0}
 --- !u!224 &326810938
 RectTransform:
@@ -5106,6 +5110,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &382239767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7948,6 +7953,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &750288226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9152,6 +9158,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &904850028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12509,6 +12516,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &1308652108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13032,6 +13040,7 @@ GameObject:
   - component: {fileID: 1359868935}
   - component: {fileID: 1359868936}
   - component: {fileID: 1359868937}
+  - component: {fileID: 1359868938}
   m_Layer: 5
   m_Name: InventoryUIControllerObject
   m_TagString: Untagged
@@ -13108,6 +13117,20 @@ MonoBehaviour:
   materialsTabRoot: {fileID: 229615269}
   itemsTab: {fileID: 326810937}
   materialsTab: {fileID: 229615271}
+--- !u!114 &1359868938
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359868932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a22908e887ab34ab7eeb172e7bc21f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventoryEquipmentAdapter
+  itemInventory: {fileID: 8744477821165718912}
+  playerEquipment: {fileID: 8744477821165718911}
 --- !u!1 &1361740481
 GameObject:
   m_ObjectHideFlags: 0
@@ -13237,6 +13260,7 @@ MonoBehaviour:
   - {fileID: 1439236474}
   - {fileID: 230942562}
   - {fileID: 2111766035}
+  itemInventoryAdapter: {fileID: 1359868938}
   closeButton: {fileID: 1584854958}
 --- !u!114 &1396952621
 MonoBehaviour:
@@ -13612,6 +13636,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &1439236475
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16165,6 +16190,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &1940382249
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17642,6 +17668,7 @@ MonoBehaviour:
   emptyVisual: {fileID: 0}
   filledVisual: {fileID: 0}
   tooltip: {fileID: 0}
+  itemInventoryAdapter: {fileID: 0}
 --- !u!114 &2111766036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17946,6 +17973,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8744477821165718910}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718913}
   m_SourcePrefab: {fileID: 100100000, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
 --- !u!1001 &4087903443641857175
 PrefabInstance:
@@ -18155,6 +18185,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventory
   capacity: 24
   slots: []
+--- !u!114 &8744477821165718913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ec6fa17cf0bd6843bec7adf6969984b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventoryDebugAdder
+  itemInventory: {fileID: 8744477821165718912}
+  itemToAdd: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+  addKey: 117
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

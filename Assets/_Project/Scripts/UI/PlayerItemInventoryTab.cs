@@ -7,6 +7,7 @@ public sealed class PlayerItemInventoryTab : MonoBehaviour
     [SerializeField] private PlayerItemInventory playerItemInventory;
     [SerializeField] private Transform contentRoot;
     [SerializeField] private PlayerItemInventorySlotView slotPrefab;
+    [SerializeField] private PlayerItemInventoryEquipmentAdapter equipAdapter;
     [SerializeField] private TMP_Text emptyText;
 
     private readonly List<PlayerItemInventory.ItemInventorySlotView> cachedSlots = new();
@@ -14,6 +15,7 @@ public sealed class PlayerItemInventoryTab : MonoBehaviour
     private void Awake()
     {
         playerItemInventory ??= FindAnyObjectByType<PlayerItemInventory>();
+        equipAdapter ??= FindAnyObjectByType<PlayerItemInventoryEquipmentAdapter>();
     }
 
     private void OnEnable()
@@ -47,7 +49,7 @@ public sealed class PlayerItemInventoryTab : MonoBehaviour
         foreach (PlayerItemInventory.ItemInventorySlotView slot in cachedSlots)
         {
             PlayerItemInventorySlotView view = Instantiate(slotPrefab, contentRoot);
-            view.Setup(slot);
+            view.Setup(slot, equipAdapter);
         }
 
         if (emptyText != null)

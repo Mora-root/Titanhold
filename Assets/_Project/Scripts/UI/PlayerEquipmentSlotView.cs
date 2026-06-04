@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     [SerializeField] private EquipmentSlot slot;
     [SerializeField] private Image iconImage;
@@ -11,6 +11,7 @@ public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandle
     [SerializeField] private GameObject emptyVisual;
     [SerializeField] private GameObject filledVisual;
     [SerializeField] private EquipmentItemTooltip tooltip;
+    [SerializeField] private PlayerItemInventoryEquipmentAdapter itemInventoryAdapter;
 
     private RectTransform rectTransform;
     private EquipmentItemDefinition currentItem;
@@ -25,7 +26,16 @@ public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandle
 
     public void Setup(EquipmentItemDefinition item)
     {
+        Setup(item, itemInventoryAdapter);
+    }
+
+    public void Setup(EquipmentItemDefinition item, PlayerItemInventoryEquipmentAdapter itemInventoryAdapter)
+    {
         currentItem = item;
+
+        if (itemInventoryAdapter != null)
+            this.itemInventoryAdapter = itemInventoryAdapter;
+
         bool isEmpty = item == null;
 
         if (emptyVisual != null)
@@ -70,6 +80,17 @@ public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandle
     public void OnPointerExit(PointerEventData eventData)
     {
         tooltip?.Hide();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Right)
+            return;
+
+        if (currentItem == null)
+            return;
+
+        itemInventoryAdapter?.TryUnequipToInventory(slot);
     }
 
     private void OnDisable()

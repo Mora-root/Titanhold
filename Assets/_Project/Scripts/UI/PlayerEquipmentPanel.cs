@@ -6,6 +6,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
     [SerializeField] private GameObject root;
     [SerializeField] private PlayerEquipment playerEquipment;
     [SerializeField] private PlayerEquipmentSlotView[] slotViews;
+    [SerializeField] private PlayerItemInventoryEquipmentAdapter itemInventoryAdapter;
     [SerializeField] private Button closeButton;
 
     public bool IsOpen { get; private set; }
@@ -16,6 +17,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
             root = gameObject;
 
         playerEquipment ??= FindAnyObjectByType<PlayerEquipment>();
+        itemInventoryAdapter ??= FindAnyObjectByType<PlayerItemInventoryEquipmentAdapter>();
 
         if (root != null)
             root.SetActive(false);
@@ -74,7 +76,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
                 ? playerEquipment.GetEquipped(slotView.Slot)
                 : null;
 
-            slotView.Setup(item);
+            slotView.Setup(item, itemInventoryAdapter);
         }
     }
 
