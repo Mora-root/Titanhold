@@ -125,6 +125,58 @@ public sealed class PlayerLootInventory : MonoBehaviour
         return true;
     }
 
+    public bool IsValidSlotIndex(int index)
+    {
+        EnsureSlotCapacity();
+        return index >= 0 && index < slots.Count;
+    }
+
+    public bool IsSlotEmpty(int index)
+    {
+        if (!IsValidSlotIndex(index))
+            return false;
+
+        return slots[index] == null || slots[index].IsEmpty;
+    }
+
+    public bool SwapSlots(int firstIndex, int secondIndex)
+    {
+        if (!IsValidSlotIndex(firstIndex) || !IsValidSlotIndex(secondIndex))
+            return false;
+
+        if (firstIndex == secondIndex)
+            return true;
+
+        SwapSlotContents(slots[firstIndex], slots[secondIndex]);
+        OnChanged?.Invoke();
+        return true;
+    }
+
+    public bool MoveSlot(int fromIndex, int toIndex)
+    {
+        if (!IsValidSlotIndex(fromIndex) || !IsValidSlotIndex(toIndex))
+            return false;
+
+        if (fromIndex == toIndex)
+            return true;
+
+        LootInventorySlot source = slots[fromIndex];
+        LootInventorySlot target = slots[toIndex];
+
+        if (source == null || source.IsEmpty)
+            return false;
+
+        if (target == null || target.IsEmpty)
+        {
+            CopySlot(source, target);
+            source.Clear();
+            OnChanged?.Invoke();
+            return true;
+        }
+
+        return SwapSlots(fromIndex, toIndex);
+    }
+
     public int GetSlots(List<LootInventorySlotView> results, bool includeEmpty = true)
     {
         if (results == null)
@@ -212,5 +264,35 @@ public sealed class PlayerLootInventory : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void CopySlot(LootInventorySlot source, LootInventorySlot target)
+    {
+        if (source == null || target == null)
+            return;
+
+        if (source.IsEmpty)
+        {
+            target.Clear();
+            return;
+        }
+
+        target.Set(source.Item, source.Amount);
+    }
+
+    private void SwapSlotContents(LootInventorySlot first, LootInventorySlot second)
+    {
+        if (first == null || second == null)
+            return;
+
+        LootItemDefinition firstItem = first.Item;
+        int firstAmount = first.Amount;
+
+        CopySlot(second, first);
+
+        if (firstItem == null || firstAmount <= 0)
+            second.Clear();
+        else
+            second.Set(firstItem, firstAmount);
     }
 }

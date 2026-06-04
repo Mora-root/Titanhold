@@ -66,13 +66,13 @@ Health.OnDeath
 
 Bottom XP HUD shows XP current / required only, without level text.
 
-Loot: `EnemyLootDropper` rolls independent entries; pickups can use `LootDropMotion`, then `LootPickup` reward components route Gold or `LootItemDefinition` stacks.
+Loot uses independent `EnemyLootDropper` entries, optional `LootDropMotion`, universal `LootPickup`, and reward components.
 
-Gold uses `PlayerGold`; Materials/Trophies use stack-based `PlayerLootInventory` with `LootItemDefinition`.
+Gold uses `PlayerGold`; Materials/Trophies use slot-based `PlayerLootInventory` with `LootItemDefinition`.
 
-Inventory: Materials/Trophies use `PlayerLootInventory` panel; Gold is shown in inventory/services, not permanent gameplay HUD.
+Inventory UI is a visible 7-column slot grid with insertion-order fill, hover tooltip, and temporary I-key debug opener.
 
-Inventory panel currently uses temporary I-key debug opener; move opening/closing to global UI manager later.
+Input TODO: future input contexts / command routing should let UI capture pointer input during drag/drop and block gameplay move/target intents until release.
 
 ## Temporary / Legacy
 

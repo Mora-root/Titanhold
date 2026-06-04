@@ -9,6 +9,7 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
     [SerializeField] private PlayerLootInventory playerLootInventory;
     [SerializeField] private Transform contentRoot;
     [SerializeField] private LootInventorySlotView slotPrefab;
+    [SerializeField] private PlayerLootInventoryDragController dragController;
     [SerializeField] private Button closeButton;
     [SerializeField] private TMP_Text emptyText;
 
@@ -22,6 +23,7 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
             root = gameObject;
 
         playerLootInventory ??= FindAnyObjectByType<PlayerLootInventory>();
+        dragController ??= FindAnyObjectByType<PlayerLootInventoryDragController>();
 
         if (root != null)
             root.SetActive(false);
@@ -81,7 +83,7 @@ public sealed class PlayerLootInventoryPanel : MonoBehaviour
         foreach (PlayerLootInventory.LootInventorySlotView slot in cachedSlots)
         {
             LootInventorySlotView view = Instantiate(slotPrefab, contentRoot);
-            view.Setup(slot);
+            view.Setup(slot, dragController);
         }
 
         if (emptyText != null)
