@@ -10,17 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
-  m_Name: Test
+  m_Name: Shield_Test
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentItemDefinition
-  displayName: Sword Test
-  shortName: Sword
+  displayName: Shield Test
+  shortName: Shield
   icon: {fileID: 0}
   description: Testing
-  defaultSlot: 0
-  kind: 1
-  weaponType: 1
-  handedness: 1
+  category: 1
+  weaponData:
+    handedness: 0
+    family: 1
+  equipmentData:
+    type: 7
+    defaultSlot: 1
   modifiers:
-  - type: 6
+  - type: 4
     modifierType: 0
-    value: 10
+    value: 50

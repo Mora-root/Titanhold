@@ -1,4 +1,4 @@
-public enum WeaponType
+public enum WeaponFamily
 {
     None,
     Sword,
