@@ -70,6 +70,8 @@ Loot uses independent `EnemyLootDropper` entries, optional `LootDropMotion`, uni
 
 Gold uses `PlayerGold`; Materials/Trophies use slot-based `PlayerLootInventory` with `LootItemDefinition`.
 
+Equipment: `PlayerEquipment` is hand-aware; `EquipmentItemDefinition` uses Weapon/Equipment data, supports 1H/2H/shield/same-family dual wield, and applies source-based stat modifiers.
+
 Inventory UI uses a 7-column slot grid with insertion-order fill, hover tooltip, MVP drag/drop, temporary I-key debug opener, and optional icons via `LootItemDefinition.Icon`.
 
 Input TODO: future input contexts / command routing should let UI capture pointer input during drag/drop and block gameplay move/target intents until release.
