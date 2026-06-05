@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Titanhold.UI.SectionInventory
@@ -13,6 +14,8 @@ namespace Titanhold.UI.SectionInventory
         private bool loggedMissingInventory;
         private bool loggedMissingGridView;
         private bool loggedMissingSection;
+
+        public event Action<global::ItemCategory, int> SlotRightClicked;
 
         private void Awake()
         {
@@ -32,6 +35,11 @@ namespace Titanhold.UI.SectionInventory
                 LogMissingInventory();
             }
 
+            if (gridView != null)
+                gridView.SlotRightClicked += HandleSlotRightClicked;
+            else
+                LogMissingGridView();
+
             InitializeTabs();
             Refresh();
         }
@@ -43,6 +51,9 @@ namespace Titanhold.UI.SectionInventory
                 playerInventory.Changed -= HandleInventoryChanged;
                 playerInventory.SectionChanged -= HandleSectionChanged;
             }
+
+            if (gridView != null)
+                gridView.SlotRightClicked -= HandleSlotRightClicked;
         }
 
         private void OnValidate()
@@ -119,6 +130,11 @@ namespace Titanhold.UI.SectionInventory
         {
             if (category == selectedCategory)
                 RefreshCurrentSection();
+        }
+
+        private void HandleSlotRightClicked(global::ItemCategory category, int slotIndex)
+        {
+            SlotRightClicked?.Invoke(category, slotIndex);
         }
 
         private void NormalizeSelectedCategory()

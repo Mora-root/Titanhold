@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +11,8 @@ namespace Titanhold.UI.SectionInventory
 
         private readonly List<InventorySlotView> slotViews = new();
         private bool loggedMissingSetup;
+
+        public event Action<global::ItemCategory, int> SlotRightClicked;
 
         public void ShowSection(global::ItemContainerSection section)
         {
@@ -38,12 +41,12 @@ namespace Titanhold.UI.SectionInventory
 
                 if (!shouldShow)
                 {
-                    view.SetSlot(null);
+                    view.SetSlot(null, section.Category, -1);
                     continue;
                 }
 
                 global::ItemSlot slot = slots != null && i < slots.Length ? slots[i] : null;
-                view.SetSlot(slot);
+                view.SetSlot(slot, section.Category, i);
             }
         }
 
@@ -54,7 +57,7 @@ namespace Titanhold.UI.SectionInventory
                 if (view == null)
                     continue;
 
-                view.SetSlot(null);
+                view.SetSlot(null, default, -1);
                 view.gameObject.SetActive(false);
             }
         }
@@ -78,8 +81,14 @@ namespace Titanhold.UI.SectionInventory
             while (slotViews.Count < count)
             {
                 InventorySlotView view = Instantiate(slotPrefab, contentRoot);
+                view.RightClicked += HandleSlotRightClicked;
                 slotViews.Add(view);
             }
+        }
+
+        private void HandleSlotRightClicked(global::ItemCategory category, int slotIndex)
+        {
+            SlotRightClicked?.Invoke(category, slotIndex);
         }
     }
 }

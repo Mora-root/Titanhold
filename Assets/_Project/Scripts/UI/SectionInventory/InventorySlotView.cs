@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Titanhold.UI.SectionInventory
 {
-    public sealed class InventorySlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public sealed class InventorySlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text amountText;
@@ -15,6 +16,10 @@ namespace Titanhold.UI.SectionInventory
         private RectTransform rectTransform;
         private global::ItemSlot currentSlot;
         private global::ItemDefinition currentDefinition;
+        private global::ItemCategory currentCategory;
+        private int currentSlotIndex = -1;
+
+        public event Action<global::ItemCategory, int> RightClicked;
 
         private void Awake()
         {
@@ -24,7 +29,14 @@ namespace Titanhold.UI.SectionInventory
 
         public void SetSlot(global::ItemSlot slot)
         {
+            SetSlot(slot, default, -1);
+        }
+
+        public void SetSlot(global::ItemSlot slot, global::ItemCategory category, int slotIndex)
+        {
             currentSlot = slot;
+            currentCategory = category;
+            currentSlotIndex = slotIndex;
 
             if (slot == null || slot.IsEmpty || slot.Stack == null || slot.Stack.Definition == null)
             {
@@ -61,6 +73,17 @@ namespace Titanhold.UI.SectionInventory
         public void OnPointerExit(PointerEventData eventData)
         {
             tooltip?.Hide();
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Right)
+                return;
+
+            if (currentSlot == null || currentSlot.IsEmpty || currentSlotIndex < 0)
+                return;
+
+            RightClicked?.Invoke(currentCategory, currentSlotIndex);
         }
 
         private void OnDisable()
