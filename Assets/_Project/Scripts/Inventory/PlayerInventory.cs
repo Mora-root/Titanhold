@@ -92,6 +92,40 @@ public sealed class PlayerInventory : MonoBehaviour
         return TryAdd(ItemStack.CreateNonStackable(instance));
     }
 
+    public ItemStack TakeStack(ItemCategory category, int slotIndex)
+    {
+        EnsureInitialized();
+
+        ItemSlot slot = container.GetSlot(category, slotIndex);
+        if (slot == null || slot.IsEmpty)
+            return null;
+
+        ItemStack stack = slot.Take();
+        Changed?.Invoke();
+        SectionChanged?.Invoke(category);
+        return stack;
+    }
+
+    public bool SetStack(ItemCategory category, int slotIndex, ItemStack stack)
+    {
+        EnsureInitialized();
+
+        if (stack == null || stack.Definition == null)
+            return false;
+
+        if (stack.Definition.Category != category)
+            return false;
+
+        ItemSlot slot = container.GetSlot(category, slotIndex);
+        if (slot == null || !slot.IsEmpty)
+            return false;
+
+        slot.Set(stack);
+        Changed?.Invoke();
+        SectionChanged?.Invoke(category);
+        return true;
+    }
+
     public ItemContainerSection GetSection(ItemCategory category)
     {
         EnsureInitialized();
