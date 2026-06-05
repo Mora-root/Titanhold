@@ -13,7 +13,7 @@ public sealed class LootInventorySlotView : MonoBehaviour, IPointerEnterHandler,
 
     private RectTransform rectTransform;
     private int slotIndex = -1;
-    private LootItemDefinition currentItem;
+    private ItemDefinition currentItem;
     private int currentAmount;
     private bool isEmpty = true;
 

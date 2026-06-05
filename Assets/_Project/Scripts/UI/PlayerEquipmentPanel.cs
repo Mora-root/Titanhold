@@ -72,7 +72,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
             if (slotView == null)
                 continue;
 
-            EquipmentItemDefinition item = playerEquipment != null
+            ItemDefinition item = playerEquipment != null
                 ? playerEquipment.GetEquipped(slotView.Slot)
                 : null;
 
@@ -80,7 +80,7 @@ public sealed class PlayerEquipmentPanel : MonoBehaviour
         }
     }
 
-    private void HandleEquipmentChanged(EquipmentSlot slot, EquipmentItemDefinition item)
+    private void HandleEquipmentChanged(EquipmentSlotId slot, ItemDefinition item)
     {
         Refresh();
     }

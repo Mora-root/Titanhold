@@ -11,19 +11,30 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
   m_Name: Shield_Test
-  m_EditorClassIdentifier: Assembly-CSharp::EquipmentItemDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: shield_test
   displayName: Shield Test
   shortName: Shield
   icon: {fileID: 0}
   description: Testing
-  category: 1
-  weaponData:
-    handedness: 0
-    family: 1
-  equipmentData:
-    type: 7
-    defaultSlot: 1
+  category: 0
+  maxStack: 1
+  equipmentSlotType: 2
   modifiers:
   - type: 4
     modifierType: 0
     value: 50
+  weaponType: 0
+  consumableSubtype: 0
+  useActionId: 
+  consumeAmountOnUse: 1
+  activitySubtype: 0
+  activityModifiers: []
+  trophySubtype: 0
+  craftingSubtype: 0
+  sellValue: 0
+  canBeSold: 1
+  sellWarningType: 0
+  canBeDismantled: 0
+  externalDropAction: 0
+  requiresConfirmationOnExternalDrop: 0

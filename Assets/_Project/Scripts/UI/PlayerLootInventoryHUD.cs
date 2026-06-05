@@ -4,7 +4,7 @@ using UnityEngine;
 public sealed class PlayerLootInventoryHUD : MonoBehaviour
 {
     [SerializeField] private PlayerLootInventory playerLootInventory;
-    [SerializeField] private LootItemDefinition trackedItem;
+    [SerializeField] private ItemDefinition trackedItem;
     [SerializeField] private TMP_Text amountText;
 
     private void Awake()

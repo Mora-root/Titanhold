@@ -2,7 +2,7 @@ using UnityEngine;
 
 public sealed class LootItemReward : MonoBehaviour, ILootReward, IAmountLootReward
 {
-    [SerializeField] private LootItemDefinition item;
+    [SerializeField] private ItemDefinition item;
     [SerializeField] private int amount = 1;
     [SerializeField] private PlayerLootInventory playerLootInventory;
 

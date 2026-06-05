@@ -11,7 +11,7 @@ public sealed class PlayerItemInventorySlotView : MonoBehaviour, IPointerEnterHa
     [SerializeField] private PlayerItemInventoryEquipmentAdapter equipAdapter;
 
     private RectTransform rectTransform;
-    private EquipmentItemDefinition currentItem;
+    private ItemDefinition currentItem;
     private int slotIndex = -1;
 
     public int SlotIndex => slotIndex;

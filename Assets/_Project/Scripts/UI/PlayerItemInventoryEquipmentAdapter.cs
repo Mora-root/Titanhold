@@ -26,7 +26,7 @@ public sealed class PlayerItemInventoryEquipmentAdapter : MonoBehaviour
         if (itemInventory.CountFreeSlots() + 1 < 2)
             return false;
 
-        EquipmentItemDefinition item = itemInventory.RemoveAt(slotIndex);
+        ItemDefinition item = itemInventory.RemoveAt(slotIndex);
         if (item == null)
             return false;
 
@@ -37,7 +37,7 @@ public sealed class PlayerItemInventoryEquipmentAdapter : MonoBehaviour
             return false;
         }
 
-        foreach (EquipmentItemDefinition unequippedItem in result.UnequippedItems)
+        foreach (ItemDefinition unequippedItem in result.UnequippedItems)
         {
             if (unequippedItem == null)
                 continue;
@@ -49,12 +49,12 @@ public sealed class PlayerItemInventoryEquipmentAdapter : MonoBehaviour
         return true;
     }
 
-    public bool TryUnequipToInventory(EquipmentSlot slot)
+    public bool TryUnequipToInventory(EquipmentSlotId slot)
     {
         if (itemInventory == null || playerEquipment == null)
             return false;
 
-        EquipmentItemDefinition item = playerEquipment.GetEquipped(slot);
+        ItemDefinition item = playerEquipment.GetEquipped(slot);
         if (item == null)
             return false;
 

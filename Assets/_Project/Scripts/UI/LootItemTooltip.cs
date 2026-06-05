@@ -23,7 +23,7 @@ public sealed class LootItemTooltip : MonoBehaviour
         Hide();
     }
 
-    public void Show(LootItemDefinition item, Vector2 screenPosition)
+    public void Show(ItemDefinition item, Vector2 screenPosition)
     {
         if (!SetItem(item))
             return;
@@ -32,7 +32,7 @@ public sealed class LootItemTooltip : MonoBehaviour
         ShowRoot();
     }
 
-    public void ShowLeftOf(LootItemDefinition item, RectTransform anchor)
+    public void ShowLeftOf(ItemDefinition item, RectTransform anchor)
     {
         if (!SetItem(item))
             return;
@@ -65,7 +65,7 @@ public sealed class LootItemTooltip : MonoBehaviour
             root.SetActive(false);
     }
 
-    private bool SetItem(LootItemDefinition item)
+    private bool SetItem(ItemDefinition item)
     {
         if (item == null)
         {

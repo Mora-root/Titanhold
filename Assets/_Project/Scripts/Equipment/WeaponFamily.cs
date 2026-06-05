@@ -4,6 +4,7 @@ public enum WeaponFamily
     Sword,
     Axe,
     Mace,
+    Hammer,
     Dagger,
     Staff,
     Bow

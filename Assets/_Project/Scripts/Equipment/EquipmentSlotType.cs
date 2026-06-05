@@ -1,5 +1,8 @@
-public enum EquipmentType
+public enum EquipmentSlotType
 {
+    None,
+    Weapon,
+    Shield,
     Head,
     Chest,
     Hands,
@@ -7,5 +10,5 @@ public enum EquipmentType
     Feet,
     Amulet,
     Ring,
-    Shield
+    Artifact
 }

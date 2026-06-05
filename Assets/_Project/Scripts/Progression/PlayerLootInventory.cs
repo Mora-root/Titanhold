@@ -6,7 +6,7 @@ public sealed class PlayerLootInventory : MonoBehaviour
 {
     public readonly struct LootInventorySlotView
     {
-        public LootInventorySlotView(int index, LootItemDefinition item, int amount, bool isEmpty)
+        public LootInventorySlotView(int index, ItemDefinition item, int amount, bool isEmpty)
         {
             Index = index;
             Item = item;
@@ -15,34 +15,34 @@ public sealed class PlayerLootInventory : MonoBehaviour
         }
 
         public int Index { get; }
-        public LootItemDefinition Item { get; }
+        public ItemDefinition Item { get; }
         public int Amount { get; }
         public bool IsEmpty { get; }
     }
 
     public readonly struct LootItemStackView
     {
-        public LootItemStackView(LootItemDefinition item, int amount)
+        public LootItemStackView(ItemDefinition item, int amount)
         {
             Item = item;
             Amount = amount;
         }
 
-        public LootItemDefinition Item { get; }
+        public ItemDefinition Item { get; }
         public int Amount { get; }
     }
 
     [Serializable]
     private sealed class LootInventorySlot
     {
-        [SerializeField] private LootItemDefinition item;
+        [SerializeField] private ItemDefinition item;
         [SerializeField] private int amount;
 
-        public LootItemDefinition Item => item;
+        public ItemDefinition Item => item;
         public int Amount => amount;
         public bool IsEmpty => item == null || amount <= 0;
 
-        public void Set(LootItemDefinition item, int amount)
+        public void Set(ItemDefinition item, int amount)
         {
             this.item = item;
             this.amount = amount;
@@ -70,12 +70,12 @@ public sealed class PlayerLootInventory : MonoBehaviour
         EnsureSlotCapacity();
     }
 
-    public void Add(LootItemDefinition item, int amount)
+    public void Add(ItemDefinition item, int amount)
     {
         TryAdd(item, amount);
     }
 
-    public bool TryAdd(LootItemDefinition item, int amount)
+    public bool TryAdd(ItemDefinition item, int amount)
     {
         if (item == null)
             return false;
@@ -104,12 +104,12 @@ public sealed class PlayerLootInventory : MonoBehaviour
         return true;
     }
 
-    public int GetAmount(LootItemDefinition item)
+    public int GetAmount(ItemDefinition item)
     {
         return TryGetAmount(item, out int amount) ? amount : 0;
     }
 
-    public bool TryGetAmount(LootItemDefinition item, out int amount)
+    public bool TryGetAmount(ItemDefinition item, out int amount)
     {
         amount = 0;
 
@@ -240,7 +240,7 @@ public sealed class PlayerLootInventory : MonoBehaviour
         }
     }
 
-    private LootInventorySlot FindSlot(LootItemDefinition item)
+    private LootInventorySlot FindSlot(ItemDefinition item)
     {
         EnsureSlotCapacity();
 
@@ -285,7 +285,7 @@ public sealed class PlayerLootInventory : MonoBehaviour
         if (first == null || second == null)
             return;
 
-        LootItemDefinition firstItem = first.Item;
+        ItemDefinition firstItem = first.Item;
         int firstAmount = first.Amount;
 
         CopySlot(second, first);

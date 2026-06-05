@@ -1,4 +1,4 @@
-public enum EquipmentSlot
+public enum EquipmentSlotId
 {
     MainHand,
     OffHand,
@@ -9,5 +9,6 @@ public enum EquipmentSlot
     Feet,
     Amulet,
     Ring1,
-    Ring2
+    Ring2,
+    Artifact
 }

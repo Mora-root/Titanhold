@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    [SerializeField] private EquipmentSlot slot;
+    [SerializeField] private EquipmentSlotId slot;
     [SerializeField] private Image iconImage;
     [SerializeField] private TMP_Text fallbackNameText;
     [SerializeField] private GameObject emptyVisual;
@@ -14,9 +14,9 @@ public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandle
     [SerializeField] private PlayerItemInventoryEquipmentAdapter itemInventoryAdapter;
 
     private RectTransform rectTransform;
-    private EquipmentItemDefinition currentItem;
+    private ItemDefinition currentItem;
 
-    public EquipmentSlot Slot => slot;
+    public EquipmentSlotId Slot => slot;
 
     private void Awake()
     {
@@ -24,12 +24,12 @@ public sealed class PlayerEquipmentSlotView : MonoBehaviour, IPointerEnterHandle
         tooltip ??= FindAnyObjectByType<EquipmentItemTooltip>(FindObjectsInactive.Include);
     }
 
-    public void Setup(EquipmentItemDefinition item)
+    public void Setup(ItemDefinition item)
     {
         Setup(item, itemInventoryAdapter);
     }
 
-    public void Setup(EquipmentItemDefinition item, PlayerItemInventoryEquipmentAdapter itemInventoryAdapter)
+    public void Setup(ItemDefinition item, PlayerItemInventoryEquipmentAdapter itemInventoryAdapter)
     {
         currentItem = item;
 

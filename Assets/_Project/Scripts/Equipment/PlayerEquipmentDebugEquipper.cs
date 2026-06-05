@@ -4,7 +4,7 @@ using UnityEngine;
 public sealed class PlayerEquipmentDebugEquipper : MonoBehaviour
 {
     [SerializeField] private PlayerEquipment playerEquipment;
-    [SerializeField] private EquipmentItemDefinition itemToEquip;
+    [SerializeField] private ItemDefinition itemToEquip;
     [SerializeField] private KeyCode equipKey = KeyCode.O;
     [SerializeField] private KeyCode unequipKey = KeyCode.P;
 
@@ -25,7 +25,7 @@ public sealed class PlayerEquipmentDebugEquipper : MonoBehaviour
         if (Input.GetKeyDown(unequipKey))
         {
             if (playerEquipment != null && itemToEquip != null)
-                playerEquipment.Unequip(itemToEquip.DefaultSlot);
+                playerEquipment.Unequip(playerEquipment.GetPreferredSlot(itemToEquip));
         }
     }
 }

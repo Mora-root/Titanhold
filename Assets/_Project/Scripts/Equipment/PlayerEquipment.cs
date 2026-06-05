@@ -8,46 +8,46 @@ public sealed class PlayerEquipment : MonoBehaviour
     {
         public EquipmentChangeResult(
             bool success,
-            EquipmentSlot equippedSlot,
-            EquipmentItemDefinition equippedItem,
-            IReadOnlyList<EquipmentItemDefinition> unequippedItems)
+            EquipmentSlotId equippedSlot,
+            ItemDefinition equippedItem,
+            IReadOnlyList<ItemDefinition> unequippedItems)
         {
             Success = success;
             EquippedSlot = equippedSlot;
             EquippedItem = equippedItem;
-            UnequippedItems = unequippedItems ?? Array.Empty<EquipmentItemDefinition>();
+            UnequippedItems = unequippedItems ?? Array.Empty<ItemDefinition>();
         }
 
         public bool Success { get; }
-        public EquipmentSlot EquippedSlot { get; }
-        public EquipmentItemDefinition EquippedItem { get; }
-        public IReadOnlyList<EquipmentItemDefinition> UnequippedItems { get; }
+        public EquipmentSlotId EquippedSlot { get; }
+        public ItemDefinition EquippedItem { get; }
+        public IReadOnlyList<ItemDefinition> UnequippedItems { get; }
     }
 
     [Serializable]
     private sealed class EquippedItem
     {
-        [SerializeField] private EquipmentSlot slot;
-        [SerializeField] private EquipmentItemDefinition item;
+        [SerializeField] private EquipmentSlotId slot;
+        [SerializeField] private ItemDefinition item;
 
         public EquippedItem()
         {
         }
 
-        public EquippedItem(EquipmentSlot slot)
+        public EquippedItem(EquipmentSlotId slot)
         {
             this.slot = slot;
         }
 
-        public EquipmentSlot Slot => slot;
-        public EquipmentItemDefinition Item => item;
+        public EquipmentSlotId Slot => slot;
+        public ItemDefinition Item => item;
 
-        public void SetSlot(EquipmentSlot slot)
+        public void SetSlot(EquipmentSlotId slot)
         {
             this.slot = slot;
         }
 
-        public void SetItem(EquipmentItemDefinition item)
+        public void SetItem(ItemDefinition item)
         {
             this.item = item;
         }
@@ -56,7 +56,7 @@ public sealed class PlayerEquipment : MonoBehaviour
     [SerializeField] private CharacterStats characterStats;
     [SerializeField] private EquippedItem[] equippedItems;
 
-    public event Action<EquipmentSlot, EquipmentItemDefinition> OnEquipmentChanged;
+    public event Action<EquipmentSlotId, ItemDefinition> OnEquipmentChanged;
 
     private void Awake()
     {
@@ -64,139 +64,177 @@ public sealed class PlayerEquipment : MonoBehaviour
         EnsureSlots();
     }
 
-    public bool CanEquip(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    public bool CanEquip(ItemDefinition item, EquipmentSlotId targetSlot)
     {
         if (item == null)
             return false;
 
         EnsureSlots();
 
-        if (item.IsWeapon && item.WeaponFamily == WeaponFamily.None)
-        {
+        if (!item.IsEquippable)
             return false;
-        }
 
-        if (item.IsEquipment)
+        if (!item.IsWeapon)
             return IsValidEquipmentTargetSlot(item, targetSlot);
 
-        if (item.Handedness == WeaponHandedness.TwoHand)
-            return targetSlot == EquipmentSlot.MainHand;
-
-        if (targetSlot == EquipmentSlot.MainHand)
-            return true;
-
-        if (targetSlot != EquipmentSlot.OffHand)
+        if (item.WeaponFamily == WeaponFamily.None)
             return false;
 
-        EquipmentItemDefinition mainHandItem = GetEquipped(EquipmentSlot.MainHand);
+        if (item.Handedness == WeaponHandedness.TwoHand)
+            return targetSlot == EquipmentSlotId.MainHand;
+
+        if (targetSlot == EquipmentSlotId.MainHand)
+            return true;
+
+        if (targetSlot != EquipmentSlotId.OffHand)
+            return false;
+
+        ItemDefinition mainHandItem = GetEquipped(EquipmentSlotId.MainHand);
 
         return IsMatchingOneHandWeapon(mainHandItem, item.WeaponFamily);
     }
 
-    public bool Equip(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    public bool Equip(ItemDefinition item, EquipmentSlotId targetSlot)
     {
         return EquipWithResult(item, targetSlot).Success;
     }
 
-    public bool Equip(EquipmentItemDefinition item)
+    public bool Equip(ItemDefinition item)
     {
         if (item == null)
             return false;
 
-        return Equip(item, item.DefaultSlot);
+        return Equip(item, GetPreferredSlot(item));
     }
 
-    public EquipmentChangeResult AutoEquip(EquipmentItemDefinition item)
+    public EquipmentChangeResult AutoEquip(ItemDefinition item)
     {
         if (item == null)
             return CreateFailedResult(item);
 
-        if (item.IsEquipment)
-            return EquipWithResult(item, item.DefaultSlot);
-
         if (!item.IsWeapon)
-            return CreateFailedResult(item);
+            return EquipWithResult(item, GetPreferredSlot(item));
 
         if (item.Handedness == WeaponHandedness.TwoHand)
-            return EquipWithResult(item, EquipmentSlot.MainHand);
+            return EquipWithResult(item, EquipmentSlotId.MainHand);
 
         if (item.Handedness != WeaponHandedness.OneHand)
             return CreateFailedResult(item);
 
-        EquipmentItemDefinition mainHandItem = GetEquipped(EquipmentSlot.MainHand);
-        EquipmentItemDefinition offHandItem = GetEquipped(EquipmentSlot.OffHand);
+        ItemDefinition mainHandItem = GetEquipped(EquipmentSlotId.MainHand);
+        ItemDefinition offHandItem = GetEquipped(EquipmentSlotId.OffHand);
 
         if (mainHandItem == null)
-            return EquipWithResult(item, EquipmentSlot.MainHand);
+            return EquipWithResult(item, EquipmentSlotId.MainHand);
 
         if (IsMatchingOneHandWeapon(mainHandItem, item.WeaponFamily))
         {
             if (offHandItem == null)
-                return EquipWithResult(item, EquipmentSlot.OffHand);
+                return EquipWithResult(item, EquipmentSlotId.OffHand);
 
-            return EquipWithResult(item, EquipmentSlot.MainHand);
+            return EquipWithResult(item, EquipmentSlotId.MainHand);
         }
 
-        return EquipWithResult(item, EquipmentSlot.MainHand);
+        return EquipWithResult(item, EquipmentSlotId.MainHand);
     }
 
-    public EquipmentChangeResult EquipWithResult(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    public EquipmentSlotId GetPreferredSlot(ItemDefinition item)
+    {
+        if (item == null)
+            return default;
+
+        EnsureSlots();
+
+        switch (item.EquipmentSlotType)
+        {
+            case EquipmentSlotType.Weapon:
+                return EquipmentSlotId.MainHand;
+            case EquipmentSlotType.Shield:
+                return EquipmentSlotId.OffHand;
+            case EquipmentSlotType.Head:
+                return EquipmentSlotId.Head;
+            case EquipmentSlotType.Chest:
+                return EquipmentSlotId.Chest;
+            case EquipmentSlotType.Hands:
+                return EquipmentSlotId.Hands;
+            case EquipmentSlotType.Legs:
+                return EquipmentSlotId.Legs;
+            case EquipmentSlotType.Feet:
+                return EquipmentSlotId.Feet;
+            case EquipmentSlotType.Amulet:
+                return EquipmentSlotId.Amulet;
+            case EquipmentSlotType.Ring:
+                if (GetEquipped(EquipmentSlotId.Ring1) == null)
+                    return EquipmentSlotId.Ring1;
+
+                if (GetEquipped(EquipmentSlotId.Ring2) == null)
+                    return EquipmentSlotId.Ring2;
+
+                return EquipmentSlotId.Ring1;
+            case EquipmentSlotType.Artifact:
+                return EquipmentSlotId.Artifact;
+            default:
+                return default;
+        }
+    }
+
+    public EquipmentChangeResult EquipWithResult(ItemDefinition item, EquipmentSlotId targetSlot)
     {
         if (!CanEquip(item, targetSlot))
             return CreateFailedResult(item);
 
-        EquipmentSlot equippedSlot = GetResolvedEquipSlot(item, targetSlot);
+        EquipmentSlotId equippedSlot = GetResolvedEquipSlot(item, targetSlot);
 
         if (!HasSlot(equippedSlot))
             return CreateFailedResult(item);
 
-        List<EquipmentItemDefinition> unequippedItems = new List<EquipmentItemDefinition>();
+        List<ItemDefinition> unequippedItems = new List<ItemDefinition>();
 
         if (item.IsWeapon && item.Handedness == WeaponHandedness.TwoHand)
         {
-            ClearSlot(EquipmentSlot.MainHand, unequippedItems);
-            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            if (!SetSlotItem(EquipmentSlot.MainHand, item))
+            ClearSlot(EquipmentSlotId.MainHand, unequippedItems);
+            ClearSlot(EquipmentSlotId.OffHand, unequippedItems);
+            if (!SetSlotItem(EquipmentSlotId.MainHand, item))
                 return CreateFailedResult(item);
 
-            return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
+            return CreateSuccessResult(EquipmentSlotId.MainHand, item, unequippedItems);
         }
 
         if (IsShield(item))
         {
-            EquipmentItemDefinition mainHandItem = GetEquipped(EquipmentSlot.MainHand);
+            ItemDefinition mainHandItem = GetEquipped(EquipmentSlotId.MainHand);
 
             if (mainHandItem != null && mainHandItem.OccupiesBothHands)
-                ClearSlot(EquipmentSlot.MainHand, unequippedItems);
+                ClearSlot(EquipmentSlotId.MainHand, unequippedItems);
 
-            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            if (!SetSlotItem(EquipmentSlot.OffHand, item))
+            ClearSlot(EquipmentSlotId.OffHand, unequippedItems);
+            if (!SetSlotItem(EquipmentSlotId.OffHand, item))
                 return CreateFailedResult(item);
 
-            return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
+            return CreateSuccessResult(EquipmentSlotId.OffHand, item, unequippedItems);
         }
 
         if (item.IsWeapon && item.Handedness == WeaponHandedness.OneHand)
         {
-            if (targetSlot == EquipmentSlot.MainHand)
+            if (targetSlot == EquipmentSlotId.MainHand)
             {
-                EquipmentItemDefinition offHandItem = GetEquipped(EquipmentSlot.OffHand);
+                ItemDefinition offHandItem = GetEquipped(EquipmentSlotId.OffHand);
 
                 if (IsIncompatibleOffHandWeapon(item, offHandItem))
-                    ClearSlot(EquipmentSlot.OffHand, unequippedItems);
+                    ClearSlot(EquipmentSlotId.OffHand, unequippedItems);
 
-                ClearSlot(EquipmentSlot.MainHand, unequippedItems);
-                if (!SetSlotItem(EquipmentSlot.MainHand, item))
+                ClearSlot(EquipmentSlotId.MainHand, unequippedItems);
+                if (!SetSlotItem(EquipmentSlotId.MainHand, item))
                     return CreateFailedResult(item);
 
-                return CreateSuccessResult(EquipmentSlot.MainHand, item, unequippedItems);
+                return CreateSuccessResult(EquipmentSlotId.MainHand, item, unequippedItems);
             }
 
-            ClearSlot(EquipmentSlot.OffHand, unequippedItems);
-            if (!SetSlotItem(EquipmentSlot.OffHand, item))
+            ClearSlot(EquipmentSlotId.OffHand, unequippedItems);
+            if (!SetSlotItem(EquipmentSlotId.OffHand, item))
                 return CreateFailedResult(item);
 
-            return CreateSuccessResult(EquipmentSlot.OffHand, item, unequippedItems);
+            return CreateSuccessResult(EquipmentSlotId.OffHand, item, unequippedItems);
         }
 
         ClearSlot(targetSlot, unequippedItems);
@@ -206,7 +244,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         return CreateSuccessResult(targetSlot, item, unequippedItems);
     }
 
-    public bool Unequip(EquipmentSlot slot)
+    public bool Unequip(EquipmentSlotId slot)
     {
         EnsureSlots();
 
@@ -223,7 +261,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    public EquipmentItemDefinition GetEquipped(EquipmentSlot slot)
+    public ItemDefinition GetEquipped(EquipmentSlotId slot)
     {
         EnsureSlots();
 
@@ -231,12 +269,12 @@ public sealed class PlayerEquipment : MonoBehaviour
         return equippedItem != null ? equippedItem.Item : null;
     }
 
-    private bool ClearSlot(EquipmentSlot slot)
+    private bool ClearSlot(EquipmentSlotId slot)
     {
         return ClearSlot(slot, null);
     }
 
-    private bool ClearSlot(EquipmentSlot slot, List<EquipmentItemDefinition> unequippedItems)
+    private bool ClearSlot(EquipmentSlotId slot, List<ItemDefinition> unequippedItems)
     {
         EnsureSlots();
 
@@ -248,14 +286,14 @@ public sealed class PlayerEquipment : MonoBehaviour
         if (equippedItem == null || equippedItem.Item == null)
             return false;
 
-        EquipmentItemDefinition removedItem = equippedItem.Item;
+        ItemDefinition removedItem = equippedItem.Item;
         equippedItem.SetItem(null);
         unequippedItems?.Add(removedItem);
         OnEquipmentChanged?.Invoke(slot, null);
         return true;
     }
 
-    private bool SetSlotItem(EquipmentSlot slot, EquipmentItemDefinition item)
+    private bool SetSlotItem(EquipmentSlotId slot, ItemDefinition item)
     {
         EnsureSlots();
 
@@ -273,7 +311,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    private bool IsIncompatibleOffHandWeapon(EquipmentItemDefinition mainHandItem, EquipmentItemDefinition offHandItem)
+    private bool IsIncompatibleOffHandWeapon(ItemDefinition mainHandItem, ItemDefinition offHandItem)
     {
         if (mainHandItem == null || offHandItem == null)
             return false;
@@ -287,7 +325,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         return mainHandItem.WeaponFamily != offHandItem.WeaponFamily;
     }
 
-    private bool IsMatchingOneHandWeapon(EquipmentItemDefinition item, WeaponFamily weaponFamily)
+    private bool IsMatchingOneHandWeapon(ItemDefinition item, WeaponFamily weaponFamily)
     {
         return item != null &&
                item.IsWeapon &&
@@ -296,87 +334,86 @@ public sealed class PlayerEquipment : MonoBehaviour
                item.WeaponFamily != WeaponFamily.None;
     }
 
-    private EquipmentSlot GetResolvedEquipSlot(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    private EquipmentSlotId GetResolvedEquipSlot(ItemDefinition item, EquipmentSlotId targetSlot)
     {
         if (item.IsWeapon && item.Handedness == WeaponHandedness.TwoHand)
-            return EquipmentSlot.MainHand;
+            return EquipmentSlotId.MainHand;
 
         if (IsShield(item))
-            return EquipmentSlot.OffHand;
+            return EquipmentSlotId.OffHand;
 
         return targetSlot;
     }
 
-    private bool IsShield(EquipmentItemDefinition item)
+    private bool IsShield(ItemDefinition item)
     {
-        return item != null && item.IsEquipment && item.EquipmentType == EquipmentType.Shield;
+        return item != null && item.IsEquipment && item.EquipmentSlotType == EquipmentSlotType.Shield;
     }
 
-    private bool IsValidEquipmentTargetSlot(EquipmentItemDefinition item, EquipmentSlot targetSlot)
+    private bool IsValidEquipmentTargetSlot(ItemDefinition item, EquipmentSlotId targetSlot)
     {
         if (item == null || !item.IsEquipment)
             return false;
 
-        if (item.EquipmentType == EquipmentType.Shield)
-            return targetSlot == EquipmentSlot.OffHand;
+        if (item.EquipmentSlotType == EquipmentSlotType.Shield)
+            return targetSlot == EquipmentSlotId.OffHand;
 
-        if (targetSlot != item.DefaultSlot)
-            return false;
-
-        return IsValidSlotForEquipmentType(item.EquipmentType, targetSlot);
+        return IsValidSlotForEquipmentType(item.EquipmentSlotType, targetSlot);
     }
 
-    private bool IsValidSlotForEquipmentType(EquipmentType equipmentType, EquipmentSlot targetSlot)
+    private bool IsValidSlotForEquipmentType(EquipmentSlotType equipmentSlotType, EquipmentSlotId targetSlot)
     {
-        switch (equipmentType)
+        switch (equipmentSlotType)
         {
-            case EquipmentType.Head:
-                return targetSlot == EquipmentSlot.Head;
-            case EquipmentType.Chest:
-                return targetSlot == EquipmentSlot.Chest;
-            case EquipmentType.Hands:
-                return targetSlot == EquipmentSlot.Hands;
-            case EquipmentType.Legs:
-                return targetSlot == EquipmentSlot.Legs;
-            case EquipmentType.Feet:
-                return targetSlot == EquipmentSlot.Feet;
-            case EquipmentType.Amulet:
-                return targetSlot == EquipmentSlot.Amulet;
-            case EquipmentType.Ring:
-                return targetSlot == EquipmentSlot.Ring1 || targetSlot == EquipmentSlot.Ring2;
-            case EquipmentType.Shield:
-                return targetSlot == EquipmentSlot.OffHand;
+            case EquipmentSlotType.Head:
+                return targetSlot == EquipmentSlotId.Head;
+            case EquipmentSlotType.Chest:
+                return targetSlot == EquipmentSlotId.Chest;
+            case EquipmentSlotType.Hands:
+                return targetSlot == EquipmentSlotId.Hands;
+            case EquipmentSlotType.Legs:
+                return targetSlot == EquipmentSlotId.Legs;
+            case EquipmentSlotType.Feet:
+                return targetSlot == EquipmentSlotId.Feet;
+            case EquipmentSlotType.Amulet:
+                return targetSlot == EquipmentSlotId.Amulet;
+            case EquipmentSlotType.Ring:
+                return targetSlot == EquipmentSlotId.Ring1 || targetSlot == EquipmentSlotId.Ring2;
+            case EquipmentSlotType.Shield:
+                return targetSlot == EquipmentSlotId.OffHand;
+            case EquipmentSlotType.Artifact:
+                return targetSlot == EquipmentSlotId.Artifact;
             default:
                 return false;
         }
     }
 
-    private bool HasSlot(EquipmentSlot slot)
+    private bool HasSlot(EquipmentSlotId slot)
     {
         EnsureSlots();
         return FindEntry(slot) != null;
     }
 
-    private EquipmentChangeResult CreateFailedResult(EquipmentItemDefinition item)
+    private EquipmentChangeResult CreateFailedResult(ItemDefinition item)
     {
-        return new EquipmentChangeResult(false, default, item, Array.Empty<EquipmentItemDefinition>());
+        return new EquipmentChangeResult(false, default, item, Array.Empty<ItemDefinition>());
     }
 
     private EquipmentChangeResult CreateSuccessResult(
-        EquipmentSlot equippedSlot,
-        EquipmentItemDefinition equippedItem,
-        List<EquipmentItemDefinition> unequippedItems)
+        EquipmentSlotId equippedSlot,
+        ItemDefinition equippedItem,
+        List<ItemDefinition> unequippedItems)
     {
-        IReadOnlyList<EquipmentItemDefinition> resultItems = unequippedItems != null && unequippedItems.Count > 0
+        IReadOnlyList<ItemDefinition> resultItems = unequippedItems != null && unequippedItems.Count > 0
             ? unequippedItems.ToArray()
-            : Array.Empty<EquipmentItemDefinition>();
+            : Array.Empty<ItemDefinition>();
 
         return new EquipmentChangeResult(true, equippedSlot, equippedItem, resultItems);
     }
 
     private void EnsureSlots()
     {
-        EquipmentSlot[] slotValues = (EquipmentSlot[])Enum.GetValues(typeof(EquipmentSlot));
+        EquipmentSlotId[] slotValues = (EquipmentSlotId[])Enum.GetValues(typeof(EquipmentSlotId));
 
         if (HasOneEntryPerSlot(slotValues))
             return;
@@ -386,7 +423,7 @@ public sealed class PlayerEquipment : MonoBehaviour
 
         for (int i = 0; i < slotValues.Length; i++)
         {
-            EquipmentSlot slot = slotValues[i];
+            EquipmentSlotId slot = slotValues[i];
             EquippedItem existingItem = FindEntry(currentItems, slot);
 
             if (existingItem == null)
@@ -404,7 +441,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         equippedItems = rebuiltItems;
     }
 
-    private bool HasOneEntryPerSlot(EquipmentSlot[] slotValues)
+    private bool HasOneEntryPerSlot(EquipmentSlotId[] slotValues)
     {
         if (slotValues == null)
             return false;
@@ -412,7 +449,7 @@ public sealed class PlayerEquipment : MonoBehaviour
         if (equippedItems == null || equippedItems.Length != slotValues.Length)
             return false;
 
-        foreach (EquipmentSlot slot in slotValues)
+        foreach (EquipmentSlotId slot in slotValues)
         {
             int entryCount = 0;
 
@@ -429,12 +466,12 @@ public sealed class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    private EquippedItem FindEntry(EquipmentSlot slot)
+    private EquippedItem FindEntry(EquipmentSlotId slot)
     {
         return FindEntry(equippedItems, slot);
     }
 
-    private EquippedItem FindEntry(EquippedItem[] items, EquipmentSlot slot)
+    private EquippedItem FindEntry(EquippedItem[] items, EquipmentSlotId slot)
     {
         if (items == null)
             return null;

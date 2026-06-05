@@ -11,19 +11,30 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
   m_Name: Sword_Test
-  m_EditorClassIdentifier: Assembly-CSharp::EquipmentItemDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: sword_test
   displayName: Sword Test
   shortName: Sword
   icon: {fileID: 0}
   description: Testing
   category: 0
-  weaponData:
-    handedness: 0
-    family: 1
-  equipmentData:
-    type: 0
-    defaultSlot: 0
+  maxStack: 1
+  equipmentSlotType: 1
   modifiers:
   - type: 6
     modifierType: 0
     value: 10
+  weaponType: 1
+  consumableSubtype: 0
+  useActionId: 
+  consumeAmountOnUse: 1
+  activitySubtype: 0
+  activityModifiers: []
+  trophySubtype: 0
+  craftingSubtype: 0
+  sellValue: 0
+  canBeSold: 1
+  sellWarningType: 0
+  canBeDismantled: 0
+  externalDropAction: 0
+  requiresConfirmationOnExternalDrop: 0

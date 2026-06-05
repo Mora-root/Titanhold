@@ -23,7 +23,7 @@ public sealed class EquipmentItemTooltip : MonoBehaviour
         Hide();
     }
 
-    public void Show(EquipmentItemDefinition item, Vector2 screenPosition)
+    public void Show(ItemDefinition item, Vector2 screenPosition)
     {
         if (!SetItem(item))
             return;
@@ -32,7 +32,7 @@ public sealed class EquipmentItemTooltip : MonoBehaviour
         ShowRoot();
     }
 
-    public void ShowLeftOf(EquipmentItemDefinition item, RectTransform anchor)
+    public void ShowLeftOf(ItemDefinition item, RectTransform anchor)
     {
         if (!SetItem(item))
             return;
@@ -65,7 +65,7 @@ public sealed class EquipmentItemTooltip : MonoBehaviour
             root.SetActive(false);
     }
 
-    private bool SetItem(EquipmentItemDefinition item)
+    private bool SetItem(ItemDefinition item)
     {
         if (item == null)
         {
@@ -88,12 +88,12 @@ public sealed class EquipmentItemTooltip : MonoBehaviour
         return true;
     }
 
-    private string GetTypeText(EquipmentItemDefinition item)
+    private string GetTypeText(ItemDefinition item)
     {
         if (item.IsWeapon)
             return $"{item.Handedness} {item.WeaponFamily}";
 
-        return item.EquipmentType.ToString();
+        return item.EquipmentSlotType.ToString();
     }
 
     private void ShowRoot()

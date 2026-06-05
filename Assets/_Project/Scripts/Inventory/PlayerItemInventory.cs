@@ -6,7 +6,7 @@ public sealed class PlayerItemInventory : MonoBehaviour
 {
     public readonly struct ItemInventorySlotView
     {
-        public ItemInventorySlotView(int index, EquipmentItemDefinition item, bool isEmpty)
+        public ItemInventorySlotView(int index, ItemDefinition item, bool isEmpty)
         {
             Index = index;
             Item = item;
@@ -14,19 +14,19 @@ public sealed class PlayerItemInventory : MonoBehaviour
         }
 
         public int Index { get; }
-        public EquipmentItemDefinition Item { get; }
+        public ItemDefinition Item { get; }
         public bool IsEmpty { get; }
     }
 
     [Serializable]
     private sealed class ItemInventorySlot
     {
-        [SerializeField] private EquipmentItemDefinition item;
+        [SerializeField] private ItemDefinition item;
 
-        public EquipmentItemDefinition Item => item;
+        public ItemDefinition Item => item;
         public bool IsEmpty => item == null;
 
-        public void Set(EquipmentItemDefinition item)
+        public void Set(ItemDefinition item)
         {
             this.item = item;
         }
@@ -47,7 +47,7 @@ public sealed class PlayerItemInventory : MonoBehaviour
         EnsureSlotCapacity();
     }
 
-    public bool TryAdd(EquipmentItemDefinition item)
+    public bool TryAdd(ItemDefinition item)
     {
         if (item == null)
             return false;
@@ -64,7 +64,7 @@ public sealed class PlayerItemInventory : MonoBehaviour
         return true;
     }
 
-    public EquipmentItemDefinition RemoveAt(int index)
+    public ItemDefinition RemoveAt(int index)
     {
         if (!IsValidSlotIndex(index))
             return null;
@@ -74,7 +74,7 @@ public sealed class PlayerItemInventory : MonoBehaviour
         if (slot == null || slot.IsEmpty)
             return null;
 
-        EquipmentItemDefinition item = slot.Item;
+        ItemDefinition item = slot.Item;
         slot.Clear();
         OnChanged?.Invoke();
         return item;
@@ -162,7 +162,7 @@ public sealed class PlayerItemInventory : MonoBehaviour
         if (firstIndex == secondIndex)
             return true;
 
-        EquipmentItemDefinition firstItem = slots[firstIndex].Item;
+        ItemDefinition firstItem = slots[firstIndex].Item;
         slots[firstIndex].Set(slots[secondIndex].Item);
         slots[secondIndex].Set(firstItem);
         OnChanged?.Invoke();

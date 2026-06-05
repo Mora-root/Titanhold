@@ -4,7 +4,7 @@ using UnityEngine;
 public sealed class PlayerItemInventoryDebugAdder : MonoBehaviour
 {
     [SerializeField] private PlayerItemInventory itemInventory;
-    [SerializeField] private EquipmentItemDefinition itemToAdd;
+    [SerializeField] private ItemDefinition itemToAdd;
     [SerializeField] private KeyCode addKey = KeyCode.U;
 
     private void Awake()

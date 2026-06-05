@@ -23,7 +23,7 @@ public sealed class PlayerLootInventoryDragController : MonoBehaviour
             ghostRoot.SetActive(false);
     }
 
-    public void BeginDrag(int sourceIndex, LootItemDefinition item, int amount, Vector2 screenPosition)
+    public void BeginDrag(int sourceIndex, ItemDefinition item, int amount, Vector2 screenPosition)
     {
         if (item == null)
             return;
