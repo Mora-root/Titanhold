@@ -1069,18 +1069,14 @@ MonoBehaviour:
   deathNotifier: {fileID: 1053468204614456103}
   dropPoint: {fileID: 3401578461478899309}
   drops:
-  - PickupPrefab: {fileID: 1364990022469115226, guid: ad7ef15c957d0e144953177e70f8b968, type: 3}
-    DropChance: 0.3
-    MinAmount: 5
-    MaxAmount: 10
-  - PickupPrefab: {fileID: 1364990022469115226, guid: 2f1ba89f5df38be4fac5535571e40a20, type: 3}
-    DropChance: 0.1
-    MinAmount: 1
-    MaxAmount: 2
   - PickupPrefab: {fileID: 1826512723434630158, guid: ee6854f95e5f4fd44bede149415bb9f8, type: 3}
-    DropChance: 0.5
+    DropChance: 1
     MinAmount: 1
     MaxAmount: 1
+  - PickupPrefab: {fileID: 1364990022469115226, guid: 2f1ba89f5df38be4fac5535571e40a20, type: 3}
+    DropChance: 1
+    MinAmount: 1
+    MaxAmount: 3
   dropRadius: 0.8
   dropSpawnHeight: 1
 --- !u!1 &2693121861230456850
