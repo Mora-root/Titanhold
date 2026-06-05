@@ -62,6 +62,10 @@ public static class ItemContainerValidationRunner
             ValidateCategoryRouting(container, crystalShard, monsterFang, sword);
             ValidateStackableAdd(container, crystalShard);
             ValidateNonStackableAdd(container, sword);
+            ValidateExistingNonStackableAdd(sword);
+            ValidateExistingStackableAdd(crystalShard);
+            ValidateExistingStackablePartialAdd(crystalShard);
+            ValidateInvalidExistingCategoryInsert(monsterFang);
             ValidateInvalidCategoryInsert(container, monsterFang);
             ValidateMoveSwapMerge(capacities, crystalShard, monsterFang, sword);
 
@@ -139,6 +143,79 @@ public static class ItemContainerValidationRunner
             Assert(stack != null && stack.Instance != null, $"Equipment stack {i} has no instance.");
             Assert(ids.Add(stack.Instance.InstanceId), $"Duplicate instance id '{stack.Instance.InstanceId}'.");
         }
+    }
+
+    private static void ValidateExistingNonStackableAdd(ItemDefinition sword)
+    {
+        ItemContainer container = new ItemContainer(CreateCapacities(2), 0);
+        ItemInstance instance = new ItemInstance(sword);
+        string instanceId = instance.InstanceId;
+        ItemStack stack = ItemStack.CreateNonStackable(instance);
+
+        AddItemResult result = container.TryAdd(stack);
+        ItemStack storedStack = container.GetSlot(ItemCategory.Equipment, 0).Stack;
+
+        Assert(result.FullyAdded, "Existing non-stackable stack was not fully added.");
+        Assert(storedStack != null, "Existing non-stackable stack was not stored.");
+        Assert(ReferenceEquals(storedStack, stack), "Stored stack should be the exact input stack.");
+        Assert(ReferenceEquals(storedStack.Instance, instance), "Stored instance should be the exact input instance.");
+        Assert(storedStack.Instance.InstanceId == instanceId, "Stored instance id changed.");
+
+        ItemContainer fullContainer = new ItemContainer(CreateCapacities(1), 0);
+        Assert(fullContainer.TryAdd(sword, 1).FullyAdded, "Could not prepare full equipment section.");
+
+        ItemInstance rejectedInstance = new ItemInstance(sword);
+        ItemStack rejectedStack = ItemStack.CreateNonStackable(rejectedInstance);
+        AddItemResult rejectedResult = fullContainer.TryAdd(rejectedStack);
+
+        Assert(!rejectedResult.AddedAnything, "Full section should reject existing non-stackable stack.");
+        Assert(rejectedResult.RemainingAmount == 1, "Full section should return one remaining non-stackable item.");
+        Assert(ReferenceEquals(rejectedStack.Instance, rejectedInstance), "Rejected existing instance should remain with caller.");
+    }
+
+    private static void ValidateExistingStackableAdd(ItemDefinition crystalShard)
+    {
+        ItemContainer container = new ItemContainer(CreateCapacities(4), 0);
+        ItemStack sourceStack = CreateStackableSource(crystalShard, 120);
+
+        AddItemResult result = container.TryAdd(sourceStack);
+        ItemContainerSection section = container.GetSection(ItemCategory.Crafting);
+
+        Assert(result.FullyAdded, "Existing stackable x120 was not fully added.");
+        Assert(result.AddedAmount == 120, "Existing stackable x120 added amount mismatch.");
+        Assert(section.GetSlot(0).Stack.Amount == 99, "First existing stackable slot should contain 99.");
+        Assert(section.GetSlot(1).Stack.Amount == 21, "Second existing stackable slot should contain 21.");
+        Assert(sourceStack.Amount == 120, "Existing stackable input stack should not be mutated.");
+        Assert(sourceStack.Instance == null, "Existing stackable input stack should not have an instance.");
+    }
+
+    private static void ValidateExistingStackablePartialAdd(ItemDefinition crystalShard)
+    {
+        ItemContainer container = new ItemContainer(CreateCapacities(1), 0);
+        ItemStack sourceStack = CreateStackableSource(crystalShard, 120);
+
+        AddItemResult result = container.TryAdd(sourceStack);
+        ItemContainerSection section = container.GetSection(ItemCategory.Crafting);
+
+        Assert(!result.FullyAdded, "Existing stackable x120 should not fully fit in one slot.");
+        Assert(result.AddedAmount == 99, "Partial existing stackable added amount mismatch.");
+        Assert(result.RemainingAmount == 21, "Partial existing stackable remaining amount mismatch.");
+        Assert(section.GetSlot(0).Stack.Amount == 99, "Partial existing stackable slot should contain 99.");
+        Assert(sourceStack.Amount == 120, "Partial existing stackable input stack should not be mutated.");
+    }
+
+    private static void ValidateInvalidExistingCategoryInsert(ItemDefinition monsterFang)
+    {
+        ItemContainer container = new ItemContainer(CreateCapacities(2), 0);
+        ItemContainerSection craftingSection = container.GetSection(ItemCategory.Crafting);
+        ItemStack wrongCategoryStack = ItemStack.CreateStackable(monsterFang, 1);
+
+        AddItemResult result = craftingSection.TryAddExistingStack(wrongCategoryStack);
+
+        Assert(!result.AddedAnything, "Invalid existing category insert should not add anything.");
+        Assert(result.RemainingAmount == 1, "Invalid existing category insert should leave full amount remaining.");
+        Assert(craftingSection.CountOccupiedSlots() == 0, "Invalid existing category insert changed section state.");
+        Assert(wrongCategoryStack.Amount == 1, "Invalid existing category insert should not mutate input stack.");
     }
 
     private static void ValidateInvalidCategoryInsert(ItemContainer container, ItemDefinition monsterFang)
@@ -220,6 +297,20 @@ public static class ItemContainerValidationRunner
 
         definitions.Add(definition);
         return definition;
+    }
+
+    private static ItemStack CreateStackableSource(ItemDefinition definition, int amount)
+    {
+        ConstructorInfo constructor = typeof(ItemStack).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(ItemDefinition), typeof(int), typeof(ItemInstance) },
+            null);
+
+        if (constructor == null)
+            throw new MissingMethodException(typeof(ItemStack).Name, ".ctor");
+
+        return (ItemStack)constructor.Invoke(new object[] { definition, amount, null });
     }
 
     private static void SetField<T>(ItemDefinition definition, string fieldName, T value)

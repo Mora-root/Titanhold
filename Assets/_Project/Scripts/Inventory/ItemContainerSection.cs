@@ -89,6 +89,22 @@ public sealed class ItemContainerSection
             : AddNonStackable(definition, amount);
     }
 
+    public AddItemResult TryAddExistingStack(ItemStack stack)
+    {
+        if (stack == null || stack.Definition == null)
+            return new AddItemResult(0, 0);
+
+        if (stack.Amount <= 0)
+            return new AddItemResult(0, 0);
+
+        if (!CanAccept(stack.Definition))
+            return new AddItemResult(0, stack.Amount);
+
+        return stack.Definition.MaxStack > 1
+            ? AddExistingStackable(stack)
+            : AddExistingNonStackable(stack);
+    }
+
     public bool Move(int fromIndex, int toIndex)
     {
         ItemSlot source = GetSlot(fromIndex);
@@ -217,6 +233,33 @@ public sealed class ItemContainerSection
         }
 
         return new AddItemResult(added, remaining);
+    }
+
+    private AddItemResult AddExistingStackable(ItemStack stack)
+    {
+        if (stack.Instance != null)
+            return new AddItemResult(0, stack.Amount);
+
+        return AddStackable(stack.Definition, stack.Amount);
+    }
+
+    private AddItemResult AddExistingNonStackable(ItemStack stack)
+    {
+        if (stack.Amount != 1 || stack.Instance == null)
+            return new AddItemResult(0, Math.Max(0, stack.Amount));
+
+        EnsureSlots();
+
+        foreach (ItemSlot slot in slots)
+        {
+            if (slot == null || !slot.IsEmpty)
+                continue;
+
+            slot.Set(stack);
+            return new AddItemResult(1, 0);
+        }
+
+        return new AddItemResult(0, 1);
     }
 
     private void EnsureSlots()

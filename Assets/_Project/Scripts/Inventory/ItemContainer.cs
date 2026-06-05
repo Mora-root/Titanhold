@@ -52,6 +52,20 @@ public sealed class ItemContainer
             : new AddItemResult(0, amount);
     }
 
+    public AddItemResult TryAdd(ItemStack stack)
+    {
+        if (stack == null || stack.Definition == null)
+            return new AddItemResult(0, 0);
+
+        if (stack.Amount <= 0)
+            return new AddItemResult(0, 0);
+
+        ItemContainerSection section = GetSection(stack.Definition.Category);
+        return section != null
+            ? section.TryAddExistingStack(stack)
+            : new AddItemResult(0, stack.Amount);
+    }
+
     public ItemContainerSection GetSection(ItemCategory category)
     {
         EnsureSections();

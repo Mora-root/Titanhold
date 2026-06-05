@@ -65,6 +65,8 @@ public static class PlayerInventoryValidationRunner
             ValidateSections(inventory);
             ValidateEvents(inventory, crystalShard);
             ValidateCategoryRouting(inventory, monsterFang, sword);
+            ValidateExistingInstanceAdd(inventory, sword);
+            ValidateExistingStackableAdd(inventory, crystalShard);
 
             return "PlayerInventory wrapper validation passed.";
         }
@@ -135,6 +137,78 @@ public static class PlayerInventoryValidationRunner
         Assert(inventory.CountOccupiedSlots(ItemCategory.Equipment) == 1, "Equipment item did not route to Equipment.");
     }
 
+    private static void ValidateExistingInstanceAdd(PlayerInventory inventory, ItemDefinition sword)
+    {
+        ItemInstance instance = new ItemInstance(sword);
+        string instanceId = instance.InstanceId;
+        ItemStack stack = ItemStack.CreateNonStackable(instance);
+
+        AddItemResult stackResult = inventory.TryAdd(stack);
+        Assert(stackResult.FullyAdded, "PlayerInventory did not add existing non-stackable stack.");
+
+        ItemStack storedStack = FindStackByInstanceId(inventory.GetSection(ItemCategory.Equipment), instanceId);
+        Assert(storedStack != null, "PlayerInventory did not store existing instance.");
+        Assert(ReferenceEquals(storedStack.Instance, instance), "PlayerInventory should keep the exact existing instance reference.");
+        Assert(storedStack.Instance.InstanceId == instanceId, "PlayerInventory changed existing instance id.");
+
+        ItemInstance secondInstance = new ItemInstance(sword);
+        string secondInstanceId = secondInstance.InstanceId;
+        AddItemResult instanceResult = inventory.TryAddInstance(secondInstance);
+        Assert(instanceResult.FullyAdded, "PlayerInventory.TryAddInstance did not add existing instance.");
+
+        ItemStack secondStoredStack = FindStackByInstanceId(inventory.GetSection(ItemCategory.Equipment), secondInstanceId);
+        Assert(secondStoredStack != null, "PlayerInventory.TryAddInstance did not store existing instance.");
+        Assert(ReferenceEquals(secondStoredStack.Instance, secondInstance), "PlayerInventory.TryAddInstance should keep the exact existing instance reference.");
+        Assert(secondStoredStack.Instance.InstanceId == secondInstanceId, "PlayerInventory.TryAddInstance changed existing instance id.");
+    }
+
+    private static void ValidateExistingStackableAdd(PlayerInventory inventory, ItemDefinition crystalShard)
+    {
+        ItemStack sourceStack = CreateStackableSource(crystalShard, 120);
+        ItemContainerSection section = inventory.GetSection(ItemCategory.Crafting);
+        int amountBefore = CountAmount(section, crystalShard);
+
+        AddItemResult result = inventory.TryAdd(sourceStack);
+
+        Assert(result.FullyAdded, "PlayerInventory did not fully add existing stackable x120.");
+        Assert(result.AddedAmount == 120, "PlayerInventory existing stackable added amount mismatch.");
+        Assert(sourceStack.Amount == 120, "PlayerInventory mutated existing stackable input stack.");
+        Assert(CountAmount(section, crystalShard) == amountBefore + 120, "PlayerInventory existing stackable total amount mismatch.");
+    }
+
+    private static ItemStack FindStackByInstanceId(ItemContainerSection section, string instanceId)
+    {
+        if (section == null || string.IsNullOrWhiteSpace(instanceId))
+            return null;
+
+        for (int i = 0; i < section.Capacity; i++)
+        {
+            ItemStack stack = section.GetSlot(i).Stack;
+            if (stack != null && stack.Instance != null && stack.Instance.InstanceId == instanceId)
+                return stack;
+        }
+
+        return null;
+    }
+
+    private static int CountAmount(ItemContainerSection section, ItemDefinition definition)
+    {
+        if (section == null || definition == null)
+            return 0;
+
+        int total = 0;
+
+        for (int i = 0; i < section.Capacity; i++)
+        {
+            ItemStack stack = section.GetSlot(i).Stack;
+
+            if (stack != null && ReferenceEquals(stack.Definition, definition))
+                total += stack.Amount;
+        }
+
+        return total;
+    }
+
     private static ItemDefinition CreateDefinition(
         List<ItemDefinition> definitions,
         string id,
@@ -161,6 +235,20 @@ public static class PlayerInventoryValidationRunner
 
         definitions.Add(definition);
         return definition;
+    }
+
+    private static ItemStack CreateStackableSource(ItemDefinition definition, int amount)
+    {
+        ConstructorInfo constructor = typeof(ItemStack).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            null,
+            new[] { typeof(ItemDefinition), typeof(int), typeof(ItemInstance) },
+            null);
+
+        if (constructor == null)
+            throw new MissingMethodException(typeof(ItemStack).Name, ".ctor");
+
+        return (ItemStack)constructor.Invoke(new object[] { definition, amount, null });
     }
 
     private static void SetField<T>(ItemDefinition definition, string fieldName, T value)

@@ -62,6 +62,36 @@ public sealed class PlayerInventory : MonoBehaviour
         return result;
     }
 
+    public AddItemResult TryAdd(ItemStack stack)
+    {
+        EnsureInitialized();
+
+        AddItemResult result = container.TryAdd(stack);
+        ItemDefinition definition = stack != null ? stack.Definition : null;
+
+        if (result.AddedAnything && definition != null)
+        {
+            Changed?.Invoke();
+            SectionChanged?.Invoke(definition.Category);
+        }
+
+        return result;
+    }
+
+    public AddItemResult TryAddInstance(ItemInstance instance)
+    {
+        if (instance == null)
+            return new AddItemResult(0, 0);
+
+        if (instance.Definition == null)
+            return new AddItemResult(0, 0);
+
+        if (instance.Definition.MaxStack > 1)
+            return new AddItemResult(0, 1);
+
+        return TryAdd(ItemStack.CreateNonStackable(instance));
+    }
+
     public ItemContainerSection GetSection(ItemCategory category)
     {
         EnsureInitialized();
