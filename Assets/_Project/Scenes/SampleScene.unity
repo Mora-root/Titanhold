@@ -13107,6 +13107,7 @@ GameObject:
   - component: {fileID: 1359868936}
   - component: {fileID: 1359868937}
   - component: {fileID: 1359868938}
+  - component: {fileID: 1359868939}
   m_Layer: 5
   m_Name: InventoryUIControllerObject
   m_TagString: Untagged
@@ -13140,7 +13141,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1359868932}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 483ec6e8922526541a7d568806b629bb, type: 3}
   m_Name: 
@@ -13154,7 +13155,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1359868932}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e3a56a20df29e24fbfc02df5f098f52, type: 3}
   m_Name: 
@@ -13170,7 +13171,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1359868932}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cac2a18e084b84840ae51805d9e53917, type: 3}
   m_Name: 
@@ -13190,13 +13191,30 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1359868932}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 35a22908e887ab34ab7eeb172e7bc21f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemInventoryEquipmentAdapter
   itemInventory: {fileID: 8744477821165718912}
   playerEquipment: {fileID: 8744477821165718911}
+--- !u!114 &1359868939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359868932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f87ba7a5d8bdba4395123c8374d9734, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryWindowController
+  inventoryWindow: {fileID: 1658540091}
+  inventoryWindowRoot: {fileID: 1658540089}
+  startOpen: 0
+  toggleKey: 99
+  closeOnEscape: 1
 --- !u!1 &1361740481
 GameObject:
   m_ObjectHideFlags: 0
@@ -14612,11 +14630,41 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1658540089 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 836788086139093752, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+  m_PrefabInstance: {fileID: 7093884366962421163}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1658540090 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4921526086616574065, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
   m_PrefabInstance: {fileID: 7093884366962421163}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1658540091 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5034320268646606423, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+  m_PrefabInstance: {fileID: 7093884366962421163}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658540089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd8c779bf7fedfa47a82e0368beeb796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.PlayerInventoryWindow
+--- !u!114 &1658540094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658540089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b8ce477dbc1006469cac4296f58137a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryEquipmentInteractionController
+  inventoryWindow: {fileID: 1658540091}
+  equipmentRuntime: {fileID: 8744477821165718928}
 --- !u!1 &1664798310
 GameObject:
   m_ObjectHideFlags: 0
@@ -18050,6 +18098,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8744477821165718926}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718928}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718927}
   m_SourcePrefab: {fileID: 100100000, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
 --- !u!1001 &4087903443641857175
 PrefabInstance:
@@ -18244,10 +18298,58 @@ PrefabInstance:
       propertyPath: m_fontStyle
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7193809983781810821, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7193809983781810821, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7193809983781810821, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7193809983781810821, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7518285449412258964, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7518285449412258964, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7518285449412258964, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7518285449412258964, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8124887405091218067, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
       propertyPath: playerGold
       value: 
       objectReference: {fileID: 8744477821165718895}
+    - target: {fileID: 8283683252430464366, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283683252430464366, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283683252430464366, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8283683252430464366, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8389796060570312251, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
       propertyPath: m_fontStyle
       value: 1
@@ -18264,10 +18366,45 @@ PrefabInstance:
       propertyPath: m_fontColor32.rgba
       value: 4279297791
       objectReference: {fileID: 0}
+    - target: {fileID: 8486884111697071022, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486884111697071022, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486884111697071022, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8486884111697071022, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716660612604798612, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716660612604798612, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716660612604798612, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8716660612604798612, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 836788086139093752, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1658540094}
   m_SourcePrefab: {fileID: 100100000, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
 --- !u!4 &8744477821165718855 stripped
 Transform:
@@ -18449,6 +18586,34 @@ MonoBehaviour:
   craftingCapacity: 24
   questCapacity: 24
   miscCapacity: 24
+--- !u!114 &8744477821165718927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd6fd5c00024064428535445b64784aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryDebugAdder
+  playerInventory: {fileID: 8744477821165718926}
+  itemToAdd: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+  amount: 1
+--- !u!114 &8744477821165718928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 457507179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ba0711d93e4c241a5a10c8ffe19fc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentRuntime
+  playerInventory: {fileID: 8744477821165718926}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
