@@ -1,0 +1,111 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public sealed class PlayerInventory : MonoBehaviour
+{
+    private const int MinSectionCapacity = 1;
+
+    [Header("Section Capacities")]
+    [SerializeField, Min(MinSectionCapacity)] private int equipmentCapacity = 40;
+    [SerializeField, Min(MinSectionCapacity)] private int consumableCapacity = 40;
+    [SerializeField, Min(MinSectionCapacity)] private int trophyCapacity = 60;
+    [SerializeField, Min(MinSectionCapacity)] private int craftingCapacity = 60;
+    [SerializeField, Min(MinSectionCapacity)] private int questCapacity = 30;
+    [SerializeField, Min(MinSectionCapacity)] private int miscCapacity = 20;
+
+    private ItemContainer container;
+
+    public event Action Changed;
+    public event Action<ItemCategory> SectionChanged;
+
+    public ItemContainer Container
+    {
+        get
+        {
+            EnsureInitialized();
+            return container;
+        }
+    }
+
+    private void Awake()
+    {
+        EnsureInitialized();
+    }
+
+    private void OnValidate()
+    {
+        NormalizeCapacities();
+    }
+
+    public void EnsureInitialized()
+    {
+        if (container != null)
+            return;
+
+        NormalizeCapacities();
+        container = new ItemContainer(CreateSectionCapacities(), 0);
+    }
+
+    public AddItemResult TryAdd(ItemDefinition definition, int amount = 1)
+    {
+        EnsureInitialized();
+
+        AddItemResult result = container.TryAdd(definition, amount);
+
+        if (result.AddedAnything && definition != null)
+        {
+            Changed?.Invoke();
+            SectionChanged?.Invoke(definition.Category);
+        }
+
+        return result;
+    }
+
+    public ItemContainerSection GetSection(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.GetSection(category);
+    }
+
+    public ItemSlot GetSlot(ItemCategory category, int index)
+    {
+        EnsureInitialized();
+        return container.GetSlot(category, index);
+    }
+
+    public int CountFreeSlots(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.CountFreeSlots(category);
+    }
+
+    public int CountOccupiedSlots(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.CountOccupiedSlots(category);
+    }
+
+    private Dictionary<ItemCategory, int> CreateSectionCapacities()
+    {
+        return new Dictionary<ItemCategory, int>
+        {
+            [ItemCategory.Equipment] = equipmentCapacity,
+            [ItemCategory.Consumable] = consumableCapacity,
+            [ItemCategory.Trophy] = trophyCapacity,
+            [ItemCategory.Crafting] = craftingCapacity,
+            [ItemCategory.Quest] = questCapacity,
+            [ItemCategory.Misc] = miscCapacity
+        };
+    }
+
+    private void NormalizeCapacities()
+    {
+        equipmentCapacity = Mathf.Max(MinSectionCapacity, equipmentCapacity);
+        consumableCapacity = Mathf.Max(MinSectionCapacity, consumableCapacity);
+        trophyCapacity = Mathf.Max(MinSectionCapacity, trophyCapacity);
+        craftingCapacity = Mathf.Max(MinSectionCapacity, craftingCapacity);
+        questCapacity = Mathf.Max(MinSectionCapacity, questCapacity);
+        miscCapacity = Mathf.Max(MinSectionCapacity, miscCapacity);
+    }
+}
