@@ -15,6 +15,7 @@ public sealed class PlayerInventory : MonoBehaviour
     [SerializeField, Min(MinSectionCapacity)] private int miscCapacity = 20;
 
     private ItemContainer container;
+    private ItemTransferService transferService;
 
     public event Action Changed;
     public event Action<ItemCategory> SectionChanged;
@@ -41,10 +42,14 @@ public sealed class PlayerInventory : MonoBehaviour
     public void EnsureInitialized()
     {
         if (container != null)
+        {
+            transferService ??= new ItemTransferService();
             return;
+        }
 
         NormalizeCapacities();
         container = new ItemContainer(CreateSectionCapacities(), 0);
+        transferService = new ItemTransferService();
     }
 
     public AddItemResult TryAdd(ItemDefinition definition, int amount = 1)
@@ -124,6 +129,30 @@ public sealed class PlayerInventory : MonoBehaviour
         Changed?.Invoke();
         SectionChanged?.Invoke(category);
         return true;
+    }
+
+    public ItemTransferResult TryTransfer(
+        ItemCategory sourceCategory,
+        int sourceIndex,
+        ItemCategory targetCategory,
+        int targetIndex)
+    {
+        EnsureInitialized();
+
+        ItemSlotAddress source = new ItemSlotAddress(container, sourceCategory, sourceIndex);
+        ItemSlotAddress target = new ItemSlotAddress(container, targetCategory, targetIndex);
+        ItemTransferResult result = transferService.TryTransfer(source, target);
+
+        if (!result.Success)
+            return result;
+
+        Changed?.Invoke();
+        SectionChanged?.Invoke(sourceCategory);
+
+        if (targetCategory != sourceCategory)
+            SectionChanged?.Invoke(targetCategory);
+
+        return result;
     }
 
     public ItemContainerSection GetSection(ItemCategory category)

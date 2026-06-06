@@ -62,11 +62,21 @@ public static class PlayerInventoryValidationRunner
                 EquipmentSlotType.Weapon,
                 WeaponType.OneHandSword);
 
+            ItemDefinition axe = CreateDefinition(
+                definitions,
+                "axe_player_inventory_test",
+                "Axe PlayerInventory Test",
+                ItemCategory.Equipment,
+                1,
+                EquipmentSlotType.Weapon,
+                WeaponType.OneHandAxe);
+
             ValidateSections(inventory);
             ValidateEvents(inventory, crystalShard);
             ValidateCategoryRouting(inventory, monsterFang, sword);
             ValidateExistingInstanceAdd(inventory, sword);
             ValidateExistingStackableAdd(inventory, crystalShard);
+            ValidateTransferBridge(crystalShard, sword, axe);
 
             return "PlayerInventory wrapper validation passed.";
         }
@@ -176,6 +186,143 @@ public static class PlayerInventoryValidationRunner
         Assert(CountAmount(section, crystalShard) == amountBefore + 120, "PlayerInventory existing stackable total amount mismatch.");
     }
 
+    private static void ValidateTransferBridge(
+        ItemDefinition crystalShard,
+        ItemDefinition sword,
+        ItemDefinition axe)
+    {
+        ValidateTransferMergeEvents(crystalShard);
+        ValidateTransferInvalidNoEvents(sword);
+        ValidateTransferSameSlotNoEvents(crystalShard);
+        ValidateTransferSwapPreservesIdentity(sword, axe);
+    }
+
+    private static void ValidateTransferMergeEvents(ItemDefinition crystalShard)
+    {
+        using (ValidationInventoryScope scope = new ValidationInventoryScope())
+        {
+            PlayerInventory inventory = scope.Inventory;
+            inventory.GetSlot(ItemCategory.Crafting, 0).Set(ItemStack.CreateStackable(crystalShard, 20));
+            inventory.GetSlot(ItemCategory.Crafting, 1).Set(ItemStack.CreateStackable(crystalShard, 50));
+
+            int changedCount = 0;
+            List<ItemCategory> sectionChanges = new List<ItemCategory>();
+            inventory.Changed += () => changedCount++;
+            inventory.SectionChanged += category => sectionChanges.Add(category);
+
+            ItemTransferResult result = inventory.TryTransfer(
+                ItemCategory.Crafting,
+                0,
+                ItemCategory.Crafting,
+                1);
+
+            Assert(result.Success, "PlayerInventory.TryTransfer stackable merge failed.");
+            Assert(result.MovedAmount == 20, "PlayerInventory.TryTransfer merge moved amount mismatch.");
+            Assert(inventory.GetSlot(ItemCategory.Crafting, 0).IsEmpty, "PlayerInventory.TryTransfer merge source should be empty.");
+            Assert(inventory.GetSlot(ItemCategory.Crafting, 1).Stack.Amount == 70, "PlayerInventory.TryTransfer merge target amount mismatch.");
+            Assert(changedCount == 1, "Changed should fire once after successful transfer.");
+            Assert(sectionChanges.Count == 1, "SectionChanged should fire once after same-section transfer.");
+            Assert(sectionChanges[0] == ItemCategory.Crafting, "SectionChanged should report Crafting after transfer.");
+        }
+    }
+
+    private static void ValidateTransferInvalidNoEvents(ItemDefinition sword)
+    {
+        using (ValidationInventoryScope scope = new ValidationInventoryScope())
+        {
+            PlayerInventory inventory = scope.Inventory;
+            ItemInstance swordInstance = new ItemInstance(sword);
+            ItemStack swordStack = ItemStack.CreateNonStackable(swordInstance);
+            inventory.GetSlot(ItemCategory.Equipment, 0).Set(swordStack);
+
+            int changedCount = 0;
+            int sectionChangedCount = 0;
+            inventory.Changed += () => changedCount++;
+            inventory.SectionChanged += _ => sectionChangedCount++;
+
+            ItemTransferResult result = inventory.TryTransfer(
+                ItemCategory.Equipment,
+                0,
+                ItemCategory.Crafting,
+                0);
+
+            Assert(!result.Success, "Invalid cross-section transfer should fail.");
+            Assert(result.Error == ItemTransferError.TargetRejectsSource, "Invalid cross-section transfer error mismatch.");
+            Assert(changedCount == 0, "Changed should not fire after failed transfer.");
+            Assert(sectionChangedCount == 0, "SectionChanged should not fire after failed transfer.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Equipment, 0).Stack, swordStack), "Failed transfer should not mutate source.");
+            Assert(inventory.GetSlot(ItemCategory.Crafting, 0).IsEmpty, "Failed transfer should not mutate target.");
+        }
+    }
+
+    private static void ValidateTransferSameSlotNoEvents(ItemDefinition crystalShard)
+    {
+        using (ValidationInventoryScope scope = new ValidationInventoryScope())
+        {
+            PlayerInventory inventory = scope.Inventory;
+            ItemStack stack = ItemStack.CreateStackable(crystalShard, 10);
+            inventory.GetSlot(ItemCategory.Crafting, 0).Set(stack);
+
+            int changedCount = 0;
+            int sectionChangedCount = 0;
+            inventory.Changed += () => changedCount++;
+            inventory.SectionChanged += _ => sectionChangedCount++;
+
+            ItemTransferResult result = inventory.TryTransfer(
+                ItemCategory.Crafting,
+                0,
+                ItemCategory.Crafting,
+                0);
+
+            Assert(!result.Success, "Same-slot transfer should fail.");
+            Assert(result.Error == ItemTransferError.SameSlot, "Same-slot transfer error mismatch.");
+            Assert(changedCount == 0, "Changed should not fire after same-slot transfer.");
+            Assert(sectionChangedCount == 0, "SectionChanged should not fire after same-slot transfer.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Crafting, 0).Stack, stack), "Same-slot transfer should not mutate stack.");
+        }
+    }
+
+    private static void ValidateTransferSwapPreservesIdentity(
+        ItemDefinition sword,
+        ItemDefinition axe)
+    {
+        using (ValidationInventoryScope scope = new ValidationInventoryScope())
+        {
+            PlayerInventory inventory = scope.Inventory;
+            ItemInstance swordInstance = new ItemInstance(sword);
+            ItemInstance axeInstance = new ItemInstance(axe);
+            ItemStack swordStack = ItemStack.CreateNonStackable(swordInstance);
+            ItemStack axeStack = ItemStack.CreateNonStackable(axeInstance);
+            string swordId = swordInstance.InstanceId;
+            string axeId = axeInstance.InstanceId;
+
+            inventory.GetSlot(ItemCategory.Equipment, 0).Set(swordStack);
+            inventory.GetSlot(ItemCategory.Equipment, 1).Set(axeStack);
+
+            int changedCount = 0;
+            List<ItemCategory> sectionChanges = new List<ItemCategory>();
+            inventory.Changed += () => changedCount++;
+            inventory.SectionChanged += category => sectionChanges.Add(category);
+
+            ItemTransferResult result = inventory.TryTransfer(
+                ItemCategory.Equipment,
+                0,
+                ItemCategory.Equipment,
+                1);
+
+            Assert(result.Success, "PlayerInventory.TryTransfer non-stackable swap failed.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Equipment, 0).Stack, axeStack), "Swap should preserve target stack reference.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Equipment, 1).Stack, swordStack), "Swap should preserve source stack reference.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Equipment, 0).Stack.Instance, axeInstance), "Swap changed axe instance reference.");
+            Assert(ReferenceEquals(inventory.GetSlot(ItemCategory.Equipment, 1).Stack.Instance, swordInstance), "Swap changed sword instance reference.");
+            Assert(inventory.GetSlot(ItemCategory.Equipment, 0).Stack.Instance.InstanceId == axeId, "Swap changed axe instance id.");
+            Assert(inventory.GetSlot(ItemCategory.Equipment, 1).Stack.Instance.InstanceId == swordId, "Swap changed sword instance id.");
+            Assert(changedCount == 1, "Changed should fire once after successful swap.");
+            Assert(sectionChanges.Count == 1, "SectionChanged should fire once after same-section swap.");
+            Assert(sectionChanges[0] == ItemCategory.Equipment, "SectionChanged should report Equipment after swap.");
+        }
+    }
+
     private static ItemStack FindStackByInstanceId(ItemContainerSection section, string instanceId)
     {
         if (section == null || string.IsNullOrWhiteSpace(instanceId))
@@ -265,5 +412,28 @@ public static class PlayerInventoryValidationRunner
     {
         if (!condition)
             throw new InvalidOperationException(message);
+    }
+
+    private sealed class ValidationInventoryScope : IDisposable
+    {
+        private readonly GameObject temporaryObject;
+
+        public ValidationInventoryScope()
+        {
+            temporaryObject = EditorUtility.CreateGameObjectWithHideFlags(
+                "PlayerInventoryTransferValidation_Temporary",
+                HideFlags.HideAndDontSave);
+
+            Inventory = temporaryObject.AddComponent<PlayerInventory>();
+            Inventory.EnsureInitialized();
+        }
+
+        public PlayerInventory Inventory { get; }
+
+        public void Dispose()
+        {
+            if (temporaryObject != null)
+                UnityEngine.Object.DestroyImmediate(temporaryObject);
+        }
     }
 }
