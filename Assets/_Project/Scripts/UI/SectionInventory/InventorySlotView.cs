@@ -6,7 +6,14 @@ using UnityEngine.UI;
 
 namespace Titanhold.UI.SectionInventory
 {
-    public sealed class InventorySlotView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    public sealed class InventorySlotView : MonoBehaviour,
+        IPointerEnterHandler,
+        IPointerExitHandler,
+        IPointerClickHandler,
+        IBeginDragHandler,
+        IDragHandler,
+        IEndDragHandler,
+        IDropHandler
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text amountText;
@@ -20,6 +27,9 @@ namespace Titanhold.UI.SectionInventory
         private int currentSlotIndex = -1;
 
         public event Action<global::ItemCategory, int> RightClicked;
+        public event Action<global::ItemCategory, int> DragStarted;
+        public event Action<global::ItemCategory, int> Dropped;
+        public event Action DragEnded;
 
         private void Awake()
         {
@@ -84,6 +94,35 @@ namespace Titanhold.UI.SectionInventory
                 return;
 
             RightClicked?.Invoke(currentCategory, currentSlotIndex);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left)
+                return;
+
+            if (currentSlot == null || currentSlot.IsEmpty || currentSlotIndex < 0)
+                return;
+
+            tooltip?.Hide();
+            DragStarted?.Invoke(currentCategory, currentSlotIndex);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            DragEnded?.Invoke();
+        }
+
+        public void OnDrop(PointerEventData eventData)
+        {
+            if (currentSlotIndex < 0)
+                return;
+
+            Dropped?.Invoke(currentCategory, currentSlotIndex);
         }
 
         private void OnDisable()

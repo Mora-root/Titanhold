@@ -13,6 +13,9 @@ namespace Titanhold.UI.SectionInventory
         private bool loggedMissingSetup;
 
         public event Action<global::ItemCategory, int> SlotRightClicked;
+        public event Action<global::ItemCategory, int> SlotDragStarted;
+        public event Action<global::ItemCategory, int> SlotDropped;
+        public event Action SlotDragEnded;
 
         public void ShowSection(global::ItemContainerSection section)
         {
@@ -82,6 +85,9 @@ namespace Titanhold.UI.SectionInventory
             {
                 InventorySlotView view = Instantiate(slotPrefab, contentRoot);
                 view.RightClicked += HandleSlotRightClicked;
+                view.DragStarted += HandleSlotDragStarted;
+                view.Dropped += HandleSlotDropped;
+                view.DragEnded += HandleSlotDragEnded;
                 slotViews.Add(view);
             }
         }
@@ -89,6 +95,21 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotRightClicked(global::ItemCategory category, int slotIndex)
         {
             SlotRightClicked?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragStarted(global::ItemCategory category, int slotIndex)
+        {
+            SlotDragStarted?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDropped(global::ItemCategory category, int slotIndex)
+        {
+            SlotDropped?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragEnded()
+        {
+            SlotDragEnded?.Invoke();
         }
     }
 }

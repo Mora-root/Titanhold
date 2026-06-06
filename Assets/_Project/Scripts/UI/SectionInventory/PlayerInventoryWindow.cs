@@ -16,6 +16,9 @@ namespace Titanhold.UI.SectionInventory
         private bool loggedMissingSection;
 
         public event Action<global::ItemCategory, int> SlotRightClicked;
+        public event Action<global::ItemCategory, int> SlotDragStarted;
+        public event Action<global::ItemCategory, int> SlotDropped;
+        public event Action SlotDragEnded;
 
         private void Awake()
         {
@@ -36,9 +39,16 @@ namespace Titanhold.UI.SectionInventory
             }
 
             if (gridView != null)
+            {
                 gridView.SlotRightClicked += HandleSlotRightClicked;
+                gridView.SlotDragStarted += HandleSlotDragStarted;
+                gridView.SlotDropped += HandleSlotDropped;
+                gridView.SlotDragEnded += HandleSlotDragEnded;
+            }
             else
+            {
                 LogMissingGridView();
+            }
 
             InitializeTabs();
             Refresh();
@@ -53,7 +63,12 @@ namespace Titanhold.UI.SectionInventory
             }
 
             if (gridView != null)
+            {
                 gridView.SlotRightClicked -= HandleSlotRightClicked;
+                gridView.SlotDragStarted -= HandleSlotDragStarted;
+                gridView.SlotDropped -= HandleSlotDropped;
+                gridView.SlotDragEnded -= HandleSlotDragEnded;
+            }
         }
 
         private void OnValidate()
@@ -135,6 +150,21 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotRightClicked(global::ItemCategory category, int slotIndex)
         {
             SlotRightClicked?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragStarted(global::ItemCategory category, int slotIndex)
+        {
+            SlotDragStarted?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDropped(global::ItemCategory category, int slotIndex)
+        {
+            SlotDropped?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragEnded()
+        {
+            SlotDragEnded?.Invoke();
         }
 
         private void NormalizeSelectedCategory()
