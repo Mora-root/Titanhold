@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Titanhold.UI.Equipment
@@ -10,14 +11,18 @@ namespace Titanhold.UI.Equipment
         private global::CharacterEquipment subscribedEquipment;
         private bool loggedMissingRuntime;
 
+        public event Action<global::EquipmentSlotId> SlotRightClicked;
+
         private void OnEnable()
         {
+            SubscribeSlotViews();
             Subscribe();
             RefreshAll();
         }
 
         private void OnDisable()
         {
+            UnsubscribeSlotViews();
             Unsubscribe();
         }
 
@@ -97,6 +102,35 @@ namespace Titanhold.UI.Equipment
             global::ItemInstance newItem)
         {
             RefreshSlot(slotId);
+        }
+
+        private void SubscribeSlotViews()
+        {
+            if (slotViews == null)
+                return;
+
+            foreach (CharacterEquipmentSlotView slotView in slotViews)
+            {
+                if (slotView != null)
+                    slotView.RightClicked += HandleSlotRightClicked;
+            }
+        }
+
+        private void UnsubscribeSlotViews()
+        {
+            if (slotViews == null)
+                return;
+
+            foreach (CharacterEquipmentSlotView slotView in slotViews)
+            {
+                if (slotView != null)
+                    slotView.RightClicked -= HandleSlotRightClicked;
+            }
+        }
+
+        private void HandleSlotRightClicked(global::EquipmentSlotId slotId)
+        {
+            SlotRightClicked?.Invoke(slotId);
         }
 
         private global::CharacterEquipment GetEquipment()

@@ -4,112 +4,192 @@ Titanhold is a Unity isometric ARPG/RPG prototype with camp defense, Threat Mete
 
 This file defines how AI agents such as Codex should work with the project.
 
-Before making non-trivial changes, read:
+Token-Efficient Search Rules
 
-- `Docs/GDD/GDD_Current.md`
-- `Docs/Architecture/Architecture_Principles.md`
-- `Docs/Architecture/Unity_Codex_Workflow.md`
+Use the project map before broad exploration.
 
-## Project Identity
+Prefer narrow search first:
 
-Titanhold is primarily an ARPG/RPG. Camp defense is an important pressure layer, but it is not the main genre.
+search exact class names;
+search exact method names;
+search known folders from the map below;
+avoid reading large unrelated files;
+avoid inspecting scenes/prefabs unless the task involves serialized references or Unity wiring.
 
-The core fantasy:
+If the task is code-only, do not open Unity assets unless necessary.
 
-The player explores dangerous locations, fights enemies, collects loot and resources, and becomes stronger. Player actions increase the Threat Meter. When the threat becomes critical, enemies attack the active camp.
+If unrelated dirty files exist, report them briefly but do not inspect or modify them unless they affect the task.
 
-## Current Development Focus
+Project Folder Map / Where To Look First
 
-The current focus is the first playable foundation:
+Use this folder map before broad search. Start from the smallest relevant folder, then search exact class or method names inside it.
 
-- Player Movement
-- Input abstraction
-- StateMachine
-- Targeting
-- Health
-- Basic Combat
-- Basic Skill execution
-- Threat Meter prototype
-- CampCore prototype
-- Simple Wave prototype
+Core Project Folder
+Assets/_Project/ — main project-owned content and code. Prefer this over third-party/sample folders.
+Code
+Assets/_Project/Scripts/Core/ — shared core gameplay utilities, common runtime logic, base systems.
+Assets/_Project/Scripts/Player/ — player-facing components and player-owned runtime wrappers.
+Assets/_Project/Scripts/Inventory/ — inventory runtime model, item containers, item stacks, player inventory logic.
+Assets/_Project/Scripts/Equipment/ — equipment runtime model, equipment services, equipment wrappers.
+Assets/_Project/Scripts/Loot/ — pickups, loot rewards, loot drop flow, dropper logic.
+Assets/_Project/Scripts/Enemies/ — enemy logic, enemy death/drop integration.
+Assets/_Project/Scripts/Combat/ — combat, damage, attacks, skills interaction if present.
+Assets/_Project/Scripts/Threat/ — Threat Meter and camp attack pressure systems.
+Assets/_Project/Scripts/Camp/ — camp core, camp defense, camp-related gameplay.
+Assets/_Project/Scripts/Towers/ — tower/building gameplay systems.
+Assets/_Project/Scripts/Progression/ — leveling, experience, progression systems.
+Assets/_Project/Scripts/UI/ — UI scripts. Search specific subfolders first when available.
+Data / Assets
+Assets/_Project/ScriptableObjects/ — project-owned ScriptableObject data such as item definitions, configs, drop tables, skills, or balance assets.
+Assets/_Project/Prefabs/ — project-owned prefabs.
+Prefabs/UI/ — UI prefabs.
+Prefabs/Loot/ — loot/pickup prefabs.
+Prefabs/Enemy/ — enemy prefabs.
+Prefabs/Old/ — legacy prefabs. Do not use or modify unless explicitly requested.
+Assets/_Project/Scenes/ — project-owned scenes.
+Assets/_Project/Materials/, Art/, Audio/ — project-owned presentation assets.
+Third-Party / Samples / Do Not Start Here
 
-Do not implement large RPG systems before the core loop is proven fun.
+Do not inspect or modify these unless the task explicitly involves them:
 
-## Core Working Rules
+Assets/HDRPDefaultResources/
+Assets/KayKit_Skeletons_1.1_FREE/
+Assets/ModularCastle_AssetPack/
+Assets/RPG Tiny Hero Duo/
+Assets/TerrainSampleAssets/
+Assets/TextMesh Pro/
+Assets/TutorialInfo/
+Assets/Settings/
+Search Strategy By Task
+Inventory task: start in Assets/_Project/Scripts/Inventory/, then Assets/_Project/Scripts/UI/.
+Equipment task: start in Assets/_Project/Scripts/Equipment/, then Assets/_Project/Scripts/Inventory/, then Assets/_Project/Scripts/UI/.
+Loot/pickup task: start in Assets/_Project/Scripts/Loot/, then check Assets/_Project/Prefabs/Loot/ only if prefab wiring is part of the task.
+Enemy drop task: start in Assets/_Project/Scripts/Enemies/ and Assets/_Project/Scripts/Loot/.
+UI task: start in Assets/_Project/Scripts/UI/ and Assets/_Project/Prefabs/UI/ only if prefab wiring is explicitly requested.
+Scene wiring task: inspect Assets/_Project/Scenes/ only after confirming scene changes are allowed.
+Data/balance task: start in Assets/_Project/ScriptableObjects/.
 
-1. Start with read-only analysis unless the user explicitly asks for changes.
-2. Keep changes small, safe, and reviewable.
-3. Before non-trivial changes, explain:
-   - the current problem;
-   - proposed solution;
-   - files to modify;
-   - risk level.
-4. Wait for confirmation before changing important code or Unity assets.
-5. After code changes, check Unity Console through MCP.
-6. If the implementation conflicts with the GDD, ask before changing design intent.
-7. Prefer clean, practical code over over-engineered abstractions.
-8. Do not introduce large architecture rewrites in one step.
-9. Do not add networking code yet, but keep gameplay logic multiplayer-friendly.
-10. Do not leave noisy per-frame logs in normal gameplay code.
+Prefer targeted rg searches inside the relevant folder before reading entire files or folders.
 
-## Forbidden Without Explicit Confirmation
+Architecture Rules
 
-Do not modify the following without explicit user confirmation:
+Use this separation:
 
-- Unity scenes
-- Prefabs
-- ScriptableObjects
-- Project Settings
-- Package manifest
-- Build Settings
-- `.meta` files
-- Serialized references
-- Large folder structure
-- Imported assets
+ScriptableObject = static data/config.
+Plain C# model = runtime state and core rules.
+MonoBehaviour = Unity lifecycle, scene wiring, inspector references.
+Service = gameplay use case/application logic.
+UI = display and user command emission.
+
+Examples:
+
+ItemDefinition is static item data.
+ItemContainer is a plain C# inventory model.
+PlayerInventory is a MonoBehaviour wrapper over ItemContainer.
+CharacterEquipment is a plain C# equipment state model.
+PlayerEquipmentRuntime is a MonoBehaviour wrapper for equipment runtime objects.
+EquipmentService owns equip/unequip gameplay rules.
+UI views must not directly mutate gameplay state.
+UI Rules
+
+UI should not own gameplay rules.
+
+Slot views should:
+
+display icon/name/amount;
+emit events such as click/right-click/drag;
+not call gameplay services directly;
+not mutate ItemSlot, ItemContainer, or CharacterEquipment.
+
+Interaction controllers may translate UI events into service calls.
+
+Services mutate models.
+
+Legacy Replacement Rules
+
+When replacing legacy systems:
+
+build the new system side-by-side first;
+keep the old flow working until the new alternative is implemented and verified;
+do not create hybrid legacy/new code unless explicitly requested;
+cleanup/removal must be a separate explicit stage.
+
+Do not delete legacy classes, components, prefabs, or serialized references unless the user explicitly asks.
+
+Staged Refactor Rules
+
+Follow the current stage boundary exactly.
+
+Do not implement future stages early.
+
+Examples:
+
+if a stage says no UI, do not touch UI;
+if a stage says no scenes/prefabs/assets, do not touch them;
+if a stage says code-only, do not modify Unity assets;
+if a stage says read-only analysis, do not change code.
+
+Keep changes small, safe, and reviewable.
+
+Unity Asset Safety
+
+Do not modify these without explicit confirmation:
+
+Unity scenes;
+prefabs;
+ScriptableObjects;
+Project Settings;
+Package manifest;
+Build Settings;
+imported assets;
+serialized references.
 
 Do not delete assets or GameObjects unless explicitly requested.
 
-## Unity MCP Usage
+Do not manually edit .meta files.
 
-Unity MCP can inspect and modify the Unity Editor state.
+Unity-generated .meta files for newly created scripts are expected and should be included with those scripts.
 
-Safe read-only actions:
+Unexpected .meta changes, asset reimports, GUID changes, or asset moves must be reported.
 
-- reading Unity Console;
-- getting active scene info;
-- inspecting GameObjects;
-- reading project files;
-- checking errors and warnings.
+Coding Rules
 
-Potentially dangerous actions require confirmation:
+Prefer clean, practical code over over-engineered abstractions.
 
-- updating GameObjects;
-- saving scenes;
-- modifying prefabs;
-- creating or deleting scenes;
-- creating prefabs;
-- modifying materials;
-- adding packages;
-- deleting objects.
+Keep domain/application logic independent from:
 
-## Coding Direction
+Unity UI;
+camera;
+physical input;
+scene-only objects.
 
-Follow the project architecture principles:
+Avoid global mutable state and large manager classes.
 
-- Input should produce commands or intents.
-- MonoBehaviour should act as presentation/integration layer.
-- Domain/application logic should not depend on Unity UI, camera, or physical input.
-- StateMachine should execute behavior, not read physical input directly.
-- Combat should not read input or search for targets.
-- UI should react to events/state, not drive gameplay rules.
-- Avoid global mutable state and large manager classes.
+Do not leave noisy per-frame logs in normal gameplay code.
 
-## When Unsure
+Do not add networking code yet, but keep gameplay logic multiplayer-friendly:
 
-If a task is ambiguous, prefer:
+runtime state should be serializable where practical;
+use stable ids for static definitions;
+use runtime instance ids for unique items;
+express gameplay actions through services/commands where possible.
+Validation
 
-1. read-only analysis;
-2. a short plan;
-3. asking for confirmation.
+After code changes, run relevant compile/validation checks when available.
 
-Do not guess design intent when the GDD is unclear.
+Use Unity Console/MCP for errors when appropriate.
+
+For Unity Editor validation runners, prefer menu tools under:
+
+Tools/Titanhold/...
+Response Format After Changes
+
+Keep the report short.
+
+Include:
+
+changed files;
+what changed;
+validation result;
+unrelated dirty files, if any;
+what was intentionally not changed when important.
