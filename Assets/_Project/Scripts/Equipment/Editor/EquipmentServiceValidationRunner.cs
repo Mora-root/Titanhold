@@ -121,6 +121,15 @@ public static class EquipmentServiceValidationRunner
             ValidateUnequipMainHandKeepsShield(gameObjects, oneHandSword, shield);
             ValidateFullInventoryPreventsDualWieldMainHandUnequip(gameObjects, oneHandSword, shield);
             ValidateUnequipOffHandWeaponKeepsMainHand(gameObjects, oneHandSword);
+            ValidateUnequipToSpecificInventorySlot(gameObjects, oneHandSword);
+            ValidateUnequipMainHandNormalizesDualWieldToSpecificSlot(gameObjects, oneHandSword);
+            ValidateUnequipToOccupiedInventorySlotFails(gameObjects, oneHandSword, shield);
+            ValidateUnequipToWrongInventoryCategoryFails(gameObjects, oneHandSword);
+            ValidateReplacementReturnsToSourceSlot(gameObjects, oneHandSword);
+            ValidateTwoHandReplacementReturnsFirstConflictToSourceSlot(gameObjects, oneHandSword, shield, twoHandWeapon);
+            ValidateIncompatibleDualWieldReplacementReturnsFirstConflictToSourceSlot(gameObjects, oneHandSword, oneHandAxe);
+            ValidateCompatibleDualWieldReplacementReturnsMainHandToSourceSlot(gameObjects, oneHandSword);
+            ValidateReplacementFailsBeforeMutationWhenAdditionalConflictCannotReturn(gameObjects, oneHandSword, shield, twoHandWeapon);
             ValidateFullInventoryPreventsUnequip(gameObjects, oneHandSword, shield);
             ValidateRejectedItems(gameObjects, stackableEquipment, nonEquippable, miscWeaponLike);
 
@@ -478,6 +487,217 @@ public static class EquipmentServiceValidationRunner
         Assert(ContainsInstance(inventory, swordBId), "Unequipped OffHand sword should return to inventory.");
     }
 
+    private static void ValidateUnequipToSpecificInventorySlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = AddAndEquip(inventory, service, oneHandSword);
+        string swordId = sword.InstanceId;
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand, ItemCategory.Equipment, 2);
+
+        Assert(result.Success, "Specific-slot unequip failed.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand) == null, "MainHand should be empty after specific-slot unequip.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), sword), "Unequipped sword should land exactly in target slot.");
+        Assert(GetInstanceAt(inventory, ItemCategory.Equipment, 2).InstanceId == swordId, "Specific-slot unequip changed instance id.");
+    }
+
+    private static void ValidateUnequipMainHandNormalizesDualWieldToSpecificSlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        string swordAId = swordA.InstanceId;
+        string swordBId = swordB.InstanceId;
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand, ItemCategory.Equipment, 3);
+
+        Assert(result.Success, "Specific-slot dual-wield normalized unequip failed.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 3), swordA), "Old MainHand sword should land exactly in target slot.");
+        Assert(GetInstanceAt(inventory, ItemCategory.Equipment, 3).InstanceId == swordAId, "Old MainHand sword instance id changed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordB), "OffHand sword should move to MainHand during specific-slot unequip.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand).InstanceId == swordBId, "Moved OffHand sword instance id changed during specific-slot unequip.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should clear during specific-slot normalized unequip.");
+    }
+
+    private static void ValidateUnequipToOccupiedInventorySlotFails(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+        ItemInstance occupiedShield = new ItemInstance(shield);
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, sword), "Could not prepare MainHand sword.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 1, ItemStack.CreateNonStackable(occupiedShield)), "Could not occupy target inventory slot.");
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand, ItemCategory.Equipment, 1);
+
+        Assert(!result.Success, "Unequip to occupied inventory slot should fail.");
+        Assert(result.Error == EquipmentOperationError.InvalidInventorySlot, "Occupied target should return InvalidInventorySlot.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), sword), "MainHand should remain after occupied target failure.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 1), occupiedShield), "Occupied inventory target should remain unchanged.");
+    }
+
+    private static void ValidateUnequipToWrongInventoryCategoryFails(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, sword), "Could not prepare MainHand sword.");
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand, ItemCategory.Crafting, 0);
+
+        Assert(!result.Success, "Unequip to wrong inventory category should fail.");
+        Assert(result.Error == EquipmentOperationError.InvalidInventorySlot, "Wrong category target should return InvalidInventorySlot.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), sword), "MainHand should remain after wrong category failure.");
+        Assert(!ContainsInstance(inventory, ItemCategory.Crafting, sword.InstanceId), "Sword should not move into Crafting section.");
+    }
+
+    private static void ValidateReplacementReturnsToSourceSlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = new ItemInstance(oneHandSword);
+        ItemInstance swordB = new ItemInstance(oneHandSword);
+        string swordAId = swordA.InstanceId;
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, swordA), "Could not prepare MainHand sword.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 2, ItemStack.CreateNonStackable(swordB)), "Could not place replacement sword in source slot.");
+
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 2, EquipmentSlotId.MainHand);
+
+        Assert(result.Success, "Source-slot replacement equip failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordB), "Replacement sword should equip into MainHand.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), swordA), "Old MainHand sword should return exactly to source slot.");
+        Assert(GetInstanceAt(inventory, ItemCategory.Equipment, 2).InstanceId == swordAId, "Old MainHand sword instance id changed after source-slot return.");
+    }
+
+    private static void ValidateTwoHandReplacementReturnsFirstConflictToSourceSlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield,
+        ItemDefinition twoHandWeapon)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+        ItemInstance shieldInstance = new ItemInstance(shield);
+        ItemInstance twoHand = new ItemInstance(twoHandWeapon);
+        string shieldId = shieldInstance.InstanceId;
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, sword), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, shieldInstance), "Could not prepare OffHand shield.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 2, ItemStack.CreateNonStackable(twoHand)), "Could not place two-hand source item.");
+
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 2);
+
+        Assert(result.Success, "Two-hand source-slot replacement failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), twoHand), "Two-hand weapon should equip into MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should be empty after two-hand replacement.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), sword), "Old MainHand sword should return exactly to source slot.");
+        Assert(ContainsInstance(inventory, shieldId), "Old shield should return to another inventory slot.");
+        Assert(!ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), shieldInstance), "Shield should not occupy the source slot before MainHand conflict.");
+    }
+
+    private static void ValidateIncompatibleDualWieldReplacementReturnsFirstConflictToSourceSlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition oneHandAxe)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = new ItemInstance(oneHandSword);
+        ItemInstance swordB = new ItemInstance(oneHandSword);
+        ItemInstance axe = new ItemInstance(oneHandAxe);
+        string swordBId = swordB.InstanceId;
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, swordA), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, swordB), "Could not prepare OffHand sword.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 2, ItemStack.CreateNonStackable(axe)), "Could not place axe source item.");
+
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 2);
+
+        Assert(result.Success, "Incompatible dual-wield source-slot replacement failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), axe), "Axe should equip into MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should clear after incompatible replacement.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), swordA), "Old MainHand sword should return exactly to source slot.");
+        Assert(ContainsInstance(inventory, swordBId), "Old OffHand sword should return to another inventory slot.");
+        Assert(!ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), swordB), "Old OffHand sword should not take the source slot before MainHand conflict.");
+    }
+
+    private static void ValidateCompatibleDualWieldReplacementReturnsMainHandToSourceSlot(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = new ItemInstance(oneHandSword);
+        ItemInstance swordB = new ItemInstance(oneHandSword);
+        ItemInstance swordC = new ItemInstance(oneHandSword);
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, swordA), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, swordB), "Could not prepare OffHand sword.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 2, ItemStack.CreateNonStackable(swordC)), "Could not place compatible replacement sword.");
+
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 2);
+
+        Assert(result.Success, "Compatible dual-wield source-slot replacement failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordC), "Third sword should replace MainHand.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordB), "OffHand sword should remain equipped.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), swordA), "Old MainHand sword should return exactly to source slot.");
+    }
+
+    private static void ValidateReplacementFailsBeforeMutationWhenAdditionalConflictCannotReturn(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield,
+        ItemDefinition twoHandWeapon)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 3);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+        ItemInstance shieldInstance = new ItemInstance(shield);
+        ItemInstance fillerA = new ItemInstance(shield);
+        ItemInstance fillerB = new ItemInstance(shield);
+        ItemInstance twoHand = new ItemInstance(twoHandWeapon);
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, sword), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, shieldInstance), "Could not prepare OffHand shield.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 0, ItemStack.CreateNonStackable(fillerA)), "Could not fill first inventory slot.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 1, ItemStack.CreateNonStackable(fillerB)), "Could not fill second inventory slot.");
+        Assert(inventory.SetStack(ItemCategory.Equipment, 2, ItemStack.CreateNonStackable(twoHand)), "Could not place two-hand source item.");
+
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 2);
+
+        Assert(!result.Success, "Replacement should fail when additional conflicts cannot return.");
+        Assert(result.Error == EquipmentOperationError.InventoryFull, "Not enough return space should return InventoryFull.");
+        Assert(ReferenceEquals(GetInstanceAt(inventory, ItemCategory.Equipment, 2), twoHand), "Source slot should keep original item after failed replacement.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), sword), "MainHand should remain unchanged after failed replacement.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), shieldInstance), "OffHand should remain unchanged after failed replacement.");
+    }
+
     private static void ValidateFullInventoryPreventsUnequip(
         List<GameObject> gameObjects,
         ItemDefinition oneHandSword,
@@ -590,6 +810,12 @@ public static class EquipmentServiceValidationRunner
         }
 
         return false;
+    }
+
+    private static ItemInstance GetInstanceAt(PlayerInventory inventory, ItemCategory category, int index)
+    {
+        ItemSlot slot = inventory.GetSlot(category, index);
+        return slot?.Stack?.Instance;
     }
 
     private static ItemDefinition CreateDefinition(

@@ -77,6 +77,72 @@ public sealed class EquipmentService
             : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, slotId, instance);
     }
 
+    public EquipmentOperationResult TryUnequipToInventory(
+        EquipmentSlotId slotId,
+        ItemCategory targetCategory,
+        int targetIndex)
+    {
+        if (inventory == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.MissingInventory, slotId);
+
+        if (equipment == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.MissingEquipment, slotId);
+
+        ItemInstance instance = equipment.GetEquipped(slotId);
+        if (instance == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.EmptyInventorySlot, slotId);
+
+        EquipmentOperationResult targetValidation = ValidateUnequipTarget(slotId, instance, targetCategory, targetIndex);
+        if (!targetValidation.Success)
+            return targetValidation;
+
+        if (ShouldNormalizeOffHandWeaponAfterMainHandUnequip(slotId))
+            return TryUnequipMainHandAndNormalizeOffHandToSlot(instance, targetCategory, targetIndex);
+
+        ItemInstance cleared = equipment.ClearSlot(slotId);
+        if (!ReferenceEquals(cleared, instance))
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, slotId, instance);
+
+        if (inventory.SetStack(targetCategory, targetIndex, ItemStack.CreateNonStackable(instance)))
+            return EquipmentOperationResult.Succeeded(slotId, null, new[] { instance });
+
+        bool restored = equipment.TrySetSlot(slotId, instance);
+        return restored
+            ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotReturnReplacedItem, slotId, instance)
+            : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, slotId, instance);
+    }
+
+    private EquipmentOperationResult ValidateUnequipTarget(
+        EquipmentSlotId slotId,
+        ItemInstance instance,
+        ItemCategory targetCategory,
+        int targetIndex)
+    {
+        if (targetCategory != ItemCategory.Equipment)
+        {
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.InvalidInventorySlot,
+                slotId,
+                instance,
+                message: "Equipment can only be unequipped into the Equipment inventory section.");
+        }
+
+        ItemSlot targetSlot = inventory.GetSlot(targetCategory, targetIndex);
+        if (targetSlot == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.InvalidInventorySlot, slotId, instance);
+
+        if (!targetSlot.IsEmpty)
+        {
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.InvalidInventorySlot,
+                slotId,
+                instance,
+                message: "Target inventory slot is occupied.");
+        }
+
+        return EquipmentOperationResult.Succeeded(slotId, instance);
+    }
+
     private bool ShouldNormalizeOffHandWeaponAfterMainHandUnequip(EquipmentSlotId slotId)
     {
         return slotId == EquipmentSlotId.MainHand &&
@@ -118,6 +184,43 @@ public sealed class EquipmentService
             : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
     }
 
+    private EquipmentOperationResult TryUnequipMainHandAndNormalizeOffHandToSlot(
+        ItemInstance mainHandInstance,
+        ItemCategory targetCategory,
+        int targetIndex)
+    {
+        ItemInstance offHandInstance = equipment.GetEquipped(EquipmentSlotId.OffHand);
+        if (offHandInstance == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+
+        ItemInstance clearedMainHand = equipment.ClearSlot(EquipmentSlotId.MainHand);
+        if (!ReferenceEquals(clearedMainHand, mainHandInstance))
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+
+        ItemInstance clearedOffHand = equipment.ClearSlot(EquipmentSlotId.OffHand);
+        if (!ReferenceEquals(clearedOffHand, offHandInstance))
+        {
+            RestoreMainHandAfterFailedNormalization(mainHandInstance);
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+        }
+
+        if (!equipment.TrySetSlot(EquipmentSlotId.MainHand, offHandInstance))
+        {
+            bool restored = RestoreDualWieldState(mainHandInstance, offHandInstance);
+            return restored
+                ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotSetEquipmentSlot, EquipmentSlotId.MainHand, mainHandInstance)
+                : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+        }
+
+        if (inventory.SetStack(targetCategory, targetIndex, ItemStack.CreateNonStackable(mainHandInstance)))
+            return EquipmentOperationResult.Succeeded(EquipmentSlotId.MainHand, null, new[] { mainHandInstance });
+
+        bool rolledBack = RollbackMainHandNormalization(mainHandInstance, offHandInstance);
+        return rolledBack
+            ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotReturnReplacedItem, EquipmentSlotId.MainHand, mainHandInstance)
+            : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+    }
+
     private bool RollbackMainHandNormalization(ItemInstance mainHandInstance, ItemInstance offHandInstance)
     {
         ItemInstance clearedMainHand = equipment.ClearSlot(EquipmentSlotId.MainHand);
@@ -129,8 +232,9 @@ public sealed class EquipmentService
 
     private bool RestoreDualWieldState(ItemInstance mainHandInstance, ItemInstance offHandInstance)
     {
-        return equipment.TrySetSlot(EquipmentSlotId.MainHand, mainHandInstance) &&
-               equipment.TrySetSlot(EquipmentSlotId.OffHand, offHandInstance);
+        bool restoredMainHand = equipment.TrySetSlot(EquipmentSlotId.MainHand, mainHandInstance);
+        bool restoredOffHand = equipment.TrySetSlot(EquipmentSlotId.OffHand, offHandInstance);
+        return restoredMainHand && restoredOffHand;
     }
 
     private bool RestoreMainHandAfterFailedNormalization(ItemInstance mainHandInstance)
@@ -222,7 +326,13 @@ public sealed class EquipmentService
             return RollbackAfterSetFailure(category, slotIndex, sourceStack, clearedSlots, targetSlot, instance);
         }
 
-        EquipmentOperationResult returnResult = ReturnConflictsToInventory(clearedSlots, targetSlot, instance);
+        EquipmentOperationResult returnResult = ReturnConflictsToInventory(
+            clearedSlots,
+            targetSlot,
+            instance,
+            category,
+            slotIndex);
+
         if (!returnResult.Success)
         {
             return RollbackAfterReturnFailure(category, slotIndex, sourceStack, clearedSlots, targetSlot, instance, returnResult.Error);
@@ -258,10 +368,11 @@ public sealed class EquipmentService
     {
         ItemInstance equippedItem = equipment.GetEquipped(targetSlot);
         bool clearedEquipped = equippedItem == null || ReferenceEquals(equipment.ClearSlot(targetSlot), instance);
+        bool removedReturnedConflicts = RemoveReturnedConflictsFromInventory(clearedSlots);
         bool restoredInventory = inventory.SetStack(sourceCategory, sourceSlotIndex, sourceStack);
         bool restoredEquipment = RestoreEquipment(clearedSlots);
 
-        return clearedEquipped && restoredInventory && restoredEquipment
+        return clearedEquipped && removedReturnedConflicts && restoredInventory && restoredEquipment
             ? EquipmentOperationResult.Failed(originalError, targetSlot, instance, GetInstances(clearedSlots))
             : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, targetSlot, instance, GetInstances(clearedSlots));
     }
@@ -269,22 +380,84 @@ public sealed class EquipmentService
     private EquipmentOperationResult ReturnConflictsToInventory(
         List<EquippedSlotSnapshot> clearedSlots,
         EquipmentSlotId targetSlot,
-        ItemInstance equippedInstance)
+        ItemInstance equippedInstance,
+        ItemCategory sourceCategory,
+        int sourceSlotIndex)
     {
-        foreach (EquippedSlotSnapshot clearedSlot in clearedSlots)
+        for (int i = 0; i < clearedSlots.Count; i++)
         {
-            AddItemResult result = inventory.TryAddInstance(clearedSlot.Item);
-            if (!result.FullyAdded)
+            EquippedSlotSnapshot clearedSlot = clearedSlots[i];
+
+            if (i == 0)
             {
-                return EquipmentOperationResult.Failed(
-                    EquipmentOperationError.CannotReturnReplacedItem,
-                    targetSlot,
-                    equippedInstance,
-                    GetInstances(clearedSlots));
+                if (!inventory.SetStack(sourceCategory, sourceSlotIndex, ItemStack.CreateNonStackable(clearedSlot.Item)))
+                {
+                    return EquipmentOperationResult.Failed(
+                        EquipmentOperationError.CannotReturnReplacedItem,
+                        targetSlot,
+                        equippedInstance,
+                        GetInstances(clearedSlots));
+                }
+
+                continue;
             }
+
+            AddItemResult result = inventory.TryAddInstance(clearedSlot.Item);
+            if (result.FullyAdded)
+                continue;
+
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.CannotReturnReplacedItem,
+                targetSlot,
+                equippedInstance,
+                GetInstances(clearedSlots));
         }
 
         return EquipmentOperationResult.Succeeded(targetSlot, equippedInstance, GetInstances(clearedSlots));
+    }
+
+    private bool RemoveReturnedConflictsFromInventory(List<EquippedSlotSnapshot> clearedSlots)
+    {
+        bool removedCleanly = true;
+
+        foreach (EquippedSlotSnapshot clearedSlot in clearedSlots)
+        {
+            if (!TryFindInventorySlotContaining(clearedSlot.Item, out ItemCategory category, out int slotIndex))
+                continue;
+
+            ItemStack removedStack = inventory.TakeStack(category, slotIndex);
+            if (removedStack?.Instance == null || !ReferenceEquals(removedStack.Instance, clearedSlot.Item))
+            {
+                removedCleanly = false;
+            }
+        }
+
+        return removedCleanly;
+    }
+
+    private bool TryFindInventorySlotContaining(ItemInstance instance, out ItemCategory category, out int slotIndex)
+    {
+        category = ItemCategory.Equipment;
+        slotIndex = -1;
+
+        if (instance == null)
+            return false;
+
+        ItemContainerSection section = inventory.GetSection(ItemCategory.Equipment);
+        if (section == null || section.Slots == null)
+            return false;
+
+        for (int i = 0; i < section.Slots.Length; i++)
+        {
+            ItemStack stack = section.Slots[i].Stack;
+            if (stack?.Instance == null || !ReferenceEquals(stack.Instance, instance))
+                continue;
+
+            slotIndex = i;
+            return true;
+        }
+
+        return false;
     }
 
     private List<EquippedSlotSnapshot> ClearConflicts(List<EquippedSlotSnapshot> conflicts)

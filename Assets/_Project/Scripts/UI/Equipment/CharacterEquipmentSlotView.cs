@@ -6,7 +6,12 @@ using UnityEngine.UI;
 
 namespace Titanhold.UI.Equipment
 {
-    public sealed class CharacterEquipmentSlotView : MonoBehaviour, IPointerClickHandler, IDropHandler
+    public sealed class CharacterEquipmentSlotView : MonoBehaviour,
+        IPointerClickHandler,
+        IDropHandler,
+        IBeginDragHandler,
+        IDragHandler,
+        IEndDragHandler
     {
         [SerializeField] private global::EquipmentSlotId slotId;
         [SerializeField] private Image iconImage;
@@ -18,6 +23,8 @@ namespace Titanhold.UI.Equipment
 
         public event Action<global::EquipmentSlotId> RightClicked;
         public event Action<global::EquipmentSlotId> Dropped;
+        public event Action<global::EquipmentSlotId> DragStarted;
+        public event Action DragEnded;
 
         public global::EquipmentSlotId SlotId => slotId;
 
@@ -63,6 +70,26 @@ namespace Titanhold.UI.Equipment
         public void OnDrop(PointerEventData eventData)
         {
             Dropped?.Invoke(slotId);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (eventData.button != PointerEventData.InputButton.Left)
+                return;
+
+            if (currentItem == null || currentItem.Definition == null)
+                return;
+
+            DragStarted?.Invoke(slotId);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            DragEnded?.Invoke();
         }
 
         public void Clear()

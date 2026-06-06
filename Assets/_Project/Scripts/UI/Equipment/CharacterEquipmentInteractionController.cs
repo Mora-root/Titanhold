@@ -7,7 +7,7 @@ namespace Titanhold.UI.Equipment
     {
         [SerializeField] private CharacterEquipmentPanel equipmentPanel;
         [SerializeField] private global::PlayerEquipmentRuntime equipmentRuntime;
-        [SerializeField] private InventoryDragContext dragContext;
+        [SerializeField] private ItemDragContext dragContext;
 
         private bool loggedMissingPanel;
         private bool loggedMissingEquipmentRuntime;
@@ -19,6 +19,8 @@ namespace Titanhold.UI.Equipment
             {
                 equipmentPanel.SlotRightClicked += HandleSlotRightClicked;
                 equipmentPanel.SlotDropped += HandleSlotDropped;
+                equipmentPanel.SlotDragStarted += HandleSlotDragStarted;
+                equipmentPanel.SlotDragEnded += HandleSlotDragEnded;
             }
             else
             {
@@ -32,6 +34,8 @@ namespace Titanhold.UI.Equipment
             {
                 equipmentPanel.SlotRightClicked -= HandleSlotRightClicked;
                 equipmentPanel.SlotDropped -= HandleSlotDropped;
+                equipmentPanel.SlotDragStarted -= HandleSlotDragStarted;
+                equipmentPanel.SlotDragEnded -= HandleSlotDragEnded;
             }
         }
 
@@ -67,6 +71,12 @@ namespace Titanhold.UI.Equipment
             if (!dragContext.HasSource)
                 return;
 
+            if (dragContext.SourceKind != ItemDragSourceKind.InventorySlot)
+            {
+                dragContext.Clear();
+                return;
+            }
+
             if (equipmentRuntime == null)
             {
                 LogMissingEquipmentRuntime();
@@ -94,6 +104,20 @@ namespace Titanhold.UI.Equipment
             dragContext.Clear();
         }
 
+        private void HandleSlotDragStarted(global::EquipmentSlotId slotId)
+        {
+            if (dragContext != null)
+                dragContext.BeginEquipment(slotId);
+            else
+                LogMissingDragContext();
+        }
+
+        private void HandleSlotDragEnded()
+        {
+            if (dragContext != null)
+                dragContext.Clear();
+        }
+
         private void LogMissingPanel()
         {
             if (loggedMissingPanel)
@@ -117,7 +141,7 @@ namespace Titanhold.UI.Equipment
             if (loggedMissingDragContext)
                 return;
 
-            Debug.LogWarning($"{nameof(CharacterEquipmentInteractionController)} requires an InventoryDragContext reference for inventory-to-equipment drag.", this);
+            Debug.LogWarning($"{nameof(CharacterEquipmentInteractionController)} requires an ItemDragContext reference.", this);
             loggedMissingDragContext = true;
         }
     }

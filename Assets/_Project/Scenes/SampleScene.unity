@@ -15236,9 +15236,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1359868932}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9eb36ee0087950a42af330a4dc4aac5e, type: 3}
+  m_Script: {fileID: 11500000, guid: aa3b63283e466f24e8722f6207c83323, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragContext
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.ItemDragContext
 --- !u!1 &1361740481
 GameObject:
   m_ObjectHideFlags: 0
@@ -17559,6 +17559,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragDropController
   inventoryWindow: {fileID: 1658540091}
   playerInventory: {fileID: 8744477821165718926}
+  equipmentRuntime: {fileID: 8744477821165718928}
   dragContext: {fileID: 1359868940}
 --- !u!1 &1664798310
 GameObject:
