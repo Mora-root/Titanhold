@@ -39,6 +39,15 @@ public static class EquipmentServiceValidationRunner
                 EquipmentSlotType.Weapon,
                 WeaponType.OneHandSword);
 
+            ItemDefinition oneHandAxe = CreateDefinition(
+                definitions,
+                "equipment_service_one_hand_axe",
+                "Equipment Service One-Hand Axe",
+                ItemCategory.Equipment,
+                1,
+                EquipmentSlotType.Weapon,
+                WeaponType.OneHandAxe);
+
             ItemDefinition shield = CreateDefinition(
                 definitions,
                 "equipment_service_shield",
@@ -80,6 +89,15 @@ public static class EquipmentServiceValidationRunner
                 1,
                 EquipmentSlotType.None);
 
+            ItemDefinition miscWeaponLike = CreateDefinition(
+                definitions,
+                "equipment_service_misc_weapon_like",
+                "Equipment Service Misc Weapon-Like",
+                ItemCategory.Misc,
+                1,
+                EquipmentSlotType.Weapon,
+                WeaponType.OneHandSword);
+
             ItemDefinition stackableEquipment = CreateDefinition(
                 definitions,
                 "equipment_service_stackable_equipment",
@@ -89,11 +107,18 @@ public static class EquipmentServiceValidationRunner
                 EquipmentSlotType.Weapon,
                 WeaponType.OneHandSword);
 
+            ValidateCompatibleOneHandSequence(gameObjects, oneHandSword);
+            ValidateIncompatibleOneHandSequence(gameObjects, oneHandSword, oneHandAxe);
+            ValidateReverseIncompatibleOneHandSequence(gameObjects, oneHandSword, oneHandAxe);
+            ValidateShieldKeepsMainHand(gameObjects, oneHandSword, shield);
+            ValidateTwoHandClearsBothHands(gameObjects, oneHandSword, twoHandWeapon);
             ValidateEquipShieldAndTwoHandReplacement(gameObjects, oneHandSword, shield, twoHandWeapon);
+            ValidatePreferredOffHandRejectsIncompatibleOneHand(gameObjects, oneHandSword, oneHandAxe);
+            ValidatePreferredOffHandRejectsEmptyMainHand(gameObjects, oneHandSword);
             ValidateRingReplacement(gameObjects, ring);
             ValidateUnequipPreservesIdentity(gameObjects, artifact);
             ValidateFullInventoryPreventsUnequip(gameObjects, oneHandSword, shield);
-            ValidateRejectedItems(gameObjects, stackableEquipment, nonEquippable);
+            ValidateRejectedItems(gameObjects, stackableEquipment, nonEquippable, miscWeaponLike);
 
             return "EquipmentService validation passed.";
         }
@@ -111,6 +136,124 @@ public static class EquipmentServiceValidationRunner
                     UnityEngine.Object.DestroyImmediate(definition);
             }
         }
+    }
+
+    private static void ValidateCompatibleOneHandSequence(List<GameObject> gameObjects, ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        string swordAId = swordA.InstanceId;
+
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordA), "First compatible one-hand weapon should equip into MainHand.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordB), "Second compatible one-hand weapon should equip into OffHand.");
+
+        ItemInstance swordC = new ItemInstance(oneHandSword);
+        Assert(inventory.TryAddInstance(swordC).FullyAdded, "Could not add third compatible one-hand weapon.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, "Third compatible one-hand weapon equip failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordC), "Third compatible one-hand weapon should replace MainHand.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordB), "OffHand compatible weapon should remain equipped.");
+        Assert(ContainsInstance(inventory, swordAId), "Replaced MainHand compatible weapon should return to inventory.");
+        Assert(!ContainsInstance(inventory, swordC.InstanceId), "Equipped third weapon should not remain in inventory.");
+    }
+
+    private static void ValidateIncompatibleOneHandSequence(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition oneHandAxe)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance axeC = new ItemInstance(oneHandAxe);
+        string swordAId = swordA.InstanceId;
+        string swordBId = swordB.InstanceId;
+
+        Assert(inventory.TryAddInstance(axeC).FullyAdded, "Could not add incompatible axe.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, "Incompatible one-hand weapon equip failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), axeC), "Incompatible axe should equip into MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should clear when equipping incompatible one-hand weapon.");
+        Assert(ContainsInstance(inventory, swordAId), "Old MainHand sword should return to inventory.");
+        Assert(ContainsInstance(inventory, swordBId), "Old OffHand sword should return to inventory.");
+        Assert(!ContainsInstance(inventory, axeC.InstanceId), "Equipped incompatible axe should not remain in inventory.");
+    }
+
+    private static void ValidateReverseIncompatibleOneHandSequence(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition oneHandAxe)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance axeA = AddAndEquip(inventory, service, oneHandAxe);
+        ItemInstance axeB = AddAndEquip(inventory, service, oneHandAxe);
+        ItemInstance swordC = new ItemInstance(oneHandSword);
+        string axeAId = axeA.InstanceId;
+        string axeBId = axeB.InstanceId;
+
+        Assert(inventory.TryAddInstance(swordC).FullyAdded, "Could not add incompatible sword.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, "Reverse incompatible one-hand weapon equip failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordC), "Incompatible sword should equip into MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should clear when equipping reverse incompatible one-hand weapon.");
+        Assert(ContainsInstance(inventory, axeAId), "Old MainHand axe should return to inventory.");
+        Assert(ContainsInstance(inventory, axeBId), "Old OffHand axe should return to inventory.");
+    }
+
+    private static void ValidateShieldKeepsMainHand(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance shieldInstance = new ItemInstance(shield);
+        string swordBId = swordB.InstanceId;
+
+        Assert(inventory.TryAddInstance(shieldInstance).FullyAdded, "Could not add shield for replacement test.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, "Shield equip over OffHand weapon failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordA), "Shield should keep compatible one-hand MainHand weapon.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), shieldInstance), "Shield should equip into OffHand.");
+        Assert(ContainsInstance(inventory, swordBId), "Previous OffHand sword should return to inventory.");
+    }
+
+    private static void ValidateTwoHandClearsBothHands(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition twoHandWeapon)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 5);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance twoHandInstance = new ItemInstance(twoHandWeapon);
+        string swordAId = swordA.InstanceId;
+        string swordBId = swordB.InstanceId;
+
+        Assert(inventory.TryAddInstance(twoHandInstance).FullyAdded, "Could not add two-handed weapon for clearing test.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, "Two-handed weapon equip over dual-wield failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), twoHandInstance), "Two-handed weapon should equip into MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should clear after equipping two-handed weapon.");
+        Assert(ContainsInstance(inventory, swordAId), "Old MainHand sword should return after two-handed equip.");
+        Assert(ContainsInstance(inventory, swordBId), "Old OffHand sword should return after two-handed equip.");
     }
 
     private static void ValidateEquipShieldAndTwoHandReplacement(
@@ -154,6 +297,48 @@ public static class EquipmentServiceValidationRunner
         Assert(ContainsInstance(inventory, swordId), "Old sword should return to inventory with same id.");
         Assert(ContainsInstance(inventory, shieldId), "Shield should return to inventory with same id.");
         Assert(equipment.GetEquipped(EquipmentSlotId.MainHand).InstanceId == twoHandId, "Two-hand instance id changed.");
+    }
+
+    private static void ValidatePreferredOffHandRejectsIncompatibleOneHand(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition oneHandAxe)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance axe = new ItemInstance(oneHandAxe);
+        string axeId = axe.InstanceId;
+
+        Assert(inventory.TryAddInstance(axe).FullyAdded, "Could not add incompatible axe for preferred OffHand test.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0, EquipmentSlotId.OffHand);
+
+        Assert(!result.Success, "Preferred OffHand should reject incompatible one-hand weapon.");
+        Assert(result.Error == EquipmentOperationError.InvalidTargetSlot, "Preferred OffHand incompatible weapon should return InvalidTargetSlot.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), sword), "MainHand sword should remain after rejected preferred OffHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should remain empty after rejected preferred OffHand.");
+        Assert(ContainsInstance(inventory, axeId), "Rejected incompatible axe should remain in inventory.");
+    }
+
+    private static void ValidatePreferredOffHandRejectsEmptyMainHand(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+        string swordId = sword.InstanceId;
+
+        Assert(inventory.TryAddInstance(sword).FullyAdded, "Could not add sword for empty MainHand preferred OffHand test.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0, EquipmentSlotId.OffHand);
+
+        Assert(!result.Success, "Preferred OffHand should reject one-hand weapon when MainHand is empty.");
+        Assert(result.Error == EquipmentOperationError.InvalidTargetSlot, "Empty MainHand preferred OffHand should return InvalidTargetSlot.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand) == null, "MainHand should remain empty after rejected preferred OffHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should remain empty after rejected preferred OffHand.");
+        Assert(ContainsInstance(inventory, swordId), "Rejected sword should remain in inventory.");
     }
 
     private static void ValidateRingReplacement(List<GameObject> gameObjects, ItemDefinition ring)
@@ -225,7 +410,8 @@ public static class EquipmentServiceValidationRunner
     private static void ValidateRejectedItems(
         List<GameObject> gameObjects,
         ItemDefinition stackableEquipment,
-        ItemDefinition nonEquippable)
+        ItemDefinition nonEquippable,
+        ItemDefinition miscWeaponLike)
     {
         PlayerInventory stackableInventory = CreateInventory(gameObjects, 4);
         CharacterEquipment stackableEquipmentModel = new CharacterEquipment();
@@ -247,6 +433,38 @@ public static class EquipmentServiceValidationRunner
 
         Assert(!nonEquippableResult.Success, "Non-equippable item should not equip.");
         Assert(nonEquippableResult.Error == EquipmentOperationError.ItemNotEquippable, "Non-equippable item should return ItemNotEquippable.");
+
+        PlayerInventory miscWeaponLikeInventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment miscWeaponLikeEquipment = new CharacterEquipment();
+        EquipmentService miscWeaponLikeService = new EquipmentService(miscWeaponLikeInventory, miscWeaponLikeEquipment);
+        ItemInstance miscWeaponLikeInstance = new ItemInstance(miscWeaponLike);
+        string miscWeaponLikeId = miscWeaponLikeInstance.InstanceId;
+
+        Assert(miscWeaponLikeInventory.TryAddInstance(miscWeaponLikeInstance).FullyAdded, "Could not add weapon-like Misc item.");
+        EquipmentOperationResult miscWeaponLikeResult = miscWeaponLikeService.TryEquipFromInventory(ItemCategory.Misc, 0);
+
+        Assert(!miscWeaponLikeResult.Success, "Weapon-like Misc item should not equip.");
+        Assert(miscWeaponLikeResult.Error == EquipmentOperationError.ItemNotEquippable, "Weapon-like Misc item should return ItemNotEquippable.");
+        Assert(ContainsInstance(miscWeaponLikeInventory, ItemCategory.Misc, miscWeaponLikeId), "Rejected weapon-like Misc item should remain in inventory.");
+        Assert(miscWeaponLikeEquipment.GetEquipped(EquipmentSlotId.MainHand) == null, "Equipment should remain unchanged after rejected weapon-like Misc item.");
+    }
+
+    private static ItemInstance AddAndEquip(
+        PlayerInventory inventory,
+        EquipmentService service,
+        ItemDefinition definition)
+    {
+        ItemInstance instance = new ItemInstance(definition);
+        string instanceId = instance.InstanceId;
+
+        Assert(inventory.TryAddInstance(instance).FullyAdded, $"Could not add item '{definition.Id}' to inventory.");
+        EquipmentOperationResult result = service.TryEquipFromInventory(ItemCategory.Equipment, 0);
+
+        Assert(result.Success, $"Could not equip item '{definition.Id}'. Error: {result.Error}.");
+        Assert(ReferenceEquals(result.EquippedInstance, instance), $"Equipped item '{definition.Id}' reference changed.");
+        Assert(result.EquippedInstance.InstanceId == instanceId, $"Equipped item '{definition.Id}' instance id changed.");
+
+        return instance;
     }
 
     private static PlayerInventory CreateInventory(List<GameObject> gameObjects, int equipmentCapacity)
@@ -263,7 +481,12 @@ public static class EquipmentServiceValidationRunner
 
     private static bool ContainsInstance(PlayerInventory inventory, string instanceId)
     {
-        ItemContainerSection section = inventory.GetSection(ItemCategory.Equipment);
+        return ContainsInstance(inventory, ItemCategory.Equipment, instanceId);
+    }
+
+    private static bool ContainsInstance(PlayerInventory inventory, ItemCategory category, string instanceId)
+    {
+        ItemContainerSection section = inventory.GetSection(category);
         if (section == null)
             return false;
 

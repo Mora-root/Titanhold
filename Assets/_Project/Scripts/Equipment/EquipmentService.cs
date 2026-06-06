@@ -102,6 +102,9 @@ public sealed class EquipmentService
         if (definition == null)
             return EquipmentOperationResult.Failed(EquipmentOperationError.MissingItemInstance);
 
+        if (definition.Category != ItemCategory.Equipment)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.ItemNotEquippable);
+
         if (definition.MaxStack > 1 || sourceStack.Amount != 1)
             return EquipmentOperationResult.Failed(EquipmentOperationError.StackableItemCannotBeEquipped);
 
@@ -257,6 +260,16 @@ public sealed class EquipmentService
             AddConflict(conflicts, EquipmentSlotId.MainHand);
             AddConflict(conflicts, EquipmentSlotId.OffHand);
         }
+        else if (IsOneHandWeapon(definition))
+        {
+            ItemDefinition offHandDefinition = equipment.GetDefinition(EquipmentSlotId.OffHand);
+            if (targetSlot == EquipmentSlotId.MainHand &&
+                IsOneHandWeapon(offHandDefinition) &&
+                !AreDualWieldCompatible(definition, offHandDefinition))
+            {
+                AddConflict(conflicts, EquipmentSlotId.OffHand);
+            }
+        }
         else if (definition.IsShield)
         {
             ItemDefinition mainHandDefinition = equipment.GetDefinition(EquipmentSlotId.MainHand);
@@ -292,8 +305,7 @@ public sealed class EquipmentService
         switch (definition.EquipmentSlotType)
         {
             case EquipmentSlotType.Weapon:
-                targetSlot = EquipmentSlotId.MainHand;
-                return true;
+                return TryResolveWeaponTargetSlot(definition, out targetSlot);
             case EquipmentSlotType.Shield:
                 targetSlot = EquipmentSlotId.OffHand;
                 return true;
@@ -332,7 +344,35 @@ public sealed class EquipmentService
         }
     }
 
-    private static bool IsTargetSlotCompatible(ItemDefinition definition, EquipmentSlotId targetSlot)
+    private bool TryResolveWeaponTargetSlot(ItemDefinition definition, out EquipmentSlotId targetSlot)
+    {
+        targetSlot = EquipmentSlotId.MainHand;
+
+        if (definition == null || !definition.IsWeapon)
+            return false;
+
+        if (definition.OccupiesBothHands)
+            return true;
+
+        if (!IsOneHandWeapon(definition))
+            return false;
+
+        ItemDefinition mainHandDefinition = equipment.GetDefinition(EquipmentSlotId.MainHand);
+        if (mainHandDefinition == null)
+            return true;
+
+        if (AreDualWieldCompatible(definition, mainHandDefinition) &&
+            !equipment.IsOccupied(EquipmentSlotId.OffHand))
+        {
+            targetSlot = EquipmentSlotId.OffHand;
+            return true;
+        }
+
+        targetSlot = EquipmentSlotId.MainHand;
+        return true;
+    }
+
+    private bool IsTargetSlotCompatible(ItemDefinition definition, EquipmentSlotId targetSlot)
     {
         if (definition == null || !definition.IsEquippable)
             return false;
@@ -342,6 +382,9 @@ public sealed class EquipmentService
             case EquipmentSlotType.Weapon:
                 if (definition.OccupiesBothHands)
                     return targetSlot == EquipmentSlotId.MainHand;
+
+                if (targetSlot == EquipmentSlotId.OffHand)
+                    return CanEquipOneHandWeaponToOffHand(definition);
 
                 return targetSlot == EquipmentSlotId.MainHand || targetSlot == EquipmentSlotId.OffHand;
             case EquipmentSlotType.Shield:
@@ -365,6 +408,30 @@ public sealed class EquipmentService
             default:
                 return false;
         }
+    }
+
+    private bool CanEquipOneHandWeaponToOffHand(ItemDefinition definition)
+    {
+        if (!IsOneHandWeapon(definition))
+            return false;
+
+        ItemDefinition mainHandDefinition = equipment.GetDefinition(EquipmentSlotId.MainHand);
+        return AreDualWieldCompatible(definition, mainHandDefinition);
+    }
+
+    private static bool IsOneHandWeapon(ItemDefinition definition)
+    {
+        return definition != null &&
+               definition.IsWeapon &&
+               definition.Handedness == WeaponHandedness.OneHand &&
+               definition.WeaponFamily != WeaponFamily.None;
+    }
+
+    private static bool AreDualWieldCompatible(ItemDefinition first, ItemDefinition second)
+    {
+        return IsOneHandWeapon(first) &&
+               IsOneHandWeapon(second) &&
+               first.WeaponFamily == second.WeaponFamily;
     }
 
     private static IReadOnlyList<ItemInstance> GetInstances(List<EquippedSlotSnapshot> slots)
