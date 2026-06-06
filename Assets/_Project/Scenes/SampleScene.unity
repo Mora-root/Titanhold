@@ -15119,6 +15119,7 @@ GameObject:
   - component: {fileID: 1359868937}
   - component: {fileID: 1359868938}
   - component: {fileID: 1359868939}
+  - component: {fileID: 1359868940}
   m_Layer: 5
   m_Name: InventoryUIControllerObject
   m_TagString: Untagged
@@ -15226,6 +15227,18 @@ MonoBehaviour:
   startOpen: 0
   toggleKey: 99
   closeOnEscape: 1
+--- !u!114 &1359868940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359868932}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9eb36ee0087950a42af330a4dc4aac5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragContext
 --- !u!1 &1361740481
 GameObject:
   m_ObjectHideFlags: 0
@@ -17532,6 +17545,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryEquipmentInteractionController
   inventoryWindow: {fileID: 1658540091}
   equipmentRuntime: {fileID: 8744477821165718928}
+--- !u!114 &1658540097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1658540089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e64e40b6092e70c40b10e5e31c087917, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragDropController
+  inventoryWindow: {fileID: 1658540091}
+  playerInventory: {fileID: 8744477821165718926}
+  dragContext: {fileID: 1359868940}
 --- !u!1 &1664798310
 GameObject:
   m_ObjectHideFlags: 0
@@ -18015,6 +18043,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Equipment.CharacterEquipmentInteractionController
   equipmentPanel: {fileID: 1695628503}
   equipmentRuntime: {fileID: 8744477821165718928}
+  dragContext: {fileID: 1359868940}
 --- !u!4 &1716883831 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8379852873407926100, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
@@ -22422,6 +22451,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 836788086139093752, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1658540094}
+    - targetCorrespondingSourceObject: {fileID: 836788086139093752, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1658540097}
   m_SourcePrefab: {fileID: 100100000, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
 --- !u!4 &8744477821165718855 stripped
 Transform:

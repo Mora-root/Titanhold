@@ -12,6 +12,7 @@ namespace Titanhold.UI.Equipment
         private bool loggedMissingRuntime;
 
         public event Action<global::EquipmentSlotId> SlotRightClicked;
+        public event Action<global::EquipmentSlotId> SlotDropped;
 
         private void OnEnable()
         {
@@ -112,7 +113,10 @@ namespace Titanhold.UI.Equipment
             foreach (CharacterEquipmentSlotView slotView in slotViews)
             {
                 if (slotView != null)
+                {
                     slotView.RightClicked += HandleSlotRightClicked;
+                    slotView.Dropped += HandleSlotDropped;
+                }
             }
         }
 
@@ -124,13 +128,21 @@ namespace Titanhold.UI.Equipment
             foreach (CharacterEquipmentSlotView slotView in slotViews)
             {
                 if (slotView != null)
+                {
                     slotView.RightClicked -= HandleSlotRightClicked;
+                    slotView.Dropped -= HandleSlotDropped;
+                }
             }
         }
 
         private void HandleSlotRightClicked(global::EquipmentSlotId slotId)
         {
             SlotRightClicked?.Invoke(slotId);
+        }
+
+        private void HandleSlotDropped(global::EquipmentSlotId slotId)
+        {
+            SlotDropped?.Invoke(slotId);
         }
 
         private global::CharacterEquipment GetEquipment()

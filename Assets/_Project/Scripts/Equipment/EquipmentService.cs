@@ -60,6 +60,9 @@ public sealed class EquipmentService
         if (inventory.CountFreeSlots(ItemCategory.Equipment) < 1)
             return EquipmentOperationResult.Failed(EquipmentOperationError.InventoryFull, slotId, instance);
 
+        if (ShouldNormalizeOffHandWeaponAfterMainHandUnequip(slotId))
+            return TryUnequipMainHandAndNormalizeOffHand(instance);
+
         ItemInstance cleared = equipment.ClearSlot(slotId);
         if (!ReferenceEquals(cleared, instance))
             return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, slotId, instance);
@@ -72,6 +75,68 @@ public sealed class EquipmentService
         return restored
             ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotReturnReplacedItem, slotId, instance)
             : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, slotId, instance);
+    }
+
+    private bool ShouldNormalizeOffHandWeaponAfterMainHandUnequip(EquipmentSlotId slotId)
+    {
+        return slotId == EquipmentSlotId.MainHand &&
+               IsOneHandWeapon(equipment.GetDefinition(EquipmentSlotId.OffHand));
+    }
+
+    private EquipmentOperationResult TryUnequipMainHandAndNormalizeOffHand(ItemInstance mainHandInstance)
+    {
+        ItemInstance offHandInstance = equipment.GetEquipped(EquipmentSlotId.OffHand);
+        if (offHandInstance == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+
+        ItemInstance clearedMainHand = equipment.ClearSlot(EquipmentSlotId.MainHand);
+        if (!ReferenceEquals(clearedMainHand, mainHandInstance))
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+
+        ItemInstance clearedOffHand = equipment.ClearSlot(EquipmentSlotId.OffHand);
+        if (!ReferenceEquals(clearedOffHand, offHandInstance))
+        {
+            RestoreMainHandAfterFailedNormalization(mainHandInstance);
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+        }
+
+        if (!equipment.TrySetSlot(EquipmentSlotId.MainHand, offHandInstance))
+        {
+            bool restored = RestoreDualWieldState(mainHandInstance, offHandInstance);
+            return restored
+                ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotSetEquipmentSlot, EquipmentSlotId.MainHand, mainHandInstance)
+                : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+        }
+
+        AddItemResult addResult = inventory.TryAddInstance(mainHandInstance);
+        if (addResult.FullyAdded)
+            return EquipmentOperationResult.Succeeded(EquipmentSlotId.MainHand, null, new[] { mainHandInstance });
+
+        bool rolledBack = RollbackMainHandNormalization(mainHandInstance, offHandInstance);
+        return rolledBack
+            ? EquipmentOperationResult.Failed(EquipmentOperationError.CannotReturnReplacedItem, EquipmentSlotId.MainHand, mainHandInstance)
+            : EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, EquipmentSlotId.MainHand, mainHandInstance);
+    }
+
+    private bool RollbackMainHandNormalization(ItemInstance mainHandInstance, ItemInstance offHandInstance)
+    {
+        ItemInstance clearedMainHand = equipment.ClearSlot(EquipmentSlotId.MainHand);
+        if (!ReferenceEquals(clearedMainHand, offHandInstance))
+            return false;
+
+        return RestoreDualWieldState(mainHandInstance, offHandInstance);
+    }
+
+    private bool RestoreDualWieldState(ItemInstance mainHandInstance, ItemInstance offHandInstance)
+    {
+        return equipment.TrySetSlot(EquipmentSlotId.MainHand, mainHandInstance) &&
+               equipment.TrySetSlot(EquipmentSlotId.OffHand, offHandInstance);
+    }
+
+    private bool RestoreMainHandAfterFailedNormalization(ItemInstance mainHandInstance)
+    {
+        return equipment.GetEquipped(EquipmentSlotId.MainHand) != null ||
+               equipment.TrySetSlot(EquipmentSlotId.MainHand, mainHandInstance);
     }
 
     private EquipmentOperationResult ValidateEquipSource(

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Titanhold.UI.Equipment
 {
-    public sealed class CharacterEquipmentSlotView : MonoBehaviour, IPointerClickHandler
+    public sealed class CharacterEquipmentSlotView : MonoBehaviour, IPointerClickHandler, IDropHandler
     {
         [SerializeField] private global::EquipmentSlotId slotId;
         [SerializeField] private Image iconImage;
@@ -17,6 +17,7 @@ namespace Titanhold.UI.Equipment
         private global::ItemInstance currentItem;
 
         public event Action<global::EquipmentSlotId> RightClicked;
+        public event Action<global::EquipmentSlotId> Dropped;
 
         public global::EquipmentSlotId SlotId => slotId;
 
@@ -57,6 +58,11 @@ namespace Titanhold.UI.Equipment
                 return;
 
             RightClicked?.Invoke(slotId);
+        }
+
+        public void OnDrop(PointerEventData eventData)
+        {
+            Dropped?.Invoke(slotId);
         }
 
         public void Clear()

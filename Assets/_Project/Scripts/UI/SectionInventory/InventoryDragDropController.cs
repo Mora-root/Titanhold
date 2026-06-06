@@ -6,12 +6,14 @@ namespace Titanhold.UI.SectionInventory
     {
         [SerializeField] private PlayerInventoryWindow inventoryWindow;
         [SerializeField] private global::PlayerInventory playerInventory;
+        [SerializeField] private InventoryDragContext dragContext;
 
         private bool hasSource;
         private global::ItemCategory sourceCategory;
         private int sourceIndex = -1;
         private bool loggedMissingWindow;
         private bool loggedMissingInventory;
+        private bool loggedMissingDragContext;
 
         private void OnEnable()
         {
@@ -44,6 +46,11 @@ namespace Titanhold.UI.SectionInventory
             hasSource = true;
             sourceCategory = category;
             sourceIndex = slotIndex;
+
+            if (dragContext != null)
+                dragContext.Begin(category, slotIndex);
+            else
+                LogMissingDragContext();
         }
 
         private void HandleSlotDropped(global::ItemCategory targetCategory, int targetIndex)
@@ -81,6 +88,9 @@ namespace Titanhold.UI.SectionInventory
             hasSource = false;
             sourceCategory = default;
             sourceIndex = -1;
+
+            if (dragContext != null)
+                dragContext.Clear();
         }
 
         private void LogMissingWindow()
@@ -99,6 +109,15 @@ namespace Titanhold.UI.SectionInventory
 
             Debug.LogWarning($"{nameof(InventoryDragDropController)} requires a PlayerInventory reference.", this);
             loggedMissingInventory = true;
+        }
+
+        private void LogMissingDragContext()
+        {
+            if (loggedMissingDragContext)
+                return;
+
+            Debug.LogWarning($"{nameof(InventoryDragDropController)} requires an InventoryDragContext reference for inventory-to-equipment drag.", this);
+            loggedMissingDragContext = true;
         }
     }
 }

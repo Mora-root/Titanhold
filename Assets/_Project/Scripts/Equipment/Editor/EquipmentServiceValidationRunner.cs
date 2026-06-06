@@ -117,6 +117,10 @@ public static class EquipmentServiceValidationRunner
             ValidatePreferredOffHandRejectsEmptyMainHand(gameObjects, oneHandSword);
             ValidateRingReplacement(gameObjects, ring);
             ValidateUnequipPreservesIdentity(gameObjects, artifact);
+            ValidateUnequipMainHandNormalizesDualWield(gameObjects, oneHandSword);
+            ValidateUnequipMainHandKeepsShield(gameObjects, oneHandSword, shield);
+            ValidateFullInventoryPreventsDualWieldMainHandUnequip(gameObjects, oneHandSword, shield);
+            ValidateUnequipOffHandWeaponKeepsMainHand(gameObjects, oneHandSword);
             ValidateFullInventoryPreventsUnequip(gameObjects, oneHandSword, shield);
             ValidateRejectedItems(gameObjects, stackableEquipment, nonEquippable, miscWeaponLike);
 
@@ -384,6 +388,94 @@ public static class EquipmentServiceValidationRunner
         Assert(result.Success, "Artifact unequip failed.");
         Assert(equipment.GetEquipped(EquipmentSlotId.Artifact) == null, "Artifact slot should be empty after unequip.");
         Assert(ContainsInstance(inventory, artifactId), "Unequipped artifact should return to inventory with same id.");
+    }
+
+    private static void ValidateUnequipMainHandNormalizesDualWield(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        string swordAId = swordA.InstanceId;
+        string swordBId = swordB.InstanceId;
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand);
+
+        Assert(result.Success, "MainHand unequip should normalize dual-wield state.");
+        Assert(ContainsInstance(inventory, swordAId), "Unequipped MainHand sword should return to inventory.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordB), "OffHand sword should move to MainHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand).InstanceId == swordBId, "Moved OffHand sword instance id changed.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should be empty after MainHand normalization.");
+        Assert(!ContainsInstance(inventory, swordBId), "Moved OffHand sword should not return to inventory.");
+    }
+
+    private static void ValidateUnequipMainHandKeepsShield(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance sword = new ItemInstance(oneHandSword);
+        ItemInstance shieldInstance = new ItemInstance(shield);
+        string swordId = sword.InstanceId;
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, sword), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, shieldInstance), "Could not prepare OffHand shield.");
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand);
+
+        Assert(result.Success, "MainHand sword unequip with shield failed.");
+        Assert(ContainsInstance(inventory, swordId), "Unequipped sword should return to inventory.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand) == null, "MainHand should be empty after sword unequip.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), shieldInstance), "Shield should remain in OffHand.");
+    }
+
+    private static void ValidateFullInventoryPreventsDualWieldMainHandUnequip(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword,
+        ItemDefinition shield)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 1);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = new ItemInstance(oneHandSword);
+        ItemInstance swordB = new ItemInstance(oneHandSword);
+        ItemInstance inventoryShield = new ItemInstance(shield);
+
+        Assert(equipment.TrySetSlot(EquipmentSlotId.MainHand, swordA), "Could not prepare MainHand sword.");
+        Assert(equipment.TrySetSlot(EquipmentSlotId.OffHand, swordB), "Could not prepare OffHand sword.");
+        Assert(inventory.TryAddInstance(inventoryShield).FullyAdded, "Could not fill inventory.");
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.MainHand);
+
+        Assert(!result.Success, "Full inventory should prevent normalized MainHand unequip.");
+        Assert(result.Error == EquipmentOperationError.InventoryFull, "Full inventory normalized unequip should return InventoryFull.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordA), "MainHand sword should remain after failed normalized unequip.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordB), "OffHand sword should remain after failed normalized unequip.");
+    }
+
+    private static void ValidateUnequipOffHandWeaponKeepsMainHand(
+        List<GameObject> gameObjects,
+        ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 4);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        string swordBId = swordB.InstanceId;
+
+        EquipmentOperationResult result = service.TryUnequipToInventory(EquipmentSlotId.OffHand);
+
+        Assert(result.Success, "OffHand sword unequip failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordA), "MainHand sword should remain after OffHand unequip.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand) == null, "OffHand should be empty after OffHand unequip.");
+        Assert(ContainsInstance(inventory, swordBId), "Unequipped OffHand sword should return to inventory.");
     }
 
     private static void ValidateFullInventoryPreventsUnequip(
