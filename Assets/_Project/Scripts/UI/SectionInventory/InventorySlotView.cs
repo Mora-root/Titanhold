@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using Titanhold.UI.Common;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,7 +19,7 @@ namespace Titanhold.UI.SectionInventory
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text amountText;
         [SerializeField] private TMP_Text fallbackNameText;
-        [SerializeField] private LootItemTooltip tooltip;
+        [SerializeField] private ItemTooltipController tooltipController;
 
         private RectTransform rectTransform;
         private global::ItemSlot currentSlot;
@@ -26,6 +27,7 @@ namespace Titanhold.UI.SectionInventory
         private global::ItemCategory currentCategory;
         private int currentSlotIndex = -1;
         private bool dragHidden;
+        private bool isPointerInside;
 
         public event Action<global::ItemCategory, int> RightClicked;
         public event Action<global::ItemCategory, int> DragStarted;
@@ -36,7 +38,8 @@ namespace Titanhold.UI.SectionInventory
         private void Awake()
         {
             rectTransform = transform as RectTransform;
-            tooltip ??= FindAnyObjectByType<LootItemTooltip>(FindObjectsInactive.Include);
+            tooltipController ??= GetComponentInParent<ItemTooltipController>(true);
+            tooltipController ??= FindAnyObjectByType<ItemTooltipController>(FindObjectsInactive.Include);
         }
 
         public void SetSlot(global::ItemSlot slot)
@@ -62,25 +65,30 @@ namespace Titanhold.UI.SectionInventory
             currentDefinition = stack.Definition;
 
             RefreshDisplay();
+            RefreshTooltipIfHovered();
         }
 
         public void SetDragHidden(bool hidden)
         {
             dragHidden = hidden;
             RefreshDisplay();
+
+            if (hidden)
+                HideTooltip();
+            else
+                RefreshTooltipIfHovered();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (currentSlot == null || currentSlot.IsEmpty || currentDefinition == null)
-                return;
-
-            tooltip?.ShowLeftOf(currentDefinition, rectTransform);
+            isPointerInside = true;
+            ShowTooltip();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            tooltip?.Hide();
+            isPointerInside = false;
+            HideTooltip();
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -102,7 +110,7 @@ namespace Titanhold.UI.SectionInventory
             if (currentSlot == null || currentSlot.IsEmpty || currentSlotIndex < 0)
                 return;
 
-            tooltip?.Hide();
+            HideTooltip();
             DragStarted?.Invoke(currentCategory, currentSlotIndex);
             DragStartedWithView?.Invoke(this, currentCategory, currentSlotIndex);
         }
@@ -126,7 +134,8 @@ namespace Titanhold.UI.SectionInventory
 
         private void OnDisable()
         {
-            tooltip?.Hide();
+            isPointerInside = false;
+            HideTooltip();
         }
 
         private void Clear()
@@ -134,6 +143,7 @@ namespace Titanhold.UI.SectionInventory
             currentDefinition = null;
             dragHidden = false;
             RefreshDisplay();
+            HideTooltip();
         }
 
         private void RefreshDisplay()
@@ -173,6 +183,37 @@ namespace Titanhold.UI.SectionInventory
 
             if (fallbackNameText != null)
                 fallbackNameText.text = string.Empty;
+        }
+
+        private void RefreshTooltipIfHovered()
+        {
+            if (!isPointerInside)
+                return;
+
+            ShowTooltip();
+        }
+
+        private void ShowTooltip()
+        {
+            if (dragHidden || currentSlot == null || currentSlot.IsEmpty || currentSlot.Stack == null || currentDefinition == null)
+            {
+                HideTooltip();
+                return;
+            }
+
+            ItemTooltipData data = ItemTooltipBuilder.Build(currentSlot.Stack);
+            if (data == null)
+            {
+                HideTooltip();
+                return;
+            }
+
+            tooltipController?.Show(data, rectTransform);
+        }
+
+        private void HideTooltip()
+        {
+            tooltipController?.Hide();
         }
     }
 }
