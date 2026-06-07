@@ -1,4 +1,5 @@
 using UnityEngine;
+using Titanhold.UI.Common;
 using Titanhold.UI.SectionInventory;
 
 namespace Titanhold.UI.Equipment
@@ -8,10 +9,12 @@ namespace Titanhold.UI.Equipment
         [SerializeField] private CharacterEquipmentPanel equipmentPanel;
         [SerializeField] private global::PlayerEquipmentRuntime equipmentRuntime;
         [SerializeField] private ItemDragContext dragContext;
+        [SerializeField] private ItemDragVisual dragVisual;
 
         private bool loggedMissingPanel;
         private bool loggedMissingEquipmentRuntime;
         private bool loggedMissingDragContext;
+        private CharacterEquipmentSlotView hiddenSourceSlotView;
 
         private void OnEnable()
         {
@@ -19,7 +22,7 @@ namespace Titanhold.UI.Equipment
             {
                 equipmentPanel.SlotRightClicked += HandleSlotRightClicked;
                 equipmentPanel.SlotDropped += HandleSlotDropped;
-                equipmentPanel.SlotDragStarted += HandleSlotDragStarted;
+                equipmentPanel.SlotDragStartedWithView += HandleSlotDragStarted;
                 equipmentPanel.SlotDragEnded += HandleSlotDragEnded;
             }
             else
@@ -34,9 +37,11 @@ namespace Titanhold.UI.Equipment
             {
                 equipmentPanel.SlotRightClicked -= HandleSlotRightClicked;
                 equipmentPanel.SlotDropped -= HandleSlotDropped;
-                equipmentPanel.SlotDragStarted -= HandleSlotDragStarted;
+                equipmentPanel.SlotDragStartedWithView -= HandleSlotDragStarted;
                 equipmentPanel.SlotDragEnded -= HandleSlotDragEnded;
             }
+
+            RestoreHiddenSourceSlot();
         }
 
         private void HandleSlotRightClicked(global::EquipmentSlotId slotId)
@@ -65,15 +70,23 @@ namespace Titanhold.UI.Equipment
             if (dragContext == null)
             {
                 LogMissingDragContext();
+                RestoreHiddenSourceSlot();
+                HideDragVisual();
                 return;
             }
 
             if (!dragContext.HasSource)
+            {
+                RestoreHiddenSourceSlot();
+                HideDragVisual();
                 return;
+            }
 
             if (dragContext.SourceKind != ItemDragSourceKind.InventorySlot)
             {
                 dragContext.Clear();
+                RestoreHiddenSourceSlot();
+                HideDragVisual();
                 return;
             }
 
@@ -81,6 +94,8 @@ namespace Titanhold.UI.Equipment
             {
                 LogMissingEquipmentRuntime();
                 dragContext.Clear();
+                RestoreHiddenSourceSlot();
+                HideDragVisual();
                 return;
             }
 
@@ -89,6 +104,8 @@ namespace Titanhold.UI.Equipment
             {
                 LogMissingEquipmentRuntime();
                 dragContext.Clear();
+                RestoreHiddenSourceSlot();
+                HideDragVisual();
                 return;
             }
 
@@ -102,20 +119,57 @@ namespace Titanhold.UI.Equipment
                 this);
 
             dragContext.Clear();
+            RestoreHiddenSourceSlot();
+            HideDragVisual();
         }
 
-        private void HandleSlotDragStarted(global::EquipmentSlotId slotId)
+        private void HandleSlotDragStarted(CharacterEquipmentSlotView slotView, global::EquipmentSlotId slotId)
         {
+            hiddenSourceSlotView = slotView;
+            hiddenSourceSlotView?.SetDragHidden(true);
+
             if (dragContext != null)
                 dragContext.BeginEquipment(slotId);
             else
                 LogMissingDragContext();
+
+            ShowEquipmentDragVisual(slotId);
         }
 
         private void HandleSlotDragEnded()
         {
             if (dragContext != null)
                 dragContext.Clear();
+
+            RestoreHiddenSourceSlot();
+            HideDragVisual();
+        }
+
+        private void ShowEquipmentDragVisual(global::EquipmentSlotId slotId)
+        {
+            if (dragVisual == null || equipmentRuntime == null || equipmentRuntime.Equipment == null)
+                return;
+
+            global::ItemInstance item = equipmentRuntime.Equipment.GetEquipped(slotId);
+            global::ItemDefinition definition = item?.Definition;
+            if (definition == null)
+                return;
+
+            dragVisual.Show(definition.Icon, 1);
+        }
+
+        private void HideDragVisual()
+        {
+            if (dragVisual != null)
+                dragVisual.Hide();
+        }
+
+        private void RestoreHiddenSourceSlot()
+        {
+            if (hiddenSourceSlotView != null)
+                hiddenSourceSlotView.SetDragHidden(false);
+
+            hiddenSourceSlotView = null;
         }
 
         private void LogMissingPanel()

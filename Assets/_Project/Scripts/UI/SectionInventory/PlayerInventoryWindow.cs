@@ -17,6 +17,7 @@ namespace Titanhold.UI.SectionInventory
 
         public event Action<global::ItemCategory, int> SlotRightClicked;
         public event Action<global::ItemCategory, int> SlotDragStarted;
+        public event Action<InventorySlotView, global::ItemCategory, int> SlotDragStartedWithView;
         public event Action<global::ItemCategory, int> SlotDropped;
         public event Action SlotDragEnded;
 
@@ -42,6 +43,7 @@ namespace Titanhold.UI.SectionInventory
             {
                 gridView.SlotRightClicked += HandleSlotRightClicked;
                 gridView.SlotDragStarted += HandleSlotDragStarted;
+                gridView.SlotDragStartedWithView += HandleSlotDragStartedWithView;
                 gridView.SlotDropped += HandleSlotDropped;
                 gridView.SlotDragEnded += HandleSlotDragEnded;
             }
@@ -66,6 +68,7 @@ namespace Titanhold.UI.SectionInventory
             {
                 gridView.SlotRightClicked -= HandleSlotRightClicked;
                 gridView.SlotDragStarted -= HandleSlotDragStarted;
+                gridView.SlotDragStartedWithView -= HandleSlotDragStartedWithView;
                 gridView.SlotDropped -= HandleSlotDropped;
                 gridView.SlotDragEnded -= HandleSlotDragEnded;
             }
@@ -155,6 +158,11 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotDragStarted(global::ItemCategory category, int slotIndex)
         {
             SlotDragStarted?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragStartedWithView(InventorySlotView slotView, global::ItemCategory category, int slotIndex)
+        {
+            SlotDragStartedWithView?.Invoke(slotView, category, slotIndex);
         }
 
         private void HandleSlotDropped(global::ItemCategory category, int slotIndex)

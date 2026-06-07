@@ -15,7 +15,7 @@ MonoBehaviour:
   id: twohand_axe_test
   displayName: TwoHand Axe Test
   shortName: TwoHand Axe
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: d86cd3739179afe4c87f0bd889e82c65, type: 3}
   description: Testing
   category: 0
   maxStack: 1

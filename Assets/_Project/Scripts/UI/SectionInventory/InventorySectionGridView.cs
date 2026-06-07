@@ -14,6 +14,7 @@ namespace Titanhold.UI.SectionInventory
 
         public event Action<global::ItemCategory, int> SlotRightClicked;
         public event Action<global::ItemCategory, int> SlotDragStarted;
+        public event Action<InventorySlotView, global::ItemCategory, int> SlotDragStartedWithView;
         public event Action<global::ItemCategory, int> SlotDropped;
         public event Action SlotDragEnded;
 
@@ -86,6 +87,7 @@ namespace Titanhold.UI.SectionInventory
                 InventorySlotView view = Instantiate(slotPrefab, contentRoot);
                 view.RightClicked += HandleSlotRightClicked;
                 view.DragStarted += HandleSlotDragStarted;
+                view.DragStartedWithView += HandleSlotDragStartedWithView;
                 view.Dropped += HandleSlotDropped;
                 view.DragEnded += HandleSlotDragEnded;
                 slotViews.Add(view);
@@ -100,6 +102,11 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotDragStarted(global::ItemCategory category, int slotIndex)
         {
             SlotDragStarted?.Invoke(category, slotIndex);
+        }
+
+        private void HandleSlotDragStartedWithView(InventorySlotView slotView, global::ItemCategory category, int slotIndex)
+        {
+            SlotDragStartedWithView?.Invoke(slotView, category, slotIndex);
         }
 
         private void HandleSlotDropped(global::ItemCategory category, int slotIndex)

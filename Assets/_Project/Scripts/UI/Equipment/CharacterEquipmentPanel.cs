@@ -14,6 +14,7 @@ namespace Titanhold.UI.Equipment
         public event Action<global::EquipmentSlotId> SlotRightClicked;
         public event Action<global::EquipmentSlotId> SlotDropped;
         public event Action<global::EquipmentSlotId> SlotDragStarted;
+        public event Action<CharacterEquipmentSlotView, global::EquipmentSlotId> SlotDragStartedWithView;
         public event Action SlotDragEnded;
 
         private void OnEnable()
@@ -119,6 +120,7 @@ namespace Titanhold.UI.Equipment
                     slotView.RightClicked += HandleSlotRightClicked;
                     slotView.Dropped += HandleSlotDropped;
                     slotView.DragStarted += HandleSlotDragStarted;
+                    slotView.DragStartedWithView += HandleSlotDragStartedWithView;
                     slotView.DragEnded += HandleSlotDragEnded;
                 }
             }
@@ -136,6 +138,7 @@ namespace Titanhold.UI.Equipment
                     slotView.RightClicked -= HandleSlotRightClicked;
                     slotView.Dropped -= HandleSlotDropped;
                     slotView.DragStarted -= HandleSlotDragStarted;
+                    slotView.DragStartedWithView -= HandleSlotDragStartedWithView;
                     slotView.DragEnded -= HandleSlotDragEnded;
                 }
             }
@@ -154,6 +157,11 @@ namespace Titanhold.UI.Equipment
         private void HandleSlotDragStarted(global::EquipmentSlotId slotId)
         {
             SlotDragStarted?.Invoke(slotId);
+        }
+
+        private void HandleSlotDragStartedWithView(CharacterEquipmentSlotView slotView, global::EquipmentSlotId slotId)
+        {
+            SlotDragStartedWithView?.Invoke(slotView, slotId);
         }
 
         private void HandleSlotDragEnded()

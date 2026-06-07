@@ -25,9 +25,11 @@ namespace Titanhold.UI.SectionInventory
         private global::ItemDefinition currentDefinition;
         private global::ItemCategory currentCategory;
         private int currentSlotIndex = -1;
+        private bool dragHidden;
 
         public event Action<global::ItemCategory, int> RightClicked;
         public event Action<global::ItemCategory, int> DragStarted;
+        public event Action<InventorySlotView, global::ItemCategory, int> DragStartedWithView;
         public event Action<global::ItemCategory, int> Dropped;
         public event Action DragEnded;
 
@@ -44,32 +46,28 @@ namespace Titanhold.UI.SectionInventory
 
         public void SetSlot(global::ItemSlot slot, global::ItemCategory category, int slotIndex)
         {
+            dragHidden = false;
             currentSlot = slot;
             currentCategory = category;
             currentSlotIndex = slotIndex;
 
             if (slot == null || slot.IsEmpty || slot.Stack == null || slot.Stack.Definition == null)
             {
-                Clear();
+                currentDefinition = null;
+                RefreshDisplay();
                 return;
             }
 
             global::ItemStack stack = slot.Stack;
             currentDefinition = stack.Definition;
 
-            Sprite icon = currentDefinition.Icon;
+            RefreshDisplay();
+        }
 
-            if (iconImage != null)
-            {
-                iconImage.sprite = icon;
-                iconImage.enabled = icon != null;
-            }
-
-            if (fallbackNameText != null)
-                fallbackNameText.text = icon == null ? currentDefinition.ShortName : string.Empty;
-
-            if (amountText != null)
-                amountText.text = stack.Amount > 1 ? stack.Amount.ToString() : string.Empty;
+        public void SetDragHidden(bool hidden)
+        {
+            dragHidden = hidden;
+            RefreshDisplay();
         }
 
         public void OnPointerEnter(PointerEventData eventData)
@@ -106,6 +104,7 @@ namespace Titanhold.UI.SectionInventory
 
             tooltip?.Hide();
             DragStarted?.Invoke(currentCategory, currentSlotIndex);
+            DragStartedWithView?.Invoke(this, currentCategory, currentSlotIndex);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -133,7 +132,36 @@ namespace Titanhold.UI.SectionInventory
         private void Clear()
         {
             currentDefinition = null;
+            dragHidden = false;
+            RefreshDisplay();
+        }
 
+        private void RefreshDisplay()
+        {
+            if (dragHidden || currentSlot == null || currentSlot.IsEmpty || currentSlot.Stack == null || currentDefinition == null)
+            {
+                HideItemVisuals();
+                return;
+            }
+
+            global::ItemStack stack = currentSlot.Stack;
+            Sprite icon = currentDefinition.Icon;
+
+            if (iconImage != null)
+            {
+                iconImage.sprite = icon;
+                iconImage.enabled = icon != null;
+            }
+
+            if (fallbackNameText != null)
+                fallbackNameText.text = icon == null ? currentDefinition.ShortName : string.Empty;
+
+            if (amountText != null)
+                amountText.text = stack.Amount > 1 ? stack.Amount.ToString() : string.Empty;
+        }
+
+        private void HideItemVisuals()
+        {
             if (iconImage != null)
             {
                 iconImage.sprite = null;

@@ -20,16 +20,20 @@ namespace Titanhold.UI.Equipment
         [SerializeField] private GameObject filledState;
 
         private global::ItemInstance currentItem;
+        private bool dragHidden;
 
         public event Action<global::EquipmentSlotId> RightClicked;
         public event Action<global::EquipmentSlotId> Dropped;
         public event Action<global::EquipmentSlotId> DragStarted;
+        public event Action<CharacterEquipmentSlotView, global::EquipmentSlotId> DragStartedWithView;
         public event Action DragEnded;
 
         public global::EquipmentSlotId SlotId => slotId;
 
         public void SetItem(global::ItemInstance item)
         {
+            dragHidden = false;
+
             if (item == null || item.Definition == null)
             {
                 Clear();
@@ -37,23 +41,13 @@ namespace Titanhold.UI.Equipment
             }
 
             currentItem = item;
-            global::ItemDefinition definition = item.Definition;
-            Sprite icon = definition.Icon;
+            RefreshDisplay();
+        }
 
-            if (iconImage != null)
-            {
-                iconImage.sprite = icon;
-                iconImage.enabled = icon != null;
-            }
-
-            if (nameText != null)
-                nameText.text = definition.DisplayName;
-
-            if (emptyState != null)
-                emptyState.SetActive(false);
-
-            if (filledState != null)
-                filledState.SetActive(true);
+        public void SetDragHidden(bool hidden)
+        {
+            dragHidden = hidden;
+            RefreshDisplay();
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -81,6 +75,7 @@ namespace Titanhold.UI.Equipment
                 return;
 
             DragStarted?.Invoke(slotId);
+            DragStartedWithView?.Invoke(this, slotId);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -95,7 +90,39 @@ namespace Titanhold.UI.Equipment
         public void Clear()
         {
             currentItem = null;
+            dragHidden = false;
+            RefreshDisplay();
+        }
 
+        private void RefreshDisplay()
+        {
+            if (dragHidden || currentItem == null || currentItem.Definition == null)
+            {
+                HideItemVisuals();
+                return;
+            }
+
+            global::ItemDefinition definition = currentItem.Definition;
+            Sprite icon = definition.Icon;
+
+            if (iconImage != null)
+            {
+                iconImage.sprite = icon;
+                iconImage.enabled = icon != null;
+            }
+
+            if (nameText != null)
+                nameText.text = definition.DisplayName;
+
+            if (emptyState != null)
+                emptyState.SetActive(false);
+
+            if (filledState != null)
+                filledState.SetActive(true);
+        }
+
+        private void HideItemVisuals()
+        {
             if (iconImage != null)
             {
                 iconImage.sprite = null;
