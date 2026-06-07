@@ -2,18 +2,19 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Titanhold.UI.SectionInventory
+namespace Titanhold.UI.Equipment
 {
-    public sealed class InventoryWindowController : MonoBehaviour
+    public sealed class CharacterWindowController : MonoBehaviour
     {
-        [SerializeField] private PlayerInventoryWindow inventoryWindow;
-        [SerializeField] private GameObject inventoryWindowRoot;
+        [SerializeField] private CharacterEquipmentPanel characterPanel;
+        [SerializeField] private GameObject characterWindowRoot;
         [SerializeField] private Button closeButton;
         [SerializeField] private bool startOpen;
-        [SerializeField] private KeyCode toggleKey = KeyCode.I;
+        [SerializeField] private KeyCode toggleKey = KeyCode.C;
         [SerializeField] private bool closeOnEscape = true;
 
         private bool loggedMissingWindowRoot;
+        private bool loggedSelfRoot;
 
         public event Action Opened;
         public event Action Closed;
@@ -77,6 +78,12 @@ namespace Titanhold.UI.SectionInventory
                 return;
             }
 
+            if (!open && root == gameObject)
+            {
+                LogSelfRoot();
+                return;
+            }
+
             bool wasOpen = root.activeSelf;
             if (wasOpen == open)
                 return;
@@ -84,7 +91,7 @@ namespace Titanhold.UI.SectionInventory
             root.SetActive(open);
 
             if (open)
-                inventoryWindow?.Refresh();
+                characterPanel?.RefreshAll();
 
             if (!invokeEvents)
                 return;
@@ -97,10 +104,10 @@ namespace Titanhold.UI.SectionInventory
 
         private GameObject ResolveWindowRoot()
         {
-            if (inventoryWindow != null)
-                return inventoryWindow.gameObject;
+            if (characterPanel != null)
+                return characterPanel.gameObject;
 
-            return inventoryWindowRoot;
+            return characterWindowRoot;
         }
 
         private void LogMissingWindowRoot()
@@ -108,8 +115,17 @@ namespace Titanhold.UI.SectionInventory
             if (loggedMissingWindowRoot)
                 return;
 
-            Debug.LogWarning($"{nameof(InventoryWindowController)} requires a PlayerInventoryWindow or InventoryWindowRoot reference.", this);
+            Debug.LogWarning($"{nameof(CharacterWindowController)} requires a CharacterEquipmentPanel or CharacterWindowRoot reference.", this);
             loggedMissingWindowRoot = true;
+        }
+
+        private void LogSelfRoot()
+        {
+            if (loggedSelfRoot)
+                return;
+
+            Debug.LogWarning($"{nameof(CharacterWindowController)} cannot close its own GameObject. Put it on an always-active UI root and assign the character window root separately.", this);
+            loggedSelfRoot = true;
         }
     }
 }
