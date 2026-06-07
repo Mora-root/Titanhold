@@ -29,7 +29,7 @@ MonoBehaviour:
   activityModifiers: []
   trophySubtype: 0
   craftingSubtype: 1
-  sellValue: 0
+  sellValue: 100
   canBeSold: 1
   sellWarningType: 0
   canBeDismantled: 0
