@@ -19294,6 +19294,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1812085317}
   m_CullTransparentMesh: 1
+--- !u!1 &1827218351 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3545962699806358724, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+  m_PrefabInstance: {fileID: 7093884366962421163}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1827218356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1827218351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d2e19e280ed19c4d9139fba6293e7b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Common.GoldAmountView
+  playerGold: {fileID: 8744477821165718895}
+  amountText: {fileID: 2140727270}
+  prefix: 'Gold: '
 --- !u!1 &1837563461
 GameObject:
   m_ObjectHideFlags: 0
@@ -21842,7 +21862,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2109158007
 RectTransform:
   m_ObjectHideFlags: 0
@@ -22351,6 +22371,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2135258068}
   m_CullTransparentMesh: 1
+--- !u!114 &2140727270 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3559611916252866760, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+  m_PrefabInstance: {fileID: 7093884366962421163}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!1001 &225097633904936934
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22683,6 +22714,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8124887405091218067, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8124887405091218067, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
       propertyPath: playerGold
       value: 
       objectReference: {fileID: 8744477821165718895}
@@ -22760,6 +22795,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 836788086139093752, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1658540097}
+    - targetCorrespondingSourceObject: {fileID: 3545962699806358724, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1827218356}
   m_SourcePrefab: {fileID: 100100000, guid: b77d54e66344f9d45b3335d8800726fc, type: 3}
 --- !u!4 &8744477821165718855 stripped
 Transform:
