@@ -443,6 +443,12 @@ GameObject:
   - component: {fileID: 3415626515812812996}
   - component: {fileID: 1468254328002215119}
   - component: {fileID: 2427943566845309731}
+  - component: {fileID: 4416811262357135067}
+  - component: {fileID: 8885803932154544260}
+  - component: {fileID: 517744829750717205}
+  - component: {fileID: 793951062184299724}
+  - component: {fileID: 3091728011547008757}
+  - component: {fileID: 4664281843377394472}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -551,7 +557,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HoverSystem
   hoverMask:
     serializedVersion: 2
-    m_Bits: 3136
+    m_Bits: 7232
 --- !u!114 &3672375579921866964
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -648,7 +654,7 @@ MonoBehaviour:
   cam: {fileID: 0}
   selectableMask:
     serializedVersion: 2
-    m_Bits: 3136
+    m_Bits: 7232
   maxDistance: 100
 --- !u!114 &3828318251305199153
 MonoBehaviour:
@@ -731,6 +737,95 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerSkillExecutor
   skill1: {fileID: 11400000, guid: bcf49342e547cd546833868e01b3d557, type: 2}
+--- !u!114 &4416811262357135067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8931b9096ed34e4eb2ab5f9ee60f2d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerGold
+  amount: 0
+--- !u!114 &8885803932154544260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c22b5398210f524aa37aef19786e3b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerExperience
+  currentLevel: 1
+  currentExperience: 0
+  baseExperienceToNextLevel: 100
+  experienceIncreasePerLevel: 50
+--- !u!114 &517744829750717205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e475f755ec46fda478193ac10cc5a72b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  equipmentCapacity: 24
+  consumableCapacity: 24
+  trophyCapacity: 24
+  craftingCapacity: 24
+  questCapacity: 24
+  miscCapacity: 24
+--- !u!114 &793951062184299724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94ba0711d93e4c241a5a10c8ffe19fc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipmentRuntime
+  playerInventory: {fileID: 517744829750717205}
+--- !u!114 &3091728011547008757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed9a42cb81af8774f88a0188c4ca053f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EquipmentStatsBinder
+  equipmentRuntime: {fileID: 793951062184299724}
+  characterStats: {fileID: 1468254328002215119}
+--- !u!114 &4664281843377394472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd6fd5c00024064428535445b64784aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryDebugAdder
+  playerInventory: {fileID: 517744829750717205}
+  itemToAdd: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+  amount: 1
 --- !u!1 &1324046130192809902
 GameObject:
   m_ObjectHideFlags: 0

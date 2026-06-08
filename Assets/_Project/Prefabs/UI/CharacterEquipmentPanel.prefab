@@ -269,6 +269,7 @@ MonoBehaviour:
   nameText: {fileID: 5435303363986455111}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &1853421325501135940
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,6 +365,7 @@ MonoBehaviour:
   nameText: {fileID: 7387204588211710825}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &2064426028889189776
 GameObject:
   m_ObjectHideFlags: 0
@@ -1079,6 +1081,7 @@ MonoBehaviour:
   nameText: {fileID: 2413153025918787994}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &3174332633274164292
 GameObject:
   m_ObjectHideFlags: 0
@@ -1098,7 +1101,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1388760602062569571
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2354,6 +2357,7 @@ MonoBehaviour:
   nameText: {fileID: 319902475242281830}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &5614419574204481786
 GameObject:
   m_ObjectHideFlags: 0
@@ -2449,6 +2453,7 @@ MonoBehaviour:
   nameText: {fileID: 313698735253384067}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &5623812614437263500
 GameObject:
   m_ObjectHideFlags: 0
@@ -2681,6 +2686,7 @@ MonoBehaviour:
   nameText: {fileID: 8155576916319913043}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &5781323079795846125
 GameObject:
   m_ObjectHideFlags: 0
@@ -2913,6 +2919,7 @@ MonoBehaviour:
   nameText: {fileID: 6853145847814544861}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &6218426529794478308
 GameObject:
   m_ObjectHideFlags: 0
@@ -3008,6 +3015,7 @@ MonoBehaviour:
   nameText: {fileID: 8834973988864827656}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &6431504003295300625
 GameObject:
   m_ObjectHideFlags: 0
@@ -3178,6 +3186,7 @@ MonoBehaviour:
   nameText: {fileID: 7746156784033492745}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &6948230833250305625
 GameObject:
   m_ObjectHideFlags: 0
@@ -3410,6 +3419,7 @@ MonoBehaviour:
   nameText: {fileID: 7267926156297194042}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &7290147924631780103
 GameObject:
   m_ObjectHideFlags: 0
@@ -3878,6 +3888,7 @@ MonoBehaviour:
   nameText: {fileID: 7207944857747763531}
   emptyState: {fileID: 0}
   filledState: {fileID: 0}
+  tooltipController: {fileID: 0}
 --- !u!1 &9196259941004784175
 GameObject:
   m_ObjectHideFlags: 0

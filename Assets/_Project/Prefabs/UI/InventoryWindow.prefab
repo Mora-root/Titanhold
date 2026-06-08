@@ -35,9 +35,9 @@ RectTransform:
   - {fileID: 1930609627236599486}
   m_Father: {fileID: 3444767030807510156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 340.9, y: -14}
   m_SizeDelta: {x: 73.8, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7659393102034462810
@@ -229,13 +229,15 @@ GameObject:
   - component: {fileID: 7789653301693950289}
   - component: {fileID: 3506963940242031003}
   - component: {fileID: 5034320268646606423}
+  - component: {fileID: 4961377783365564330}
+  - component: {fileID: 6151702342840833236}
   m_Layer: 5
   m_Name: InventoryWindow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4921526086616574065
 RectTransform:
   m_ObjectHideFlags: 0
@@ -319,6 +321,37 @@ MonoBehaviour:
   - {fileID: 2353050241191718571}
   showMiscTab: 0
   selectedCategory: 0
+--- !u!114 &4961377783365564330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836788086139093752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b8ce477dbc1006469cac4296f58137a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryEquipmentInteractionController
+  inventoryWindow: {fileID: 5034320268646606423}
+  equipmentRuntime: {fileID: 0}
+--- !u!114 &6151702342840833236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836788086139093752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e64e40b6092e70c40b10e5e31c087917, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragDropController
+  inventoryWindow: {fileID: 5034320268646606423}
+  playerInventory: {fileID: 0}
+  equipmentRuntime: {fileID: 0}
+  dragContext: {fileID: 0}
+  dragVisual: {fileID: 0}
 --- !u!1 &1246630226079549444
 GameObject:
   m_ObjectHideFlags: 0
@@ -354,9 +387,9 @@ RectTransform:
   - {fileID: 2060524192358652428}
   m_Father: {fileID: 3444767030807510156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 112.9, y: -14}
   m_SizeDelta: {x: 73.8, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3323509517494790947
@@ -534,8 +567,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4279297791
+  m_fontColor: {r: 1, g: 0.9019608, b: 0.0627451, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -558,7 +591,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -770,7 +803,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1028,7 +1061,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1078,7 +1111,7 @@ GameObject:
   - component: {fileID: 8981402115053319397}
   - component: {fileID: 4884464650426799641}
   - component: {fileID: 2887775135318060820}
-  - component: {fileID: 8124887405091218067}
+  - component: {fileID: 1940334207973027582}
   m_Layer: 5
   m_Name: GoldHUD
   m_TagString: Untagged
@@ -1144,7 +1177,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8124887405091218067
+--- !u!114 &1940334207973027582
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1153,11 +1186,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 3545962699806358724}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59fe73236c27bb243b958ad4ec81c1f9, type: 3}
+  m_Script: {fileID: 11500000, guid: 0d2e19e280ed19c4d9139fba6293e7b5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerGoldHUD
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Common.GoldAmountView
   playerGold: {fileID: 0}
-  goldText: {fileID: 3559611916252866760}
+  amountText: {fileID: 3559611916252866760}
+  prefix: 'Gold: '
 --- !u!1 &4119176093164796390
 GameObject:
   m_ObjectHideFlags: 0
@@ -1256,7 +1290,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1330,9 +1364,9 @@ RectTransform:
   - {fileID: 6981638867575927014}
   m_Father: {fileID: 3444767030807510156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 264.9, y: -14}
   m_SizeDelta: {x: 73.8, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2459779425922590611
@@ -1577,8 +1611,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4279297791
+  m_fontColor: {r: 1, g: 0.9019608, b: 0.0627451, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1601,7 +1635,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1774,7 +1808,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1848,9 +1882,9 @@ RectTransform:
   - {fileID: 8385998944106204416}
   m_Father: {fileID: 3444767030807510156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 36.9, y: -14}
   m_SizeDelta: {x: 73.8, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8046184699090402582
@@ -1989,9 +2023,9 @@ RectTransform:
   - {fileID: 5929238840085382926}
   m_Father: {fileID: 3444767030807510156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 188.9, y: -14}
   m_SizeDelta: {x: 73.8, y: 28}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2592973700873432027
@@ -2367,7 +2401,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
