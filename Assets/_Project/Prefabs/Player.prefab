@@ -448,7 +448,6 @@ GameObject:
   - component: {fileID: 517744829750717205}
   - component: {fileID: 793951062184299724}
   - component: {fileID: 3091728011547008757}
-  - component: {fileID: 4664281843377394472}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -811,21 +810,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentStatsBinder
   equipmentRuntime: {fileID: 793951062184299724}
   characterStats: {fileID: 1468254328002215119}
---- !u!114 &4664281843377394472
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1245050983247841845}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd6fd5c00024064428535445b64784aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryDebugAdder
-  playerInventory: {fileID: 517744829750717205}
-  itemToAdd: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
-  amount: 1
 --- !u!1 &1324046130192809902
 GameObject:
   m_ObjectHideFlags: 0

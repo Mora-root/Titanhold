@@ -19,14 +19,22 @@ public sealed class PlayerInventoryLootReward : MonoBehaviour, ILootReward, IAmo
 
     public bool Collect(GameObject picker)
     {
-        PlayerInventory inventory = playerInventory;
+        return TryCollect(ResolveInventory(picker));
+    }
 
-        if (inventory == null && picker != null)
-            inventory = picker.GetComponent<PlayerInventory>();
+    private PlayerInventory ResolveInventory(GameObject picker)
+    {
+        if (playerInventory != null)
+            return playerInventory;
 
-        inventory ??= FindAnyObjectByType<PlayerInventory>();
+        if (picker == null)
+            return null;
 
-        return TryCollect(inventory);
+        PlayerInventory inventory = picker.GetComponent<PlayerInventory>();
+        if (inventory != null)
+            return inventory;
+
+        return picker.GetComponentInParent<PlayerInventory>();
     }
 
     private bool TryCollect(PlayerInventory inventory)
