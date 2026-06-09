@@ -12451,6 +12451,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 256250069679702714, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      propertyPath: itemDragContext
+      value: 
+      objectReference: {fileID: 1359868940}
     - target: {fileID: 641616322222190009, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       propertyPath: cam
       value: 

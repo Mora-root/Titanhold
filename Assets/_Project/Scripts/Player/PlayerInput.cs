@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Titanhold.UI.SectionInventory;
 
 public class PlayerInput : MonoBehaviour
 {
     [SerializeField] private LayerMask groundMask;
+    [SerializeField] private ItemDragContext itemDragContext;
 
     public Vector3 TargetPosition { get; private set; }
     public bool HasPosition { get; private set; }
@@ -25,6 +27,13 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
+        if (itemDragContext != null && itemDragContext.IsDragging)
+        {
+            ClearFrameInput();
+            CurrentIntent = PlayerInputIntent.Empty;
+            return;
+        }
+
         LeftClicked = false;
         RightClicked = Input.GetMouseButtonDown(1);
         Skill1Pressed = Input.GetKeyDown(KeyCode.Alpha1);
@@ -90,6 +99,18 @@ public class PlayerInput : MonoBehaviour
     {
         HasPosition = false;
         RefreshCurrentIntent();
+    }
+
+    private void ClearFrameInput()
+    {
+        TargetPosition = default;
+        HasPosition = false;
+        LeftClicked = false;
+        RightClicked = false;
+        IsDragging = false;
+        IsHolding = false;
+        Skill1Pressed = false;
+        holdTimer = 0f;
     }
 
     private bool IsPointerOverUi()

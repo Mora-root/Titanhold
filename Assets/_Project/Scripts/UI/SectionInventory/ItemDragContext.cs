@@ -5,6 +5,7 @@ namespace Titanhold.UI.SectionInventory
     public sealed class ItemDragContext : MonoBehaviour
     {
         public bool HasSource => SourceKind != ItemDragSourceKind.None;
+        public bool IsDragging => SourceKind == ItemDragSourceKind.InventorySlot || SourceKind == ItemDragSourceKind.EquipmentSlot;
         public ItemDragSourceKind SourceKind { get; private set; } = ItemDragSourceKind.None;
         public global::ItemCategory SourceCategory { get; private set; }
         public int SourceIndex { get; private set; } = -1;
