@@ -4,6 +4,7 @@ namespace Titanhold.UI.SectionInventory
     {
         None,
         InventorySlot,
+        ContainerSlot,
         EquipmentSlot
     }
 }

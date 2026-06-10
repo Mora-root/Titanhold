@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class PlayerEquipmentRuntime : MonoBehaviour
+public sealed class PlayerEquipmentRuntime : MonoBehaviour, IEquipmentRuntimeOwner
 {
     [SerializeField] private PlayerInventory playerInventory;
 
@@ -27,6 +27,16 @@ public sealed class PlayerEquipmentRuntime : MonoBehaviour
 
     private void Awake()
     {
+        EnsureInitialized();
+    }
+
+    public void SetPlayerInventory(PlayerInventory inventory)
+    {
+        if (ReferenceEquals(playerInventory, inventory))
+            return;
+
+        playerInventory = inventory;
+        equipmentService = null;
         EnsureInitialized();
     }
 

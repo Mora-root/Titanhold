@@ -1,29 +1,33 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Titanhold.UI.Equipment
+namespace Titanhold.UI.Containers
 {
-    public sealed class CharacterWindowController : MonoBehaviour
+    public sealed class ChestWindowController : MonoBehaviour
     {
-        [SerializeField] private CharacterEquipmentPanel characterPanel;
-        [SerializeField] private GameObject characterWindowRoot;
+        [SerializeField] private ItemContainerWindow chestWindow;
+        [SerializeField] private GameObject chestWindowRoot;
         [SerializeField] private Button closeButton;
+        [SerializeField] private ItemInteractionContext interactionContext;
         [SerializeField] private bool startOpen;
-        [SerializeField] private KeyCode toggleKey = KeyCode.C;
         [SerializeField] private bool closeOnEscape = true;
 
-        private bool loggedMissingWindowRoot;
+        private global::ChestInventory activeChest;
+        private bool loggedMissingRoot;
         private bool loggedSelfRoot;
 
         public event Action Opened;
         public event Action Closed;
 
+        public global::ChestInventory ActiveChest => activeChest;
+
         public bool IsOpen
         {
             get
             {
-                GameObject root = ResolveWindowRoot();
+                GameObject root = ResolveRoot();
                 return root != null && root.activeSelf;
             }
         }
@@ -45,25 +49,32 @@ namespace Titanhold.UI.Equipment
                 closeButton.onClick.RemoveListener(Close);
         }
 
-        public void Configure(CharacterEquipmentPanel panel, GameObject root = null)
+        public void Configure(
+            ItemContainerWindow window,
+            ItemInteractionContext context,
+            GameObject root = null)
         {
-            characterPanel = panel;
+            chestWindow = window;
+            interactionContext = context;
 
             if (root != null)
-                characterWindowRoot = root;
+                chestWindowRoot = root;
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleKey))
-                Toggle();
-
             if (closeOnEscape && IsOpen && Input.GetKeyDown(KeyCode.Escape))
                 Close();
         }
 
-        public void Open()
+        public void Open(global::ChestInventory chest)
         {
+            if (chest == null)
+                return;
+
+            activeChest = chest;
+            chestWindow?.SetOwner((global::IItemContainerOwner)chest);
+            interactionContext?.SetContainerMode(ItemInteractionMode.Chest, chest);
             ApplyState(true, true);
         }
 
@@ -72,17 +83,12 @@ namespace Titanhold.UI.Equipment
             ApplyState(false, true);
         }
 
-        public void Toggle()
-        {
-            ApplyState(!IsOpen, true);
-        }
-
         private void ApplyState(bool open, bool invokeEvents)
         {
-            GameObject root = ResolveWindowRoot();
+            GameObject root = ResolveRoot();
             if (root == null)
             {
-                LogMissingWindowRoot();
+                LogMissingRoot();
                 return;
             }
 
@@ -99,7 +105,14 @@ namespace Titanhold.UI.Equipment
             root.SetActive(open);
 
             if (open)
-                characterPanel?.RefreshAll();
+            {
+                chestWindow?.Refresh();
+            }
+            else
+            {
+                interactionContext?.ClearIfContainer(activeChest);
+                activeChest = null;
+            }
 
             if (!invokeEvents)
                 return;
@@ -110,21 +123,21 @@ namespace Titanhold.UI.Equipment
                 Closed?.Invoke();
         }
 
-        private GameObject ResolveWindowRoot()
+        private GameObject ResolveRoot()
         {
-            if (characterPanel != null)
-                return characterPanel.gameObject;
+            if (chestWindow != null)
+                return chestWindow.gameObject;
 
-            return characterWindowRoot;
+            return chestWindowRoot;
         }
 
-        private void LogMissingWindowRoot()
+        private void LogMissingRoot()
         {
-            if (loggedMissingWindowRoot)
+            if (loggedMissingRoot)
                 return;
 
-            Debug.LogWarning($"{nameof(CharacterWindowController)} requires a CharacterEquipmentPanel or CharacterWindowRoot reference.", this);
-            loggedMissingWindowRoot = true;
+            Debug.LogWarning($"{nameof(ChestWindowController)} requires an ItemContainerWindow or ChestWindowRoot reference.", this);
+            loggedMissingRoot = true;
         }
 
         private void LogSelfRoot()
@@ -132,7 +145,7 @@ namespace Titanhold.UI.Equipment
             if (loggedSelfRoot)
                 return;
 
-            Debug.LogWarning($"{nameof(CharacterWindowController)} cannot close its own GameObject. Put it on an always-active UI root and assign the character window root separately.", this);
+            Debug.LogWarning($"{nameof(ChestWindowController)} cannot close its own GameObject. Put it on an always-active UI root.", this);
             loggedSelfRoot = true;
         }
     }

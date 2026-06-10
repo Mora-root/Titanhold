@@ -25,6 +25,11 @@ public class PlayerInput : MonoBehaviour
         cam = Camera.main;
     }
 
+    public void SetItemDragContext(ItemDragContext context)
+    {
+        itemDragContext = context;
+    }
+
     private void Update()
     {
         if (itemDragContext != null && itemDragContext.IsDragging)

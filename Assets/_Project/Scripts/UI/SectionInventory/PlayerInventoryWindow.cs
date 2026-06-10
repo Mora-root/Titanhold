@@ -1,9 +1,10 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 
 namespace Titanhold.UI.SectionInventory
 {
-    public sealed class PlayerInventoryWindow : MonoBehaviour
+    public sealed class PlayerInventoryWindow : MonoBehaviour, IItemSlotEventSource
     {
         [SerializeField] private global::PlayerInventory playerInventory;
         [SerializeField] private InventorySectionGridView gridView;
@@ -20,6 +21,10 @@ namespace Titanhold.UI.SectionInventory
         public event Action<InventorySlotView, global::ItemCategory, int> SlotDragStartedWithView;
         public event Action<global::ItemCategory, int> SlotDropped;
         public event Action SlotDragEnded;
+        public event Action<global::ItemSlotRef> ItemSlotRightClicked;
+        public event Action<IItemDragSourceView, global::ItemSlotRef, ItemDragVisualData> ItemSlotDragStarted;
+        public event Action<global::ItemSlotRef> ItemSlotDropped;
+        public event Action ItemSlotDragEnded;
 
         private void Awake()
         {
@@ -77,6 +82,32 @@ namespace Titanhold.UI.SectionInventory
         private void OnValidate()
         {
             NormalizeSelectedCategory();
+        }
+
+        public void SetPlayerInventory(global::PlayerInventory inventory)
+        {
+            if (ReferenceEquals(playerInventory, inventory))
+            {
+                Refresh();
+                return;
+            }
+
+            if (isActiveAndEnabled && playerInventory != null)
+            {
+                playerInventory.Changed -= HandleInventoryChanged;
+                playerInventory.SectionChanged -= HandleSectionChanged;
+            }
+
+            playerInventory = inventory;
+            loggedMissingInventory = false;
+
+            if (isActiveAndEnabled && playerInventory != null)
+            {
+                playerInventory.Changed += HandleInventoryChanged;
+                playerInventory.SectionChanged += HandleSectionChanged;
+            }
+
+            Refresh();
         }
 
         [ContextMenu("Refresh")]
@@ -153,6 +184,10 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotRightClicked(global::ItemCategory category, int slotIndex)
         {
             SlotRightClicked?.Invoke(category, slotIndex);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(category, slotIndex);
+            if (slotRef.IsValid)
+                ItemSlotRightClicked?.Invoke(slotRef);
         }
 
         private void HandleSlotDragStarted(global::ItemCategory category, int slotIndex)
@@ -163,16 +198,41 @@ namespace Titanhold.UI.SectionInventory
         private void HandleSlotDragStartedWithView(InventorySlotView slotView, global::ItemCategory category, int slotIndex)
         {
             SlotDragStartedWithView?.Invoke(slotView, category, slotIndex);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(category, slotIndex);
+            if (!slotRef.IsValid)
+                return;
+
+            global::ItemSlot slot = playerInventory.GetSlot(category, slotIndex);
+            global::ItemStack stack = slot?.Stack;
+            global::ItemDefinition definition = stack?.Definition;
+            if (definition == null)
+                return;
+
+            ItemSlotDragStarted?.Invoke(
+                slotView,
+                slotRef,
+                new ItemDragVisualData(definition.Icon, stack.Amount));
         }
 
         private void HandleSlotDropped(global::ItemCategory category, int slotIndex)
         {
             SlotDropped?.Invoke(category, slotIndex);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(category, slotIndex);
+            if (slotRef.IsValid)
+                ItemSlotDropped?.Invoke(slotRef);
         }
 
         private void HandleSlotDragEnded()
         {
             SlotDragEnded?.Invoke();
+            ItemSlotDragEnded?.Invoke();
+        }
+
+        private global::ItemSlotRef CreateSlotRef(global::ItemCategory category, int slotIndex)
+        {
+            return global::ItemSlotRef.ForContainer(playerInventory, category, slotIndex);
         }
 
         private void NormalizeSelectedCategory()

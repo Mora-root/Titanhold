@@ -227,10 +227,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4921526086616574065}
   - component: {fileID: 7789653301693950289}
-  - component: {fileID: 3506963940242031003}
   - component: {fileID: 5034320268646606423}
-  - component: {fileID: 4961377783365564330}
-  - component: {fileID: 6151702342840833236}
+  - component: {fileID: 3506963940242031003}
   m_Layer: 5
   m_Name: InventoryWindow
   m_TagString: Untagged
@@ -269,6 +267,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836788086139093752}
   m_CullTransparentMesh: 1
+--- !u!114 &5034320268646606423
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836788086139093752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd8c779bf7fedfa47a82e0368beeb796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.PlayerInventoryWindow
+  playerInventory: {fileID: 0}
+  gridView: {fileID: 5653417461763633185}
+  tabButtons:
+  - {fileID: 1471037958817390042}
+  - {fileID: 3781645907535828142}
+  - {fileID: 8482527043206175426}
+  - {fileID: 7026634581495249790}
+  - {fileID: 2353050241191718571}
+  showMiscTab: 0
+  selectedCategory: 0
 --- !u!114 &3506963940242031003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -299,59 +319,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5034320268646606423
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 836788086139093752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd8c779bf7fedfa47a82e0368beeb796, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.PlayerInventoryWindow
-  playerInventory: {fileID: 0}
-  gridView: {fileID: 5653417461763633185}
-  tabButtons:
-  - {fileID: 1471037958817390042}
-  - {fileID: 3781645907535828142}
-  - {fileID: 8482527043206175426}
-  - {fileID: 7026634581495249790}
-  - {fileID: 2353050241191718571}
-  showMiscTab: 0
-  selectedCategory: 0
---- !u!114 &4961377783365564330
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 836788086139093752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1b8ce477dbc1006469cac4296f58137a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryEquipmentInteractionController
-  inventoryWindow: {fileID: 5034320268646606423}
-  equipmentRuntime: {fileID: 0}
---- !u!114 &6151702342840833236
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 836788086139093752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e64e40b6092e70c40b10e5e31c087917, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.SectionInventory.InventoryDragDropController
-  inventoryWindow: {fileID: 5034320268646606423}
-  playerInventory: {fileID: 0}
-  equipmentRuntime: {fileID: 0}
-  dragContext: {fileID: 0}
-  dragVisual: {fileID: 0}
 --- !u!1 &1246630226079549444
 GameObject:
   m_ObjectHideFlags: 0

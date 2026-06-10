@@ -1092,9 +1092,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1388760602062569571}
   - component: {fileID: 2035747309254796332}
-  - component: {fileID: 7610456961225621312}
   - component: {fileID: 6337690995259357495}
-  - component: {fileID: 3677196162990462259}
+  - component: {fileID: 7610456961225621312}
   m_Layer: 5
   m_Name: CharacterEquipmentPanel
   m_TagString: Untagged
@@ -1131,6 +1130,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3174332633274164292}
   m_CullTransparentMesh: 1
+--- !u!114 &6337690995259357495
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3174332633274164292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7672a3becd10554ebe1ecc003885006, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Equipment.CharacterEquipmentPanel
+  equipmentRuntime: {fileID: 0}
+  slotViews:
+  - {fileID: 7108728038713265891}
+  - {fileID: 5824156049873002697}
+  - {fileID: 6992147900893958843}
+  - {fileID: 6473207243183850601}
+  - {fileID: 8262453327161862603}
+  - {fileID: 6002976243718477599}
+  - {fileID: 1595378594059834600}
+  - {fileID: 9177858126198125894}
+  - {fileID: 2957109237979429592}
+  - {fileID: 903884589975945815}
+  - {fileID: 3595890914357465531}
 --- !u!114 &7610456961225621312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1161,47 +1185,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6337690995259357495
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3174332633274164292}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7672a3becd10554ebe1ecc003885006, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Equipment.CharacterEquipmentPanel
-  equipmentRuntime: {fileID: 0}
-  slotViews:
-  - {fileID: 7108728038713265891}
-  - {fileID: 5824156049873002697}
-  - {fileID: 6992147900893958843}
-  - {fileID: 6473207243183850601}
-  - {fileID: 8262453327161862603}
-  - {fileID: 6002976243718477599}
-  - {fileID: 1595378594059834600}
-  - {fileID: 9177858126198125894}
-  - {fileID: 2957109237979429592}
-  - {fileID: 903884589975945815}
-  - {fileID: 3595890914357465531}
---- !u!114 &3677196162990462259
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3174332633274164292}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff2ba37171c0d7741924c0d8dd45d28c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Equipment.CharacterEquipmentInteractionController
-  equipmentPanel: {fileID: 6337690995259357495}
-  equipmentRuntime: {fileID: 0}
-  dragContext: {fileID: 0}
-  dragVisual: {fileID: 0}
 --- !u!1 &3279932959002939451
 GameObject:
   m_ObjectHideFlags: 0

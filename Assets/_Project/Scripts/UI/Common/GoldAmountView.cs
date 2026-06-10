@@ -26,6 +26,25 @@ namespace Titanhold.UI.Common
                 playerGold.OnChanged -= HandleGoldChanged;
         }
 
+        public void SetPlayerGold(PlayerGold gold)
+        {
+            if (ReferenceEquals(playerGold, gold))
+            {
+                Refresh();
+                return;
+            }
+
+            if (isActiveAndEnabled && playerGold != null)
+                playerGold.OnChanged -= HandleGoldChanged;
+
+            playerGold = gold;
+
+            if (isActiveAndEnabled && playerGold != null)
+                playerGold.OnChanged += HandleGoldChanged;
+
+            Refresh();
+        }
+
         public void Refresh()
         {
             if (amountText == null)

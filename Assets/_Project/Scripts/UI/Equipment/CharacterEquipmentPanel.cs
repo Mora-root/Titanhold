@@ -1,9 +1,10 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 
 namespace Titanhold.UI.Equipment
 {
-    public sealed class CharacterEquipmentPanel : MonoBehaviour
+    public sealed class CharacterEquipmentPanel : MonoBehaviour, IItemSlotEventSource
     {
         [SerializeField] private global::PlayerEquipmentRuntime equipmentRuntime;
         [SerializeField] private CharacterEquipmentSlotView[] slotViews;
@@ -16,6 +17,10 @@ namespace Titanhold.UI.Equipment
         public event Action<global::EquipmentSlotId> SlotDragStarted;
         public event Action<CharacterEquipmentSlotView, global::EquipmentSlotId> SlotDragStartedWithView;
         public event Action SlotDragEnded;
+        public event Action<global::ItemSlotRef> ItemSlotRightClicked;
+        public event Action<IItemDragSourceView, global::ItemSlotRef, ItemDragVisualData> ItemSlotDragStarted;
+        public event Action<global::ItemSlotRef> ItemSlotDropped;
+        public event Action ItemSlotDragEnded;
 
         private void OnEnable()
         {
@@ -28,6 +33,26 @@ namespace Titanhold.UI.Equipment
         {
             UnsubscribeSlotViews();
             Unsubscribe();
+        }
+
+        public void SetEquipmentRuntime(global::PlayerEquipmentRuntime runtime)
+        {
+            if (ReferenceEquals(equipmentRuntime, runtime))
+            {
+                RefreshAll();
+                return;
+            }
+
+            if (isActiveAndEnabled)
+                Unsubscribe();
+
+            equipmentRuntime = runtime;
+            loggedMissingRuntime = false;
+
+            if (isActiveAndEnabled)
+                Subscribe();
+
+            RefreshAll();
         }
 
         public void RefreshAll()
@@ -147,11 +172,19 @@ namespace Titanhold.UI.Equipment
         private void HandleSlotRightClicked(global::EquipmentSlotId slotId)
         {
             SlotRightClicked?.Invoke(slotId);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(slotId);
+            if (slotRef.IsValid)
+                ItemSlotRightClicked?.Invoke(slotRef);
         }
 
         private void HandleSlotDropped(global::EquipmentSlotId slotId)
         {
             SlotDropped?.Invoke(slotId);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(slotId);
+            if (slotRef.IsValid)
+                ItemSlotDropped?.Invoke(slotRef);
         }
 
         private void HandleSlotDragStarted(global::EquipmentSlotId slotId)
@@ -162,11 +195,31 @@ namespace Titanhold.UI.Equipment
         private void HandleSlotDragStartedWithView(CharacterEquipmentSlotView slotView, global::EquipmentSlotId slotId)
         {
             SlotDragStartedWithView?.Invoke(slotView, slotId);
+
+            global::ItemSlotRef slotRef = CreateSlotRef(slotId);
+            if (!slotRef.IsValid)
+                return;
+
+            global::ItemInstance item = GetEquipment()?.GetEquipped(slotId);
+            global::ItemDefinition definition = item?.Definition;
+            if (definition == null)
+                return;
+
+            ItemSlotDragStarted?.Invoke(
+                slotView,
+                slotRef,
+                new ItemDragVisualData(definition.Icon, 1));
         }
 
         private void HandleSlotDragEnded()
         {
             SlotDragEnded?.Invoke();
+            ItemSlotDragEnded?.Invoke();
+        }
+
+        private global::ItemSlotRef CreateSlotRef(global::EquipmentSlotId slotId)
+        {
+            return global::ItemSlotRef.ForEquipment(equipmentRuntime, slotId);
         }
 
         private global::CharacterEquipment GetEquipment()

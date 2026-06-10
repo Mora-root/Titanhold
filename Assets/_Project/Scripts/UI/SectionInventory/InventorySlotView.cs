@@ -8,6 +8,7 @@ using UnityEngine.UI;
 namespace Titanhold.UI.SectionInventory
 {
     public sealed class InventorySlotView : MonoBehaviour,
+        IItemDragSourceView,
         IPointerEnterHandler,
         IPointerExitHandler,
         IPointerClickHandler,
@@ -38,8 +39,12 @@ namespace Titanhold.UI.SectionInventory
         private void Awake()
         {
             rectTransform = transform as RectTransform;
-            tooltipController ??= GetComponentInParent<ItemTooltipController>(true);
-            tooltipController ??= FindAnyObjectByType<ItemTooltipController>(FindObjectsInactive.Include);
+            ResolveTooltipController();
+        }
+
+        public void SetTooltipController(ItemTooltipController controller)
+        {
+            tooltipController = controller;
         }
 
         public void SetSlot(global::ItemSlot slot)
@@ -208,12 +213,27 @@ namespace Titanhold.UI.SectionInventory
                 return;
             }
 
+            ResolveTooltipController();
             tooltipController?.Show(data, rectTransform);
         }
 
         private void HideTooltip()
         {
             tooltipController?.Hide();
+        }
+
+        private void ResolveTooltipController()
+        {
+            if (tooltipController != null)
+                return;
+
+            tooltipController = GetComponentInParent<ItemTooltipController>(true);
+            if (tooltipController != null)
+                return;
+
+            Canvas canvas = GetComponentInParent<Canvas>(true);
+            if (canvas != null)
+                tooltipController = canvas.GetComponentInChildren<ItemTooltipController>(true);
         }
     }
 }

@@ -2,18 +2,20 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Titanhold.UI.SectionInventory
+namespace Titanhold.UI.Containers
 {
-    public sealed class InventoryWindowController : MonoBehaviour
+    public sealed class ItemContainerWindowController : MonoBehaviour
     {
-        [SerializeField] private PlayerInventoryWindow inventoryWindow;
-        [SerializeField] private GameObject inventoryWindowRoot;
+        [SerializeField] private ItemContainerWindow window;
+        [SerializeField] private GameObject windowRoot;
         [SerializeField] private Button closeButton;
         [SerializeField] private bool startOpen;
+        [SerializeField] private bool useToggleKey = true;
         [SerializeField] private KeyCode toggleKey = KeyCode.I;
         [SerializeField] private bool closeOnEscape = true;
 
-        private bool loggedMissingWindowRoot;
+        private bool loggedMissingRoot;
+        private bool loggedSelfRoot;
 
         public event Action Opened;
         public event Action Closed;
@@ -22,7 +24,7 @@ namespace Titanhold.UI.SectionInventory
         {
             get
             {
-                GameObject root = ResolveWindowRoot();
+                GameObject root = ResolveRoot();
                 return root != null && root.activeSelf;
             }
         }
@@ -44,17 +46,17 @@ namespace Titanhold.UI.SectionInventory
                 closeButton.onClick.RemoveListener(Close);
         }
 
-        public void Configure(PlayerInventoryWindow window, GameObject root = null)
+        public void Configure(ItemContainerWindow containerWindow, GameObject root = null)
         {
-            inventoryWindow = window;
+            window = containerWindow;
 
             if (root != null)
-                inventoryWindowRoot = root;
+                windowRoot = root;
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(toggleKey))
+            if (useToggleKey && Input.GetKeyDown(toggleKey))
                 Toggle();
 
             if (closeOnEscape && IsOpen && Input.GetKeyDown(KeyCode.Escape))
@@ -78,10 +80,16 @@ namespace Titanhold.UI.SectionInventory
 
         private void ApplyState(bool open, bool invokeEvents)
         {
-            GameObject root = ResolveWindowRoot();
+            GameObject root = ResolveRoot();
             if (root == null)
             {
-                LogMissingWindowRoot();
+                LogMissingRoot();
+                return;
+            }
+
+            if (!open && root == gameObject)
+            {
+                LogSelfRoot();
                 return;
             }
 
@@ -92,7 +100,7 @@ namespace Titanhold.UI.SectionInventory
             root.SetActive(open);
 
             if (open)
-                inventoryWindow?.Refresh();
+                window?.Refresh();
 
             if (!invokeEvents)
                 return;
@@ -103,21 +111,30 @@ namespace Titanhold.UI.SectionInventory
                 Closed?.Invoke();
         }
 
-        private GameObject ResolveWindowRoot()
+        private GameObject ResolveRoot()
         {
-            if (inventoryWindow != null)
-                return inventoryWindow.gameObject;
+            if (window != null)
+                return window.gameObject;
 
-            return inventoryWindowRoot;
+            return windowRoot;
         }
 
-        private void LogMissingWindowRoot()
+        private void LogMissingRoot()
         {
-            if (loggedMissingWindowRoot)
+            if (loggedMissingRoot)
                 return;
 
-            Debug.LogWarning($"{nameof(InventoryWindowController)} requires a PlayerInventoryWindow or InventoryWindowRoot reference.", this);
-            loggedMissingWindowRoot = true;
+            Debug.LogWarning($"{nameof(ItemContainerWindowController)} requires an ItemContainerWindow or WindowRoot reference.", this);
+            loggedMissingRoot = true;
+        }
+
+        private void LogSelfRoot()
+        {
+            if (loggedSelfRoot)
+                return;
+
+            Debug.LogWarning($"{nameof(ItemContainerWindowController)} cannot close its own GameObject. Put it on an always-active UI root.", this);
+            loggedSelfRoot = true;
         }
     }
 }

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
+public sealed class ChestInventory : MonoBehaviour, IItemContainerOwner
 {
     private const int MinSectionCapacity = 1;
 
     [Header("Owner")]
-    [SerializeField] private string ownerId = "Player";
+    [SerializeField] private string ownerId;
 
     [Header("Section Capacities")]
     [SerializeField, Min(MinSectionCapacity)] private int equipmentCapacity = 40;
@@ -18,13 +18,12 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
     [SerializeField, Min(MinSectionCapacity)] private int miscCapacity = 20;
 
     private ItemContainer container;
-    private ItemTransferService transferService;
 
     public event Action Changed;
     public event Action<ItemCategory> SectionChanged;
 
-    public ItemContainerOwnerKind OwnerKind => ItemContainerOwnerKind.PlayerInventory;
-    public string OwnerId => ownerId;
+    public ItemContainerOwnerKind OwnerKind => ItemContainerOwnerKind.Chest;
+    public string OwnerId => string.IsNullOrWhiteSpace(ownerId) ? name : ownerId;
 
     public ItemContainer Container
     {
@@ -40,6 +39,11 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
         EnsureInitialized();
     }
 
+    private void OnEnable()
+    {
+        EnsureInitialized();
+    }
+
     private void OnValidate()
     {
         NormalizeCapacities();
@@ -48,14 +52,10 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
     public void EnsureInitialized()
     {
         if (container != null)
-        {
-            transferService ??= new ItemTransferService();
             return;
-        }
 
         NormalizeCapacities();
         container = new ItemContainer(CreateSectionCapacities(), 0);
-        transferService = new ItemTransferService();
     }
 
     public AddItemResult TryAdd(ItemDefinition definition, int amount = 1)
@@ -65,10 +65,7 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
         AddItemResult result = container.TryAdd(definition, amount);
 
         if (result.AddedAnything && definition != null)
-        {
-            Changed?.Invoke();
-            SectionChanged?.Invoke(definition.Category);
-        }
+            NotifyChanged(definition.Category);
 
         return result;
     }
@@ -81,99 +78,20 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
         ItemDefinition definition = stack != null ? stack.Definition : null;
 
         if (result.AddedAnything && definition != null)
-        {
-            Changed?.Invoke();
-            SectionChanged?.Invoke(definition.Category);
-        }
+            NotifyChanged(definition.Category);
 
         return result;
     }
 
     public AddItemResult TryAddInstance(ItemInstance instance)
     {
-        if (instance == null)
-            return new AddItemResult(0, 0);
-
-        if (instance.Definition == null)
+        if (instance == null || instance.Definition == null)
             return new AddItemResult(0, 0);
 
         if (instance.Definition.MaxStack > 1)
             return new AddItemResult(0, 1);
 
         return TryAdd(ItemStack.CreateNonStackable(instance));
-    }
-
-    public ItemStack TakeStack(ItemCategory category, int slotIndex)
-    {
-        EnsureInitialized();
-
-        ItemSlot slot = container.GetSlot(category, slotIndex);
-        if (slot == null || slot.IsEmpty)
-            return null;
-
-        ItemStack stack = slot.Take();
-        Changed?.Invoke();
-        SectionChanged?.Invoke(category);
-        return stack;
-    }
-
-    public bool SetStack(ItemCategory category, int slotIndex, ItemStack stack)
-    {
-        EnsureInitialized();
-
-        if (stack == null || stack.Definition == null)
-            return false;
-
-        if (stack.Definition.Category != category)
-            return false;
-
-        ItemSlot slot = container.GetSlot(category, slotIndex);
-        if (slot == null || !slot.IsEmpty)
-            return false;
-
-        slot.Set(stack);
-        Changed?.Invoke();
-        SectionChanged?.Invoke(category);
-        return true;
-    }
-
-    public ItemTransferResult TryTransfer(
-        ItemCategory sourceCategory,
-        int sourceIndex,
-        ItemCategory targetCategory,
-        int targetIndex)
-    {
-        EnsureInitialized();
-
-        ItemSlotAddress source = new ItemSlotAddress(container, sourceCategory, sourceIndex);
-        ItemSlotAddress target = new ItemSlotAddress(container, targetCategory, targetIndex);
-        ItemTransferResult result = transferService.TryTransfer(source, target);
-
-        if (!result.Success)
-            return result;
-
-        Changed?.Invoke();
-        SectionChanged?.Invoke(sourceCategory);
-
-        if (targetCategory != sourceCategory)
-            SectionChanged?.Invoke(targetCategory);
-
-        return result;
-    }
-
-    public void NotifyChanged(ItemCategory category)
-    {
-        Changed?.Invoke();
-        SectionChanged?.Invoke(category);
-    }
-
-    public void NotifyTransferChanged(ItemCategory sourceCategory, ItemCategory targetCategory)
-    {
-        Changed?.Invoke();
-        SectionChanged?.Invoke(sourceCategory);
-
-        if (targetCategory != sourceCategory)
-            SectionChanged?.Invoke(targetCategory);
     }
 
     public ItemContainerSection GetSection(ItemCategory category)
@@ -198,6 +116,21 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
     {
         EnsureInitialized();
         return container.CountOccupiedSlots(category);
+    }
+
+    public void NotifyChanged(ItemCategory category)
+    {
+        Changed?.Invoke();
+        SectionChanged?.Invoke(category);
+    }
+
+    public void NotifyTransferChanged(ItemCategory sourceCategory, ItemCategory targetCategory)
+    {
+        Changed?.Invoke();
+        SectionChanged?.Invoke(sourceCategory);
+
+        if (targetCategory != sourceCategory)
+            SectionChanged?.Invoke(targetCategory);
     }
 
     private Dictionary<ItemCategory, int> CreateSectionCapacities()

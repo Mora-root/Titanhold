@@ -8,6 +8,7 @@ using UnityEngine.UI;
 namespace Titanhold.UI.Equipment
 {
     public sealed class CharacterEquipmentSlotView : MonoBehaviour,
+        IItemDragSourceView,
         IPointerEnterHandler,
         IPointerExitHandler,
         IPointerClickHandler,
@@ -39,8 +40,12 @@ namespace Titanhold.UI.Equipment
         private void Awake()
         {
             rectTransform = transform as RectTransform;
-            tooltipController ??= GetComponentInParent<ItemTooltipController>(true);
-            tooltipController ??= FindAnyObjectByType<ItemTooltipController>(FindObjectsInactive.Include);
+            ResolveTooltipController();
+        }
+
+        public void SetTooltipController(ItemTooltipController controller)
+        {
+            tooltipController = controller;
         }
 
         public void SetItem(global::ItemInstance item)
@@ -201,12 +206,27 @@ namespace Titanhold.UI.Equipment
                 return;
             }
 
+            ResolveTooltipController();
             tooltipController?.Show(data, rectTransform);
         }
 
         private void HideTooltip()
         {
             tooltipController?.Hide();
+        }
+
+        private void ResolveTooltipController()
+        {
+            if (tooltipController != null)
+                return;
+
+            tooltipController = GetComponentInParent<ItemTooltipController>(true);
+            if (tooltipController != null)
+                return;
+
+            Canvas canvas = GetComponentInParent<Canvas>(true);
+            if (canvas != null)
+                tooltipController = canvas.GetComponentInChildren<ItemTooltipController>(true);
         }
     }
 }
