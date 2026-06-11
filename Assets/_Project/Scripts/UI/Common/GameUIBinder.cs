@@ -114,7 +114,7 @@ namespace Titanhold.UI.Common
             inventoryWindowController?.Configure(playerInventoryWindow);
             playerContainerWindowController?.Configure(playerContainerWindow);
             characterWindowController?.Configure(characterEquipmentPanel);
-            chestWindowController?.Configure(chestContainerWindow, interactionContext);
+            chestWindowController?.Configure(chestContainerWindow, interactionContext, playerContainerWindowController);
 
             chestInteractionController?.Configure(
                 playerContainerWindowController,

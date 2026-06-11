@@ -63,6 +63,7 @@ namespace Titanhold.UI.SectionInventory
             {
                 currentDefinition = null;
                 RefreshDisplay();
+                HideTooltip();
                 return;
             }
 
@@ -105,6 +106,9 @@ namespace Titanhold.UI.SectionInventory
                 return;
 
             RightClicked?.Invoke(currentCategory, currentSlotIndex);
+            SyncCurrentDefinitionFromSlot();
+            RefreshDisplay();
+            RefreshTooltipIfHovered();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -134,7 +138,11 @@ namespace Titanhold.UI.SectionInventory
             if (currentSlotIndex < 0)
                 return;
 
+            isPointerInside = true;
             Dropped?.Invoke(currentCategory, currentSlotIndex);
+            SyncCurrentDefinitionFromSlot();
+            RefreshDisplay();
+            RefreshTooltipIfHovered();
         }
 
         private void OnDisable()
@@ -192,14 +200,17 @@ namespace Titanhold.UI.SectionInventory
 
         private void RefreshTooltipIfHovered()
         {
-            if (!isPointerInside)
+            if (!isPointerInside && !IsPointerCurrentlyOverSlot())
                 return;
 
+            isPointerInside = true;
             ShowTooltip();
         }
 
         private void ShowTooltip()
         {
+            SyncCurrentDefinitionFromSlot();
+
             if (dragHidden || currentSlot == null || currentSlot.IsEmpty || currentSlot.Stack == null || currentDefinition == null)
             {
                 HideTooltip();
@@ -234,6 +245,33 @@ namespace Titanhold.UI.SectionInventory
             Canvas canvas = GetComponentInParent<Canvas>(true);
             if (canvas != null)
                 tooltipController = canvas.GetComponentInChildren<ItemTooltipController>(true);
+        }
+
+        private bool IsPointerCurrentlyOverSlot()
+        {
+            if (rectTransform == null)
+                return false;
+
+            Canvas canvas = GetComponentInParent<Canvas>(true);
+            Camera eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? canvas.worldCamera
+                : null;
+
+            return RectTransformUtility.RectangleContainsScreenPoint(
+                rectTransform,
+                Input.mousePosition,
+                eventCamera);
+        }
+
+        private void SyncCurrentDefinitionFromSlot()
+        {
+            if (currentSlot == null || currentSlot.IsEmpty || currentSlot.Stack == null || currentSlot.Stack.Definition == null)
+            {
+                currentDefinition = null;
+                return;
+            }
+
+            currentDefinition = currentSlot.Stack.Definition;
         }
     }
 }

@@ -76,11 +76,7 @@ public class PlayerSkillExecutor : MonoBehaviour
 
         HashSet<IDamageable> damagedTargets = new();
 
-        float baseDamage = stats != null
-            ? stats.GetValue(StatType.Damage)
-            : 10f;
-
-        float finalDamage = baseDamage * skill.DamageMultiplier;
+        float finalDamage = CombatDamageCalculator.GetSkillDamage(stats, skill);
 
         foreach (var hit in hits)
         {

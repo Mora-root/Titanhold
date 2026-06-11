@@ -68,7 +68,7 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
             return;
         }
 
-        characterStats.RemoveModifiersFromSource(slotId);
+        characterStats.RemoveModifiersFromSource(StatModifierSource.ForEquipmentSlot(slotId));
         ApplyModifiers(slotId, newItem);
     }
 
@@ -86,7 +86,7 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
 
         foreach (EquipmentSlotId slotId in Enum.GetValues(typeof(EquipmentSlotId)))
         {
-            characterStats.RemoveModifiersFromSource(slotId);
+            characterStats.RemoveModifiersFromSource(StatModifierSource.ForEquipmentSlot(slotId));
             ApplyModifiers(slotId, equipment.GetEquipped(slotId));
         }
     }
@@ -96,7 +96,13 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
         if (characterStats == null || item == null || item.Definition == null)
             return;
 
-        characterStats.AddModifiers(item.Definition.Modifiers, slotId);
+        ItemDefinition definition = item.Definition;
+        StatModifierSource source = StatModifierSource.ForEquipmentSlot(slotId);
+
+        if (definition.IsWeapon && definition.WeaponBaseDamage > 0f)
+            characterStats.AddModifier(new StatModifier(StatType.Damage, StatModifierType.Flat, definition.WeaponBaseDamage), source);
+
+        characterStats.AddModifiers(definition.Modifiers, source);
     }
 
     private void RemoveAllEquipmentModifiers()
@@ -106,7 +112,7 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
 
         foreach (EquipmentSlotId slotId in Enum.GetValues(typeof(EquipmentSlotId)))
         {
-            characterStats.RemoveModifiersFromSource(slotId);
+            characterStats.RemoveModifiersFromSource(StatModifierSource.ForEquipmentSlot(slotId));
         }
     }
 

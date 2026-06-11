@@ -7,7 +7,7 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private float damage = 10f;
 
     private float lastAttackTime;
-    private float multiplierDamageRadius = 1.5f;
+    private float multiplierDamageRadius = 3f;
     private ITargetable currentTarget;
 
     private EnemyAnimator animator;

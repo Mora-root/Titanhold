@@ -99,7 +99,9 @@ namespace Titanhold.UI.Equipment
 
         public void OnDrop(PointerEventData eventData)
         {
+            isPointerInside = true;
             Dropped?.Invoke(slotId);
+            RefreshTooltipIfHovered();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -185,9 +187,10 @@ namespace Titanhold.UI.Equipment
 
         private void RefreshTooltipIfHovered()
         {
-            if (!isPointerInside)
+            if (!isPointerInside && !IsPointerCurrentlyOverSlot())
                 return;
 
+            isPointerInside = true;
             ShowTooltip();
         }
 
@@ -227,6 +230,22 @@ namespace Titanhold.UI.Equipment
             Canvas canvas = GetComponentInParent<Canvas>(true);
             if (canvas != null)
                 tooltipController = canvas.GetComponentInChildren<ItemTooltipController>(true);
+        }
+
+        private bool IsPointerCurrentlyOverSlot()
+        {
+            if (rectTransform == null)
+                return false;
+
+            Canvas canvas = GetComponentInParent<Canvas>(true);
+            Camera eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                ? canvas.worldCamera
+                : null;
+
+            return RectTransformUtility.RectangleContainsScreenPoint(
+                rectTransform,
+                Input.mousePosition,
+                eventCamera);
         }
     }
 }

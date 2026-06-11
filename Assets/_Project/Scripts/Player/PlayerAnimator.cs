@@ -5,6 +5,8 @@ public class PlayerAnimator : MonoBehaviour
     private Animator animator;
     private PlayerCombat combat;
     private PlayerSkillExecutor skillExecutor;
+    private float defaultAnimatorSpeed = 1f;
+    private bool hasPlaybackOverride;
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
@@ -14,6 +16,7 @@ public class PlayerAnimator : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        defaultAnimatorSpeed = animator != null ? animator.speed : 1f;
         combat = GetComponentInParent<PlayerCombat>();
         skillExecutor = GetComponentInParent<PlayerSkillExecutor>();
     }
@@ -24,9 +27,18 @@ public class PlayerAnimator : MonoBehaviour
         animator.SetFloat(SpeedHash, speed);
     }
 
-    // Start attack
-    public void PlayAttack()
+    public void SetLocomotionPlaybackSpeed(float playbackSpeed)
     {
+        if (animator == null || hasPlaybackOverride)
+            return;
+
+        animator.speed = defaultAnimatorSpeed * Mathf.Max(0.01f, playbackSpeed);
+    }
+
+    // Start attack
+    public void PlayAttack(float playbackSpeed = 1f)
+    {
+        SetPlaybackSpeed(playbackSpeed);
         animator.SetTrigger(AttackHash);
     }
 
@@ -39,11 +51,13 @@ public class PlayerAnimator : MonoBehaviour
     // End animation
     public void OnAttackFinished()
     {
+        ResetPlaybackSpeed();
         combat.OnAttackFinished();
     }
 
     public void PlaySkill(string triggerName)
     {
+        ResetPlaybackSpeed();
         animator.SetTrigger(triggerName);
     }
 
@@ -60,12 +74,32 @@ public class PlayerAnimator : MonoBehaviour
     // Get damage
     public void PlayHit()
     {
+        ResetPlaybackSpeed();
         animator.SetTrigger(HitHash);
     }
 
     // Die
     public void PlayDeath()
     {
+        ResetPlaybackSpeed();
         animator.SetTrigger(DeathHash);
+    }
+
+    public void ResetPlaybackSpeed()
+    {
+        if (animator == null)
+            return;
+
+        hasPlaybackOverride = false;
+        animator.speed = defaultAnimatorSpeed;
+    }
+
+    private void SetPlaybackSpeed(float playbackSpeed)
+    {
+        if (animator == null)
+            return;
+
+        hasPlaybackOverride = true;
+        animator.speed = defaultAnimatorSpeed * Mathf.Max(0.01f, playbackSpeed);
     }
 }

@@ -20,6 +20,8 @@ public sealed class ItemDefinition : ScriptableObject
 
     [Header("Weapon")]
     [SerializeField] private WeaponType weaponType;
+    [SerializeField, Min(0f)] private float weaponBaseDamage;
+    [SerializeField, Min(0.01f)] private float weaponBaseAttacksPerSecond = 1f;
 
     [Header("Consumable")]
     [SerializeField] private ConsumableSubtype consumableSubtype;
@@ -65,6 +67,8 @@ public sealed class ItemDefinition : ScriptableObject
     public WeaponHandedness WeaponHandedness => GetWeaponHandedness(WeaponType);
     public WeaponHandedness Handedness => WeaponHandedness;
     public bool OccupiesBothHands => WeaponHandedness == WeaponHandedness.TwoHand;
+    public float WeaponBaseDamage => IsWeapon ? Mathf.Max(0f, weaponBaseDamage) : 0f;
+    public float WeaponBaseAttacksPerSecond => IsWeapon ? Mathf.Max(0.01f, weaponBaseAttacksPerSecond) : 0f;
     public IReadOnlyList<StatModifierData> Modifiers => modifiers ?? Array.Empty<StatModifierData>();
 
     public bool IsConsumable => category == ItemCategory.Consumable;
@@ -97,6 +101,8 @@ public sealed class ItemDefinition : ScriptableObject
     private void OnValidate()
     {
         maxStack = Mathf.Max(1, maxStack);
+        weaponBaseDamage = Mathf.Max(0f, weaponBaseDamage);
+        weaponBaseAttacksPerSecond = Mathf.Max(0.01f, weaponBaseAttacksPerSecond);
         consumeAmountOnUse = Mathf.Max(1, consumeAmountOnUse);
         sellValue = Mathf.Max(0, sellValue);
 

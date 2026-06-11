@@ -28,7 +28,7 @@ namespace Titanhold.UI.Common
             ItemTooltipData data = new ItemTooltipData
             {
                 Title = definition.DisplayName,
-                Subtitle = definition.CategoryDisplayName,
+                Subtitle = BuildSubtitle(definition),
                 Description = definition.Description,
                 Footer = BuildFooter(definition),
                 SellPriceText = BuildSellPriceText(definition),
@@ -46,17 +46,19 @@ namespace Titanhold.UI.Common
             if (!definition.IsEquippable)
                 return;
 
-            List<string> lines = new List<string>
-            {
-                $"Slot: {definition.EquipmentSlotType}"
-            };
-
             if (definition.IsWeapon)
             {
-                lines.Add($"Weapon Type: {definition.WeaponType}");
-            }
+                data.AddBlock(string.Empty, new[]
+                {
+                    BuildWeaponHandednessText(definition)
+                });
 
-            data.AddBlock(string.Empty, lines);
+                data.AddBlock(string.Empty, new[]
+                {
+                    $"Base Damage: {definition.WeaponBaseDamage:0.##}",
+                    $"Attack Speed: {definition.WeaponBaseAttacksPerSecond:0.##}/s"
+                });
+            }
         }
 
         private static void AddModifierBlock(ItemTooltipData data, global::ItemDefinition definition)
@@ -71,6 +73,9 @@ namespace Titanhold.UI.Common
                 string value = FormatModifierValue(modifier);
                 lines.Add($"{value} {modifier.Type}");
             }
+
+            if (definition.IsWeapon)
+                data.AddBlock("--------", null);
 
             data.AddBlock("Modifiers", lines);
         }
@@ -90,6 +95,71 @@ namespace Titanhold.UI.Common
                 return definition.ConsumableSubtype.ToString();
 
             return string.Empty;
+        }
+
+        private static string BuildSubtitle(global::ItemDefinition definition)
+        {
+            if (definition == null)
+                return string.Empty;
+
+            if (!definition.IsEquipment)
+                return definition.CategoryDisplayName;
+
+            if (definition.IsWeapon)
+                return BuildWeaponSubtitle(definition);
+
+            return definition.EquipmentSlotType switch
+            {
+                global::EquipmentSlotType.Shield => "Shield",
+                global::EquipmentSlotType.Head => "Head Armor",
+                global::EquipmentSlotType.Chest => "Chest Armor",
+                global::EquipmentSlotType.Hands => "Gloves",
+                global::EquipmentSlotType.Legs => "Leg Armor",
+                global::EquipmentSlotType.Feet => "Boots",
+                global::EquipmentSlotType.Amulet => "Amulet",
+                global::EquipmentSlotType.Ring => "Ring",
+                global::EquipmentSlotType.Artifact => "Artifact",
+                _ => definition.CategoryDisplayName
+            };
+        }
+
+        private static string BuildWeaponSubtitle(global::ItemDefinition definition)
+        {
+            string family = BuildWeaponFamilyText(definition.WeaponFamily);
+            string handedness = BuildWeaponHandednessText(definition);
+
+            if (string.IsNullOrWhiteSpace(family))
+                return "Weapon";
+
+            if (string.IsNullOrWhiteSpace(handedness))
+                return family;
+
+            return $"{handedness} {family}";
+        }
+
+        private static string BuildWeaponFamilyText(global::WeaponFamily family)
+        {
+            return family switch
+            {
+                global::WeaponFamily.Sword => "Sword",
+                global::WeaponFamily.Axe => "Axe",
+                global::WeaponFamily.Mace => "Mace",
+                global::WeaponFamily.Hammer => "Hammer",
+                global::WeaponFamily.Dagger => "Dagger",
+                global::WeaponFamily.Staff => "Staff",
+                global::WeaponFamily.Bow => "Bow",
+                _ => string.Empty
+            };
+        }
+
+        private static string BuildWeaponHandednessText(global::ItemDefinition definition)
+        {
+            return definition.WeaponHandedness switch
+            {
+                global::WeaponHandedness.OneHand => "One-handed",
+                global::WeaponHandedness.TwoHand => "Two-handed",
+                _ => string.Empty
+            };
         }
 
         private static string BuildStackText(global::ItemDefinition definition, int amount)
@@ -113,10 +183,13 @@ namespace Titanhold.UI.Common
 
         private static string FormatModifierValue(global::StatModifierData modifier)
         {
-            if (modifier.ModifierType == global::StatModifierType.Percent)
-                return $"{modifier.Value:+0.##;-0.##;0}%";
-
-            return $"{modifier.Value:+0.##;-0.##;0}";
+            return modifier.ModifierType switch
+            {
+                global::StatModifierType.Increased => $"{modifier.Value:+0.##;-0.##;0}%",
+                global::StatModifierType.More => $"{modifier.Value:+0.##;-0.##;0}% more",
+                global::StatModifierType.Override => $"={modifier.Value:0.##}",
+                _ => $"{modifier.Value:+0.##;-0.##;0}"
+            };
         }
     }
 }

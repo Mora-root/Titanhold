@@ -10,6 +10,7 @@ namespace Titanhold.UI.Containers
         [SerializeField] private ItemContainerWindow chestWindow;
         [SerializeField] private GameObject chestWindowRoot;
         [SerializeField] private Button closeButton;
+        [SerializeField] private ItemContainerWindowController linkedInventoryWindowController;
         [SerializeField] private ItemInteractionContext interactionContext;
         [SerializeField] private bool startOpen;
         [SerializeField] private bool closeOnEscape = true;
@@ -52,10 +53,12 @@ namespace Titanhold.UI.Containers
         public void Configure(
             ItemContainerWindow window,
             ItemInteractionContext context,
+            ItemContainerWindowController inventoryWindowController = null,
             GameObject root = null)
         {
             chestWindow = window;
             interactionContext = context;
+            linkedInventoryWindowController = inventoryWindowController;
 
             if (root != null)
                 chestWindowRoot = root;
@@ -75,6 +78,7 @@ namespace Titanhold.UI.Containers
             activeChest = chest;
             chestWindow?.SetOwner((global::IItemContainerOwner)chest);
             interactionContext?.SetContainerMode(ItemInteractionMode.Chest, chest);
+            linkedInventoryWindowController?.Open();
             ApplyState(true, true);
         }
 
