@@ -57,6 +57,11 @@ public class Health : MonoBehaviour, IDamageable
         NotifyHealthChanged();
     }
 
+    private void Update()
+    {
+        TickRegeneration(Time.deltaTime);
+    }
+
     public void TakeDamage(float rawDamage)
     {
         if (isDead) return;
@@ -87,6 +92,18 @@ public class Health : MonoBehaviour, IDamageable
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
 
         NotifyHealthChanged();
+    }
+
+    public void TickRegeneration(float deltaTime)
+    {
+        if (isDead) return;
+        if (deltaTime <= 0f) return;
+        if (CurrentHealth >= MaxHealth) return;
+
+        float regenPerSecond = characterStats != null ? characterStats.GetValue(StatType.HPRegen) : 0f;
+        if (regenPerSecond <= 0f) return;
+
+        Heal(regenPerSecond * deltaTime);
     }
 
     public void RestoreFull()

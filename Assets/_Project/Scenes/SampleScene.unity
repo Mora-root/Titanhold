@@ -3029,6 +3029,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 1000
+  characterStats: {fileID: 0}
 --- !u!114 &305495729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5338,6 +5339,7 @@ GameObject:
   - component: {fileID: 625530761}
   - component: {fileID: 625530760}
   - component: {fileID: 625530759}
+  - component: {fileID: 625530766}
   m_Layer: 10
   m_Name: Chest
   m_TagString: Untagged
@@ -5489,6 +5491,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &625530766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625530758}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c93588e85db1547a380a937ce1ba7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChestInventoryDebugSeeder
+  chestInventory: {fileID: 0}
+  seedOnStart: 1
+  entries:
+  - item: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+    amount: 1
 --- !u!1 &664170768
 GameObject:
   m_ObjectHideFlags: 0
@@ -12979,6 +12998,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8744477821165718943}
+    - targetCorrespondingSourceObject: {fileID: 1245050983247841845, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8744477821165718954}
   m_SourcePrefab: {fileID: 100100000, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
 --- !u!222 &276896596178710569
 CanvasRenderer:
@@ -15067,6 +15089,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 052bdb53a38e9154e919aaaddca9a4d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBrain
+--- !u!114 &8744477821165718954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764361631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30fb729e087af1d4584b690566b6151d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAttributeDerivedStatsBinder
+  characterStats: {fileID: 0}
+  primaryDamageStat: 0
+  damagePerPrimary: 2
+  armorPerStrength: 0.5
+  attackSpeedIncreasedPerAgility: 1
+  moveSpeedFlatPerAgility: 0.02
+  maxResourcePerIntelligence: 8
+  resourceRegenPerIntelligence: 0.1
+  maxHealthPerStamina: 10
+  hpRegenPerStamina: 1
 --- !u!114 &8938985051262503216
 MonoBehaviour:
   m_ObjectHideFlags: 0
