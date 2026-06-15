@@ -17,9 +17,7 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
 
     private void OnEnable()
     {
-        ResolveReferences();
-        Subscribe();
-        ApplyCurrentEquipment();
+        Refresh();
     }
 
     private void OnDisable()
@@ -35,6 +33,13 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
 
         if (characterStats == null)
             characterStats = GetComponent<CharacterStats>();
+    }
+
+    public void Refresh()
+    {
+        ResolveReferences();
+        Subscribe();
+        ApplyCurrentEquipment();
     }
 
     private void Subscribe()
@@ -103,6 +108,7 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
             characterStats.AddModifier(new StatModifier(StatType.Damage, StatModifierType.Flat, definition.WeaponBaseDamage), source);
 
         characterStats.AddModifiers(definition.Modifiers, source);
+        characterStats.AddModifiers(item.GeneratedModifiers, source);
     }
 
     private void RemoveAllEquipmentModifiers()

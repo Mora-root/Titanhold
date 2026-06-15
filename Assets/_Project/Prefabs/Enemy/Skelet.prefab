@@ -797,7 +797,7 @@ GameObject:
   - component: {fileID: 6698423454645219180}
   - component: {fileID: 6602476250708817451}
   - component: {fileID: 6383613624202774284}
-  - component: {fileID: 1918716466898467685}
+  - component: {fileID: 2026179569280314684}
   m_Layer: 6
   m_Name: Skelet
   m_TagString: Untagged
@@ -938,7 +938,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a1f98f142a803458fd783d936c111e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySensor
-  aggroRange: 10
+  aggroRange: 8
   mask:
     serializedVersion: 2
     m_Bits: 128
@@ -980,7 +980,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathDespawn
   deathNotifier: {fileID: 1053468204614456103}
-  despawnDelay: 3
+  despawnDelay: 8
 --- !u!114 &2336442229512062148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1038,7 +1038,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5ce736f6f0a9064dab971ac0a49c1d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 100
+  maxHealth: 80
 --- !u!114 &6383613624202774284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1054,7 +1054,7 @@ MonoBehaviour:
   deathNotifier: {fileID: 0}
   playerExperience: {fileID: 0}
   experienceAmount: 10
---- !u!114 &1918716466898467685
+--- !u!114 &2026179569280314684
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1063,26 +1063,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 2618309436736559858}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6cf8adece3512794bb8aa675de64416c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0101e6d6844c3a143b8bd6487b53d425, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyLootDropper
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyLootTableDropper
   deathNotifier: {fileID: 1053468204614456103}
-  dropPoint: {fileID: 3401578461478899309}
-  drops:
-  - PickupPrefab: {fileID: 1826512723434630158, guid: ee6854f95e5f4fd44bede149415bb9f8, type: 3}
-    DropChance: 1
-    MinAmount: 1
-    MaxAmount: 1
-  - PickupPrefab: {fileID: 1364990022469115226, guid: 2f1ba89f5df38be4fac5535571e40a20, type: 3}
-    DropChance: 1
-    MinAmount: 1
-    MaxAmount: 3
-  - PickupPrefab: {fileID: 1364990022469115226, guid: ad7ef15c957d0e144953177e70f8b968, type: 3}
-    DropChance: 1
-    MinAmount: 5
-    MaxAmount: 10
-  dropRadius: 0.8
-  dropSpawnHeight: 1
+  lootTable: {fileID: 11400000, guid: 2a4d680add4564640bf83e17d44cb86b, type: 2}
+  itemPickupPrefab: {fileID: 3623477256704420537, guid: e29767823042e4349a3fd5796a560190, type: 3}
+  goldPickupPrefab: {fileID: 1364990022469115226, guid: ad7ef15c957d0e144953177e70f8b968, type: 3}
+  dropPoint: {fileID: 0}
+  dropRadius: 0.35
+  dropSpawnHeight: 1.2
+  snapToGround: 1
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 512
+  groundProbeHeight: 3
+  groundProbeDistance: 8
+  landingYOffset: 0
 --- !u!1 &2693121861230456850
 GameObject:
   m_ObjectHideFlags: 0

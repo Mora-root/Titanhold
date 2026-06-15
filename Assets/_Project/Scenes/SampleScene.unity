@@ -3280,13 +3280,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
-  m_LocalPosition: {x: 0, y: 12, z: -12}
+  m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
+  m_LocalPosition: {x: 0.15, y: 11, z: -15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 38078643}
-  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 35, y: 0, z: 0}
 --- !u!114 &330585547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4986,6 +4986,7 @@ RectTransform:
   - {fileID: 1636871589762798315}
   - {fileID: 702670713}
   - {fileID: 1635611789}
+  - {fileID: 2080793173}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5025,6 +5026,7 @@ MonoBehaviour:
   chestWindow: {fileID: 7084354560359136002}
   chestWindowRoot: {fileID: 6442203261318297698}
   closeButton: {fileID: 4546467414439632293}
+  linkedInventoryWindowController: {fileID: 0}
   interactionContext: {fileID: 1847354041}
   startOpen: 0
   closeOnEscape: 1
@@ -9184,7 +9186,7 @@ MonoBehaviour:
   inventoryWindowRoot: {fileID: 1658540089}
   closeButton: {fileID: 1264320781}
   startOpen: 0
-  toggleKey: 99
+  toggleKey: 105
   closeOnEscape: 1
 --- !u!114 &1359868940
 MonoBehaviour:
@@ -9591,7 +9593,7 @@ MonoBehaviour:
   characterWindowRoot: {fileID: 1695628499}
   closeButton: {fileID: 1467104550}
   startOpen: 0
-  toggleKey: 105
+  toggleKey: 99
   closeOnEscape: 1
 --- !u!1 &1419427062
 GameObject:
@@ -10453,7 +10455,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1664798311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11344,9 +11346,9 @@ MonoBehaviour:
   itemDragContext: {fileID: 1359868940}
   itemDragVisual: {fileID: 702670714}
   itemTooltipController: {fileID: 394371800}
-  playerInventoryWindow: {fileID: 0}
+  playerInventoryWindow: {fileID: 1658540091}
   playerContainerWindow: {fileID: 0}
-  inventoryWindowController: {fileID: 0}
+  inventoryWindowController: {fileID: 1359868939}
   playerContainerWindowController: {fileID: 0}
   characterEquipmentPanel: {fileID: 1695628503}
   characterWindowController: {fileID: 1396952622}
@@ -12424,6 +12426,80 @@ MonoBehaviour:
   navMeshSampleDistance: 1
   maxSpawnAttempts: 20
   spawnOnStart: 1
+--- !u!1 &2080793172
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2080793173}
+  - component: {fileID: 2080793174}
+  - component: {fileID: 2080793175}
+  m_Layer: 5
+  m_Name: LootLabels
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2080793173
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2080793172}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 540920803}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2080793174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2080793172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae23595eef863724ba26a029fd172378, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Loot.LootLabelManager
+  worldCamera: {fileID: 330585545}
+  labelsRoot: {fileID: 2080793173}
+  labelPrefab: {fileID: 8553096995966190020, guid: 0c2e776715d70664ca2b24866a7348d2, type: 3}
+  tooltipController: {fileID: 394371800}
+  useMainCameraFallback: 1
+  createFallbackLabelView: 1
+  hideOffscreen: 1
+  overlapHorizontalRange: 120
+  overlapVerticalSpacing: 28
+  overlapResolveIterations: 8
+--- !u!114 &2080793175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2080793172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bef9f787a9871d94c85eda9934194e96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Loot.LootLabelInteractionController
+  labelManager: {fileID: 2080793174}
+  playerBrain: {fileID: 8744477821165718953}
+  selectForInspection: 1
 --- !u!1 &2089966848
 GameObject:
   m_ObjectHideFlags: 0
@@ -12891,6 +12967,10 @@ PrefabInstance:
     - target: {fileID: 3599715022753898514, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6055275511963352752, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+      propertyPath: baseAttackAnimationDuration
+      value: 0.267
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14976,6 +15056,17 @@ MonoBehaviour:
   chestWindowController: {fileID: 549434341}
   playerRoot: {fileID: 8744477821165718855}
   closeDistancePadding: 0.25
+--- !u!114 &8744477821165718953 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3835007069745545319, guid: 55c3db45652e12e4a88aab4ea373934a, type: 3}
+  m_PrefabInstance: {fileID: 225097633904936934}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1764361631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 052bdb53a38e9154e919aaaddca9a4d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerBrain
 --- !u!114 &8938985051262503216
 MonoBehaviour:
   m_ObjectHideFlags: 0

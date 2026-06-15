@@ -12,6 +12,13 @@ public struct StatModifierData
     public StatModifierType ModifierType => modifierType;
     public float Value => value;
 
+    public StatModifierData(StatType type, StatModifierType modifierType, float value)
+    {
+        this.type = type;
+        this.modifierType = modifierType;
+        this.value = value;
+    }
+
     public StatModifier ToRuntimeModifier()
     {
         return new StatModifier(type, modifierType, value);

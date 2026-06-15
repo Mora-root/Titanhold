@@ -18,10 +18,17 @@ MonoBehaviour:
   icon: {fileID: 0}
   description: A monster trophy that can be sold or used in future crafting.
   category: 2
-  maxStack: 99
+  maxStack: 100
+  rarity: 0
+  worldPickupVisualPrefab: {fileID: 0}
+  worldPickupEffectPrefab: {fileID: 0}
+  overridePickupLabelColor: 0
+  pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   equipmentSlotType: 0
   modifiers: []
   weaponType: 0
+  weaponBaseDamage: 0
+  weaponBaseAttacksPerSecond: 1
   consumableSubtype: 0
   useActionId: 
   consumeAmountOnUse: 1

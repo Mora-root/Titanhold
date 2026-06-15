@@ -130,7 +130,7 @@ public class PlayerCombat : MonoBehaviour
             return 1f;
 
         float statValue = stats.GetValue(StatType.AttackSpeed);
-        return statValue > 0f ? statValue : 1f;
+        return statValue > 0f ? statValue / 100f : 1f;
     }
 
     private ItemDefinition GetMainHandWeaponDefinition()

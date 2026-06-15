@@ -23,8 +23,10 @@ MonoBehaviour:
   modifiers:
   - type: 6
     modifierType: 0
-    value: 22
+    value: 6
   weaponType: 4
+  weaponBaseDamage: 16
+  weaponBaseAttacksPerSecond: 1
   consumableSubtype: 0
   useActionId: 
   consumeAmountOnUse: 1

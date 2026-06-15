@@ -14,5 +14,8 @@ public enum StatType
     AttackSpeed,
     MoveSpeed,
     AttackRange,
-    Armor
+    Armor,
+
+    HPRegen,
+    ResourceRegen
 }

@@ -19,12 +19,16 @@ MonoBehaviour:
   description: Testing
   category: 0
   maxStack: 1
+  rarity: 0
+  worldPickupVisualPrefab: {fileID: 0}
+  worldPickupEffectPrefab: {fileID: 0}
+  overridePickupLabelColor: 0
+  pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   equipmentSlotType: 1
-  modifiers:
-  - type: 6
-    modifierType: 0
-    value: 10
+  modifiers: []
   weaponType: 1
+  weaponBaseDamage: 9
+  weaponBaseAttacksPerSecond: 1.3
   consumableSubtype: 0
   useActionId: 
   consumeAmountOnUse: 1

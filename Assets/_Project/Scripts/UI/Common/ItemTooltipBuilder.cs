@@ -9,7 +9,7 @@ namespace Titanhold.UI.Common
             if (stack == null || stack.Definition == null)
                 return null;
 
-            return Build(stack.Definition, stack.Amount);
+            return Build(stack.Definition, stack.Amount, stack.Instance);
         }
 
         public static ItemTooltipData Build(global::ItemInstance instance)
@@ -17,7 +17,7 @@ namespace Titanhold.UI.Common
             if (instance == null || instance.Definition == null)
                 return null;
 
-            return Build(instance.Definition, 1);
+            return Build(instance.Definition, 1, instance);
         }
 
         public static ItemTooltipData Build(global::ItemDefinition definition, int amount = 1)
@@ -31,13 +31,20 @@ namespace Titanhold.UI.Common
                 Subtitle = BuildSubtitle(definition),
                 Description = definition.Description,
                 Footer = BuildFooter(definition),
-                SellPriceText = BuildSellPriceText(definition),
+                SellPriceText = BuildSellPriceText(definition, amount),
                 StackText = BuildStackText(definition, amount)
             };
 
             AddEquipmentBlock(data, definition);
             AddModifierBlock(data, definition);
 
+            return data;
+        }
+
+        private static ItemTooltipData Build(global::ItemDefinition definition, int amount, global::ItemInstance instance)
+        {
+            ItemTooltipData data = Build(definition, amount);
+            AddGeneratedModifierBlock(data, definition, instance);
             return data;
         }
 
@@ -71,13 +78,41 @@ namespace Titanhold.UI.Common
             foreach (global::StatModifierData modifier in definition.Modifiers)
             {
                 string value = FormatModifierValue(modifier);
-                lines.Add($"{value} {modifier.Type}");
+                lines.Add($"{value} {FormatStatName(modifier.Type)}");
             }
 
             if (definition.IsWeapon)
                 data.AddBlock("--------", null);
 
             data.AddBlock("Modifiers", lines);
+        }
+
+        private static void AddGeneratedModifierBlock(
+            ItemTooltipData data,
+            global::ItemDefinition definition,
+            global::ItemInstance instance)
+        {
+            if (!definition.IsEquippable || instance == null || instance.GeneratedModifiers == null || instance.GeneratedModifiers.Count == 0)
+                return;
+
+            List<string> lines = new List<string>();
+
+            foreach (global::StatModifierData modifier in instance.GeneratedModifiers)
+            {
+                string value = FormatModifierValue(modifier);
+                lines.Add($"{value} {FormatStatName(modifier.Type)}");
+            }
+
+            if (definition.Modifiers == null || definition.Modifiers.Count == 0)
+            {
+                if (definition.IsWeapon)
+                    data.AddBlock("--------", null);
+
+                data.AddBlock("Modifiers", lines);
+                return;
+            }
+
+            data.AddBlock("Rolled", lines);
         }
 
         private static string BuildFooter(global::ItemDefinition definition)
@@ -173,22 +208,56 @@ namespace Titanhold.UI.Common
             return $"Amount: {amount}";
         }
 
-        private static string BuildSellPriceText(global::ItemDefinition definition)
+        private static string BuildSellPriceText(global::ItemDefinition definition, int amount)
         {
             if (definition == null || definition.SellValue <= 0)
                 return string.Empty;
 
-            return $"Sell: {definition.SellValue}";
+            int safeAmount = System.Math.Max(1, amount);
+            int totalSellValue = definition.SellValue * safeAmount;
+            return $"Sell: {totalSellValue}";
         }
 
         private static string FormatModifierValue(global::StatModifierData modifier)
         {
+            string number = FormatModifierNumber(modifier.Value);
+
             return modifier.ModifierType switch
             {
-                global::StatModifierType.Increased => $"{modifier.Value:+0.##;-0.##;0}%",
-                global::StatModifierType.More => $"{modifier.Value:+0.##;-0.##;0}% more",
-                global::StatModifierType.Override => $"={modifier.Value:0.##}",
-                _ => $"{modifier.Value:+0.##;-0.##;0}"
+                global::StatModifierType.Increased => $"{FormatSignedModifierNumber(modifier.Value)}%",
+                global::StatModifierType.More => $"{FormatSignedModifierNumber(modifier.Value)}% more",
+                global::StatModifierType.Override => IsPercentLikeFlatStat(modifier.Type) ? $"={number}%" : $"={number}",
+                _ => IsPercentLikeFlatStat(modifier.Type)
+                    ? $"{FormatSignedModifierNumber(modifier.Value)}%"
+                    : FormatSignedModifierNumber(modifier.Value)
+            };
+        }
+
+        private static string FormatSignedModifierNumber(float value)
+        {
+            return value > 0f ? $"+{FormatModifierNumber(value)}" : FormatModifierNumber(value);
+        }
+
+        private static string FormatModifierNumber(float value)
+        {
+            return value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static bool IsPercentLikeFlatStat(global::StatType type)
+        {
+            return type == global::StatType.AttackSpeed || type == global::StatType.MoveSpeed;
+        }
+
+        private static string FormatStatName(global::StatType type)
+        {
+            return type switch
+            {
+                global::StatType.MaxHealth => "Max Health",
+                global::StatType.MaxResource => "Max Resource",
+                global::StatType.AttackSpeed => "Attack Speed",
+                global::StatType.MoveSpeed => "Move Speed",
+                global::StatType.AttackRange => "Attack Range",
+                _ => type.ToString()
             };
         }
     }

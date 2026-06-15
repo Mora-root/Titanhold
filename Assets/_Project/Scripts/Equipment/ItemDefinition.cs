@@ -14,6 +14,13 @@ public sealed class ItemDefinition : ScriptableObject
     [SerializeField] private ItemCategory category = ItemCategory.Misc;
     [SerializeField, Min(1)] private int maxStack = 1;
 
+    [Header("World Pickup Presentation")]
+    [SerializeField] private ItemRarity rarity = ItemRarity.Common;
+    [SerializeField] private GameObject worldPickupVisualPrefab;
+    [SerializeField] private GameObject worldPickupEffectPrefab;
+    [SerializeField] private bool overridePickupLabelColor;
+    [SerializeField] private Color pickupLabelColor = Color.white;
+
     [Header("Equipment")]
     [SerializeField] private EquipmentSlotType equipmentSlotType;
     [SerializeField] private StatModifierData[] modifiers;
@@ -55,6 +62,10 @@ public sealed class ItemDefinition : ScriptableObject
     public string CategoryDisplayName => category.ToString();
     public int MaxStack => Mathf.Max(1, maxStack);
     public bool IsStackable => MaxStack > 1;
+    public ItemRarity Rarity => rarity;
+    public GameObject WorldPickupVisualPrefab => worldPickupVisualPrefab;
+    public GameObject WorldPickupEffectPrefab => worldPickupEffectPrefab;
+    public Color PickupLabelColor => overridePickupLabelColor ? pickupLabelColor : ItemRarityUtility.GetColor(rarity);
 
     public bool IsEquipment => category == ItemCategory.Equipment;
     public EquipmentSlotType EquipmentSlotType => IsEquipment ? equipmentSlotType : EquipmentSlotType.None;

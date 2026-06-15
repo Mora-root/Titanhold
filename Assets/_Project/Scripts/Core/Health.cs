@@ -4,16 +4,15 @@ using UnityEngine;
 public class Health : MonoBehaviour, IDamageable
 {
     [SerializeField] private float maxHealth = 100f;
-
-    private CharacterStats stats;
+    [SerializeField] private CharacterStats characterStats;
 
     public float MaxHealth
     {
         get
         {
-            if (stats != null)
+            if (characterStats != null)
             {
-                float statValue = stats.GetValue(StatType.MaxHealth);
+                float statValue = characterStats.GetValue(StatType.MaxHealth);
                 if (statValue > 0f)
                     return statValue;
             }
@@ -33,7 +32,7 @@ public class Health : MonoBehaviour, IDamageable
 
     private void Awake()
     {
-        stats = GetComponent<CharacterStats>();
+        ResolveStats();
 
         CurrentHealth = MaxHealth;
         isDead = false;
@@ -41,14 +40,16 @@ public class Health : MonoBehaviour, IDamageable
 
     private void OnEnable()
     {
-        if (stats != null)
-            stats.OnStatChanged += HandleStatChanged;
+        ResolveStats();
+
+        if (characterStats != null)
+            characterStats.OnStatChanged += HandleStatChanged;
     }
 
     private void OnDisable()
     {
-        if (stats != null)
-            stats.OnStatChanged -= HandleStatChanged;
+        if (characterStats != null)
+            characterStats.OnStatChanged -= HandleStatChanged;
     }
 
     private void Start()
@@ -56,15 +57,19 @@ public class Health : MonoBehaviour, IDamageable
         NotifyHealthChanged();
     }
 
-    public void TakeDamage(float damage)
+    public void TakeDamage(float rawDamage)
     {
         if (isDead) return;
-        if (damage <= 0f) return;
+        if (rawDamage <= 0f) return;
 
-        CurrentHealth -= damage;
+        float armor = characterStats != null ? characterStats.GetValue(StatType.Armor) : 0f;
+        float finalDamage = DamageMitigationCalculator.ApplyArmor(rawDamage, armor);
+        if (finalDamage <= 0f) return;
+
+        CurrentHealth -= finalDamage;
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
 
-        OnDamage?.Invoke(damage);
+        OnDamage?.Invoke(finalDamage);
         NotifyHealthChanged();
 
         if (CurrentHealth <= 0f)
@@ -114,6 +119,16 @@ public class Health : MonoBehaviour, IDamageable
     private void NotifyHealthChanged()
     {
         OnHealthChanged?.Invoke(CurrentHealth, MaxHealth);
+    }
+
+    private void ResolveStats()
+    {
+        if (characterStats != null)
+            return;
+
+        characterStats = GetComponent<CharacterStats>();
+        if (characterStats == null)
+            characterStats = GetComponentInParent<CharacterStats>();
     }
 
 }
