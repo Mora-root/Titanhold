@@ -980,7 +980,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDeathDespawn
   deathNotifier: {fileID: 1053468204614456103}
-  despawnDelay: 8
+  despawnDelay: 3
 --- !u!114 &2336442229512062148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1039,6 +1039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 80
+  characterStats: {fileID: 0}
 --- !u!114 &6383613624202774284
 MonoBehaviour:
   m_ObjectHideFlags: 0

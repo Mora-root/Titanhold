@@ -10,22 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
-  m_Name: TwoHand_Axe_Test
+  m_Name: Chest_Test
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  id: twohand_axe_test
-  displayName: TwoHand Axe Test
-  shortName: TwoHand Axe
+  id: chest_Test
+  displayName: Chest Test
+  shortName: Chest
   icon: {fileID: 0}
   description: Testing
   category: 0
   maxStack: 1
-  equipmentSlotType: 1
-  modifiers:
-  - type: 6
-    modifierType: 0
-    value: 6
-  weaponType: 4
-  weaponBaseDamage: 16
+  rarity: 0
+  worldPickupVisualPrefab: {fileID: 0}
+  worldPickupEffectPrefab: {fileID: 0}
+  overridePickupLabelColor: 0
+  pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
+  equipmentSlotType: 4
+  equipmentBaseArmor: 15
+  modifiers: []
+  weaponType: 0
+  weaponBaseDamage: 0
   weaponBaseAttacksPerSecond: 1
   consumableSubtype: 0
   useActionId: 

@@ -107,6 +107,9 @@ public sealed class EquipmentStatsBinder : MonoBehaviour
         if (definition.IsWeapon && definition.WeaponBaseDamage > 0f)
             characterStats.AddModifier(new StatModifier(StatType.Damage, StatModifierType.Flat, definition.WeaponBaseDamage), source);
 
+        if (definition.EquipmentBaseArmor > 0f)
+            characterStats.AddModifier(new StatModifier(StatType.Armor, StatModifierType.Flat, definition.EquipmentBaseArmor), source);
+
         characterStats.AddModifiers(definition.Modifiers, source);
         characterStats.AddModifiers(item.GeneratedModifiers, source);
     }

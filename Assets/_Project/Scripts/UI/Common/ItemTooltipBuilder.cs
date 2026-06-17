@@ -66,6 +66,13 @@ namespace Titanhold.UI.Common
                     $"Attack Speed: {definition.WeaponBaseAttacksPerSecond:0.##}/s"
                 });
             }
+            else if (definition.EquipmentBaseArmor > 0f)
+            {
+                data.AddBlock(string.Empty, new[]
+                {
+                    $"Armor: {definition.EquipmentBaseArmor:0.##}"
+                });
+            }
         }
 
         private static void AddModifierBlock(ItemTooltipData data, global::ItemDefinition definition)

@@ -16,6 +16,7 @@ public static class CharacterStatsValidationRunner
             ValidateSourceRemoval(stats);
             ValidateEquipmentSlotSources(stats);
             ValidateItemInstanceGeneratedModifiers();
+            ValidateEquipmentBaseArmor();
             ValidateAttributeDerivedStats();
 
             Debug.Log("CharacterStats validation passed.");
@@ -126,6 +127,37 @@ public static class CharacterStatsValidationRunner
         }
     }
 
+    private static void ValidateEquipmentBaseArmor()
+    {
+        GameObject gameObject = new("EquipmentBaseArmorValidation");
+        ItemDefinition chestArmor = ScriptableObject.CreateInstance<ItemDefinition>();
+
+        try
+        {
+            ConfigureEquipmentArmor(chestArmor);
+
+            CharacterStats stats = gameObject.AddComponent<CharacterStats>();
+            PlayerInventory inventory = gameObject.AddComponent<PlayerInventory>();
+            PlayerEquipmentRuntime runtime = gameObject.AddComponent<PlayerEquipmentRuntime>();
+            runtime.SetPlayerInventory(inventory);
+            EquipmentStatsBinder binder = gameObject.AddComponent<EquipmentStatsBinder>();
+            binder.Refresh();
+
+            ItemInstance armorInstance = new(chestArmor);
+
+            Assert(runtime.Equipment.TrySetSlot(EquipmentSlotId.Chest, armorInstance), "Base armor equip failed.");
+            AssertApproximately(stats.GetValue(StatType.Armor), 25f, "Equipment base armor applied");
+
+            Assert(ReferenceEquals(runtime.Equipment.ClearSlot(EquipmentSlotId.Chest), armorInstance), "Base armor clear failed.");
+            AssertApproximately(stats.GetValue(StatType.Armor), 0f, "Equipment base armor removed");
+        }
+        finally
+        {
+            Object.DestroyImmediate(chestArmor);
+            Object.DestroyImmediate(gameObject);
+        }
+    }
+
     private static void ValidateAttributeDerivedStats()
     {
         GameObject gameObject = new("AttributeDerivedStatsValidation");
@@ -186,6 +218,17 @@ public static class CharacterStatsValidationRunner
         serialized.FindProperty("weaponType").enumValueIndex = (int)WeaponType.OneHandSword;
         serialized.FindProperty("weaponBaseDamage").floatValue = 0f;
         serialized.FindProperty("weaponBaseAttacksPerSecond").floatValue = 1f;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void ConfigureEquipmentArmor(ItemDefinition definition)
+    {
+        SerializedObject serialized = new(definition);
+        serialized.FindProperty("id").stringValue = "validation_base_armor_chest";
+        serialized.FindProperty("displayName").stringValue = "Validation Base Armor Chest";
+        serialized.FindProperty("category").enumValueIndex = (int)ItemCategory.Equipment;
+        serialized.FindProperty("equipmentSlotType").enumValueIndex = (int)EquipmentSlotType.Chest;
+        serialized.FindProperty("equipmentBaseArmor").floatValue = 25f;
         serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 

@@ -7,6 +7,7 @@ public class PlayerResource : MonoBehaviour
     [SerializeField] private float startResource = 100f;
     [SerializeField] private float regenerationPerSecond = 5f;
     [SerializeField] private CharacterStats characterStats;
+    [SerializeField] private PlayerExperience playerExperience;
 
     public float MaxResource
     {
@@ -29,22 +30,28 @@ public class PlayerResource : MonoBehaviour
 
     private void Awake()
     {
-        ResolveStats();
+        ResolveReferences();
         CurrentResource = Mathf.Clamp(startResource, 0f, MaxResource);
     }
 
     private void OnEnable()
     {
-        ResolveStats();
+        ResolveReferences();
 
         if (characterStats != null)
             characterStats.OnStatChanged += HandleStatChanged;
+
+        if (playerExperience != null)
+            playerExperience.OnLevelChanged += HandleLevelChanged;
     }
 
     private void OnDisable()
     {
         if (characterStats != null)
             characterStats.OnStatChanged -= HandleStatChanged;
+
+        if (playerExperience != null)
+            playerExperience.OnLevelChanged -= HandleLevelChanged;
     }
 
     private void Start()
@@ -84,6 +91,12 @@ public class PlayerResource : MonoBehaviour
         NotifyResourceChanged();
     }
 
+    public void RestoreFull()
+    {
+        CurrentResource = MaxResource;
+        NotifyResourceChanged();
+    }
+
     public void TickRegeneration(float deltaTime)
     {
         if (deltaTime <= 0f) return;
@@ -107,6 +120,11 @@ public class PlayerResource : MonoBehaviour
         NotifyResourceChanged();
     }
 
+    private void HandleLevelChanged(int level)
+    {
+        RestoreFull();
+    }
+
     private void NotifyResourceChanged()
     {
         OnResourceChanged?.Invoke(CurrentResource, MaxResource);
@@ -120,13 +138,24 @@ public class PlayerResource : MonoBehaviour
         return regenerationPerSecond;
     }
 
-    private void ResolveStats()
+    private void ResolveReferences()
     {
-        if (characterStats != null)
-            return;
-
-        characterStats = GetComponent<CharacterStats>();
         if (characterStats == null)
+        {
+            characterStats = GetComponent<CharacterStats>();
+        }
+        if (characterStats == null)
+        {
             characterStats = GetComponentInParent<CharacterStats>();
+        }
+
+        if (playerExperience == null)
+        {
+            playerExperience = GetComponent<PlayerExperience>();
+        }
+        if (playerExperience == null)
+        {
+            playerExperience = GetComponentInParent<PlayerExperience>();
+        }
     }
 }

@@ -23,6 +23,7 @@ public sealed class ItemDefinition : ScriptableObject
 
     [Header("Equipment")]
     [SerializeField] private EquipmentSlotType equipmentSlotType;
+    [SerializeField, Min(0f)] private float equipmentBaseArmor;
     [SerializeField] private StatModifierData[] modifiers;
 
     [Header("Weapon")]
@@ -73,6 +74,7 @@ public sealed class ItemDefinition : ScriptableObject
     public bool IsWeapon => IsEquipment && equipmentSlotType == EquipmentSlotType.Weapon;
     public bool IsShield => IsEquipment && equipmentSlotType == EquipmentSlotType.Shield;
     public bool IsArtifact => IsEquipment && equipmentSlotType == EquipmentSlotType.Artifact;
+    public float EquipmentBaseArmor => IsEquippable && !IsWeapon ? Mathf.Max(0f, equipmentBaseArmor) : 0f;
     public WeaponType WeaponType => IsWeapon ? weaponType : WeaponType.None;
     public WeaponFamily WeaponFamily => GetWeaponFamily(WeaponType);
     public WeaponHandedness WeaponHandedness => GetWeaponHandedness(WeaponType);
@@ -112,6 +114,7 @@ public sealed class ItemDefinition : ScriptableObject
     private void OnValidate()
     {
         maxStack = Mathf.Max(1, maxStack);
+        equipmentBaseArmor = Mathf.Max(0f, equipmentBaseArmor);
         weaponBaseDamage = Mathf.Max(0f, weaponBaseDamage);
         weaponBaseAttacksPerSecond = Mathf.Max(0.01f, weaponBaseAttacksPerSecond);
         consumeAmountOnUse = Mathf.Max(1, consumeAmountOnUse);
