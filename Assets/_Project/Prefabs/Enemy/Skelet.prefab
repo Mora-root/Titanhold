@@ -897,7 +897,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
   attackCooldown: 1
   attackRange: 1.4
-  damage: 10
+  damage: 25
 --- !u!114 &6639298528611623125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1040,6 +1040,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 80
   characterStats: {fileID: 0}
+  playerExperience: {fileID: 0}
 --- !u!114 &6383613624202774284
 MonoBehaviour:
   m_ObjectHideFlags: 0

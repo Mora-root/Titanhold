@@ -108,6 +108,7 @@ public static class EquipmentServiceValidationRunner
                 WeaponType.OneHandSword);
 
             ValidateCompatibleOneHandSequence(gameObjects, oneHandSword);
+            ValidateCompatibleOneHandSwap(gameObjects, oneHandSword);
             ValidateIncompatibleOneHandSequence(gameObjects, oneHandSword, oneHandAxe);
             ValidateReverseIncompatibleOneHandSequence(gameObjects, oneHandSword, oneHandAxe);
             ValidateShieldKeepsMainHand(gameObjects, oneHandSword, shield);
@@ -172,6 +173,27 @@ public static class EquipmentServiceValidationRunner
         Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordB), "OffHand compatible weapon should remain equipped.");
         Assert(ContainsInstance(inventory, swordAId), "Replaced MainHand compatible weapon should return to inventory.");
         Assert(!ContainsInstance(inventory, swordC.InstanceId), "Equipped third weapon should not remain in inventory.");
+    }
+
+    private static void ValidateCompatibleOneHandSwap(List<GameObject> gameObjects, ItemDefinition oneHandSword)
+    {
+        PlayerInventory inventory = CreateInventory(gameObjects, 2);
+        CharacterEquipment equipment = new CharacterEquipment();
+        EquipmentService service = new EquipmentService(inventory, equipment);
+        ItemInstance swordA = AddAndEquip(inventory, service, oneHandSword);
+        ItemInstance swordB = AddAndEquip(inventory, service, oneHandSword);
+        string swordAId = swordA.InstanceId;
+        string swordBId = swordB.InstanceId;
+
+        EquipmentOperationResult result = service.TrySwapEquippedSlots(
+            EquipmentSlotId.MainHand,
+            EquipmentSlotId.OffHand);
+
+        Assert(result.Success, "Compatible one-handed weapon swap failed.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.MainHand), swordB), "OffHand sword should move to MainHand.");
+        Assert(ReferenceEquals(equipment.GetEquipped(EquipmentSlotId.OffHand), swordA), "MainHand sword should move to OffHand.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.MainHand).InstanceId == swordBId, "MainHand swap should preserve ItemInstance identity.");
+        Assert(equipment.GetEquipped(EquipmentSlotId.OffHand).InstanceId == swordAId, "OffHand swap should preserve ItemInstance identity.");
     }
 
     private static void ValidateIncompatibleOneHandSequence(

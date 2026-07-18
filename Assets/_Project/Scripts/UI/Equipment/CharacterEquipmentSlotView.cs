@@ -158,7 +158,11 @@ namespace Titanhold.UI.Equipment
             }
 
             if (nameText != null)
-                nameText.text = definition.DisplayName;
+            {
+                bool showFallbackName = icon == null;
+                nameText.text = showFallbackName ? definition.ShortName : string.Empty;
+                nameText.gameObject.SetActive(showFallbackName);
+            }
 
             if (emptyState != null)
                 emptyState.SetActive(false);
@@ -176,7 +180,10 @@ namespace Titanhold.UI.Equipment
             }
 
             if (nameText != null)
+            {
                 nameText.text = string.Empty;
+                nameText.gameObject.SetActive(false);
+            }
 
             if (emptyState != null)
                 emptyState.SetActive(true);

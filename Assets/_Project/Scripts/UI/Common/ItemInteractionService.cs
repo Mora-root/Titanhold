@@ -126,6 +126,10 @@ namespace Titanhold.UI.Common
             {
                 UnequipToContainerSlot(source, target);
             }
+            else if (source.IsEquipmentSlot && target.IsEquipmentSlot)
+            {
+                SwapEquippedSlots(source, target);
+            }
 
             EndDrag();
         }
@@ -388,6 +392,20 @@ namespace Titanhold.UI.Common
 
             Debug.Log(
                 $"{nameof(ItemInteractionService)} unequip-to-slot: Success={result.Success}, Error={result.Error}, Slot={source.EquipmentSlotId}",
+                this);
+        }
+
+        private void SwapEquippedSlots(global::ItemSlotRef source, global::ItemSlotRef target)
+        {
+            global::EquipmentService service = ResolveEquipmentService(source.EquipmentOwner);
+            if (service == null || !ReferenceEquals(source.EquipmentOwner, target.EquipmentOwner))
+                return;
+
+            global::EquipmentOperationResult result = service.TrySwapEquippedSlots(
+                source.EquipmentSlotId,
+                target.EquipmentSlotId);
+            Debug.Log(
+                $"{nameof(ItemInteractionService)} equipment swap: Success={result.Success}, Error={result.Error}, TargetSlot={result.TargetSlot}",
                 this);
         }
 

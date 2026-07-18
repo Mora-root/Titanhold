@@ -12,6 +12,56 @@ public sealed class EquipmentService
         this.equipment = equipment;
     }
 
+    public EquipmentOperationResult TrySwapEquippedSlots(EquipmentSlotId sourceSlot, EquipmentSlotId targetSlot)
+    {
+        if (equipment == null)
+            return EquipmentOperationResult.Failed(EquipmentOperationError.MissingEquipment, targetSlot);
+
+        if (!IsMainHandOffHandPair(sourceSlot, targetSlot))
+        {
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.InvalidTargetSlot,
+                targetSlot,
+                message: "Only MainHand and OffHand can be swapped directly.");
+        }
+
+        ItemInstance mainHandInstance = equipment.GetEquipped(EquipmentSlotId.MainHand);
+        ItemInstance offHandInstance = equipment.GetEquipped(EquipmentSlotId.OffHand);
+        if (mainHandInstance == null || offHandInstance == null)
+        {
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.EmptyInventorySlot,
+                targetSlot,
+                message: "Both hand slots must contain an item to swap.");
+        }
+
+        if (!AreDualWieldCompatible(mainHandInstance.Definition, offHandInstance.Definition))
+        {
+            return EquipmentOperationResult.Failed(
+                EquipmentOperationError.InvalidTargetSlot,
+                targetSlot,
+                message: "Only compatible one-handed weapons can be swapped between hands.");
+        }
+
+        if (!ReferenceEquals(equipment.ClearSlot(EquipmentSlotId.MainHand), mainHandInstance) ||
+            !ReferenceEquals(equipment.ClearSlot(EquipmentSlotId.OffHand), offHandInstance))
+        {
+            RestoreHandSwapState(mainHandInstance, offHandInstance);
+            return EquipmentOperationResult.Failed(EquipmentOperationError.RollbackFailed, targetSlot);
+        }
+
+        if (!equipment.TrySetSlot(EquipmentSlotId.MainHand, offHandInstance) ||
+            !equipment.TrySetSlot(EquipmentSlotId.OffHand, mainHandInstance))
+        {
+            bool rolledBack = RestoreHandSwapState(mainHandInstance, offHandInstance);
+            return EquipmentOperationResult.Failed(
+                rolledBack ? EquipmentOperationError.CannotSetEquipmentSlot : EquipmentOperationError.RollbackFailed,
+                targetSlot);
+        }
+
+        return EquipmentOperationResult.Succeeded(targetSlot, offHandInstance, message: "Swapped compatible one-handed weapons.");
+    }
+
     public EquipmentOperationResult TryEquipFromInventory(ItemCategory category, int slotIndex)
     {
         EquipmentOperationResult validation = ValidateEquipSource(category, slotIndex, out ItemStack sourceStack, out ItemInstance instance);
@@ -235,6 +285,13 @@ public sealed class EquipmentService
         bool restoredMainHand = equipment.TrySetSlot(EquipmentSlotId.MainHand, mainHandInstance);
         bool restoredOffHand = equipment.TrySetSlot(EquipmentSlotId.OffHand, offHandInstance);
         return restoredMainHand && restoredOffHand;
+    }
+
+    private bool RestoreHandSwapState(ItemInstance mainHandInstance, ItemInstance offHandInstance)
+    {
+        equipment.ClearSlot(EquipmentSlotId.MainHand);
+        equipment.ClearSlot(EquipmentSlotId.OffHand);
+        return RestoreDualWieldState(mainHandInstance, offHandInstance);
     }
 
     private bool RestoreMainHandAfterFailedNormalization(ItemInstance mainHandInstance)
@@ -670,6 +727,12 @@ public sealed class EquipmentService
         return IsOneHandWeapon(first) &&
                IsOneHandWeapon(second) &&
                first.WeaponFamily == second.WeaponFamily;
+    }
+
+    private static bool IsMainHandOffHandPair(EquipmentSlotId first, EquipmentSlotId second)
+    {
+        return (first == EquipmentSlotId.MainHand && second == EquipmentSlotId.OffHand) ||
+               (first == EquipmentSlotId.OffHand && second == EquipmentSlotId.MainHand);
     }
 
     private static IReadOnlyList<ItemInstance> GetInstances(List<EquippedSlotSnapshot> slots)
