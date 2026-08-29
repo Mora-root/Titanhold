@@ -22,6 +22,7 @@ namespace Titanhold.Combat
         public CombatActorKind Kind { get; }
         public bool IsValid => !string.IsNullOrWhiteSpace(ActorId) && Kind != CombatActorKind.Unknown;
         public bool IsPlayer => Kind == CombatActorKind.Player;
+        public bool IsEnemy => Kind == CombatActorKind.Enemy;
 
         public static CombatActorReference Unknown => default;
 
