@@ -16862,6 +16862,7 @@ GameObject:
   - component: {fileID: 1489734142}
   - component: {fileID: 1489734141}
   - component: {fileID: 1489734140}
+  - component: {fileID: 1489734144}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -16937,6 +16938,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1489734144
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43d330b9c9dd58249980d7437ca1bf2c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunPortalSpawner
+  runFlowRuntime: {fileID: 1489734142}
+  portalPrefab: {fileID: 528172994777043906, guid: dc702212f34521046aea67b55bdde52c, type: 3}
+  localPlayer: {fileID: 0}
+  spawnDistance: 3
+  navMeshSampleDistance: 3
+  heightOffset: 0.05
 --- !u!1 &1520226449
 GameObject:
   m_ObjectHideFlags: 0

@@ -127,7 +127,8 @@ namespace Titanhold.Run
                 return;
 
             Vector3 position = ResolveSpawnPosition(localPlayer);
-            activePortal = Instantiate(portalPrefab, position, portalPrefab.transform.rotation);
+            Quaternion rotation = ResolveSpawnRotation(localPlayer, position);
+            activePortal = Instantiate(portalPrefab, position, rotation);
             activePortal.Initialize(runFlowRuntime, roundNumber);
             activePortal.gameObject.SetActive(true);
             PortalSpawned?.Invoke(activePortal);
@@ -151,6 +152,17 @@ namespace Titanhold.Run
 
             candidate.y += heightOffset;
             return candidate;
+        }
+
+        private Quaternion ResolveSpawnRotation(Transform player, Vector3 portalPosition)
+        {
+            Vector3 directionToPlayer = Vector3.ProjectOnPlane(
+                player.position - portalPosition,
+                Vector3.up);
+            if (directionToPlayer.sqrMagnitude <= 0.0001f)
+                return portalPrefab.transform.rotation;
+
+            return Quaternion.LookRotation(directionToPlayer.normalized, Vector3.up);
         }
 
         private void RemovePortal()

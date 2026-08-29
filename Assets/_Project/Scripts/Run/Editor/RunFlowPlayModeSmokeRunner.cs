@@ -59,7 +59,6 @@ namespace Titanhold.Run.Editor
         private static void RunSmokeTestInPlayMode()
         {
             GameObject temporaryEnemy = null;
-            GameObject portalTemplate = null;
 
             try
             {
@@ -83,16 +82,10 @@ namespace Titanhold.Run.Editor
                 Assert(playerCombat != null,
                     "PlayerCombat was not found for portal smoke validation.");
 
-                portalTemplate = new GameObject("RunPortal_PlayModeTemplate");
-                RunPortalInteractable portalTemplateComponent =
-                    portalTemplate.AddComponent<RunPortalInteractable>();
-                portalTemplate.SetActive(false);
                 RunPortalSpawner portalSpawner =
-                    runtime.gameObject.AddComponent<RunPortalSpawner>();
-                portalSpawner.Configure(
-                    runtime,
-                    portalTemplateComponent,
-                    playerCombat.transform);
+                    runtime.GetComponent<RunPortalSpawner>();
+                Assert(portalSpawner != null,
+                    "Serialized RunPortalSpawner wiring was not found in Play Mode.");
 
                 temporaryEnemy = new GameObject("RunFlow_PlayModeSmokeEnemy");
                 EnemyRunContributionSource contributionSource =
@@ -133,6 +126,10 @@ namespace Titanhold.Run.Editor
                     "Play Mode lethal report did not open the portal phase.");
                 Assert(portalSpawner.HasActivePortal,
                     "RunPortalSpawner did not create a portal near the player.");
+                int interactableLayer = LayerMask.NameToLayer("Interactable");
+                Assert(interactableLayer >= 0 &&
+                       portalSpawner.ActivePortal.gameObject.layer == interactableLayer,
+                    "Spawned portal does not use the Interactable layer.");
 
                 portalSpawner.ActivePortal.Interact(playerCombat.gameObject);
 
@@ -151,9 +148,6 @@ namespace Titanhold.Run.Editor
             {
                 if (temporaryEnemy != null)
                     UnityEngine.Object.Destroy(temporaryEnemy);
-
-                if (portalTemplate != null)
-                    UnityEngine.Object.Destroy(portalTemplate);
 
                 SessionState.SetBool(SessionKey, false);
                 EditorApplication.isPlaying = false;
