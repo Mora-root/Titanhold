@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Titanhold.Combat;
 using UnityEngine;
@@ -15,8 +16,11 @@ public class PlayerSkillExecutor : MonoBehaviour
     private SkillData currentSkill;
     private CombatActorReference combatActor;
     private CombatExecutionId currentExecutionId;
+    private bool effectReleased;
 
     public bool IsUsingSkill { get; private set; }
+
+    public event Action<CombatExecutionReport> ExecutionResolved;
 
     private void Awake()
     {
@@ -48,6 +52,7 @@ public class PlayerSkillExecutor : MonoBehaviour
 
         currentSkill = skill;
         currentExecutionId = CombatExecutionId.New();
+        effectReleased = false;
         IsUsingSkill = true;
 
         lastUseTimes[skill] = Time.time;
@@ -67,12 +72,14 @@ public class PlayerSkillExecutor : MonoBehaviour
 
     public void ApplyCurrentSkill()
     {
-        if (currentSkill == null) return;
+        if (!IsUsingSkill || currentSkill == null || effectReleased)
+            return;
 
-        ApplyAreaDamage(currentSkill);
+        effectReleased = true;
+        ExecutionResolved?.Invoke(ApplyAreaDamage(currentSkill));
     }
 
-    private void ApplyAreaDamage(SkillData skill)
+    private CombatExecutionReport ApplyAreaDamage(SkillData skill)
     {
         Collider[] hits = Physics.OverlapSphere(
             transform.position,
@@ -89,6 +96,8 @@ public class PlayerSkillExecutor : MonoBehaviour
         string abilityId = string.IsNullOrWhiteSpace(skill.name)
             ? "legacy:unknown"
             : $"legacy:{skill.name}";
+        currentExecutionId = executionId;
+        List<DamageTargetResolution> resolutions = new List<DamageTargetResolution>();
 
         foreach (var hit in hits)
         {
@@ -98,7 +107,7 @@ public class PlayerSkillExecutor : MonoBehaviour
                 continue;
 
             if (damageable is Component damageableComponent &&
-        damageableComponent.transform.root == transform.root)
+                damageableComponent.transform.root == transform.root)
                 continue;
 
             if (damagedTargets.Contains(damageable))
@@ -111,8 +120,11 @@ public class PlayerSkillExecutor : MonoBehaviour
                 finalDamage,
                 DamageCause.Ability,
                 abilityId);
-            damageable.ApplyDamageRequest(request);
+            DamageResult result = damageable.ApplyDamageRequest(request);
+            resolutions.Add(new DamageTargetResolution(damageable, result));
         }
+
+        return new CombatExecutionReport(executionId, resolutions);
     }
 
     public void FinishCurrentSkill()
@@ -120,6 +132,7 @@ public class PlayerSkillExecutor : MonoBehaviour
         IsUsingSkill = false;
         currentSkill = null;
         currentExecutionId = default;
+        effectReleased = true;
     }
 
     private void OnDrawGizmosSelected()

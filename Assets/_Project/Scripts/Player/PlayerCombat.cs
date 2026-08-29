@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using Titanhold.Combat;
 using UnityEngine;
 
@@ -16,11 +16,14 @@ public class PlayerCombat : MonoBehaviour
     private ITargetable currentTarget;
     private CombatActorReference combatActor;
     private CombatExecutionId currentExecutionId;
+    private bool damageReleased;
 
     private PlayerAnimator animator;
 
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
+
+    public event Action<CombatExecutionReport> ExecutionResolved;
 
     public float AttacksPerSecond
     {
@@ -79,9 +82,11 @@ public class PlayerCombat : MonoBehaviour
         if (isAttacking) return;
         if (!CanAttack()) return;
         if (target == null || !target.IsTargetable) return;
+        if (animator == null) return;
 
         currentTarget = target;
         currentExecutionId = CombatExecutionId.New();
+        damageReleased = false;
         lastAttackTime = Time.time;
 
         isAttacking = true;
@@ -91,8 +96,20 @@ public class PlayerCombat : MonoBehaviour
     // Called fron animation(Event)
     public void ApplyDamage()
     {
-        if (currentTarget == null) return;
-        if (!currentTarget.IsTargetable) return;
+        if (!isAttacking || damageReleased)
+            return;
+
+        damageReleased = true;
+        CombatExecutionId executionId = currentExecutionId.IsValid
+            ? currentExecutionId
+            : CombatExecutionId.New();
+        currentExecutionId = executionId;
+
+        if (currentTarget == null || !currentTarget.IsTargetable)
+        {
+            ExecutionResolved?.Invoke(CombatExecutionReport.Empty(executionId));
+            return;
+        }
 
         float distance = Vector3.Distance(
             transform.position,
@@ -101,15 +118,27 @@ public class PlayerCombat : MonoBehaviour
 
         // Damage radius
         if (distance > AttackRange * multiplierDamageRadius)
+        {
+            ExecutionResolved?.Invoke(CombatExecutionReport.Empty(executionId));
             return;
+        }
 
         var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
+        if (damageable == null)
+        {
+            ExecutionResolved?.Invoke(CombatExecutionReport.Empty(executionId));
+            return;
+        }
+
         DamageRequest request = new DamageRequest(
-            currentExecutionId.IsValid ? currentExecutionId : CombatExecutionId.New(),
+            executionId,
             combatActor,
             Damage,
             DamageCause.BasicAttack);
-        damageable.ApplyDamageRequest(request);
+        DamageResult result = damageable.ApplyDamageRequest(request);
+        ExecutionResolved?.Invoke(CombatExecutionReport.Single(
+            executionId,
+            new DamageTargetResolution(damageable, result)));
 
     }
 
@@ -124,6 +153,7 @@ public class PlayerCombat : MonoBehaviour
         isAttacking = false;
         currentTarget = null;
         currentExecutionId = default;
+        damageReleased = true;
         animator?.ResetPlaybackSpeed();
     }
 
