@@ -22,6 +22,14 @@ public class PlayerCombat : MonoBehaviour
 
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
+    public CombatActorReference ActorReference
+    {
+        get
+        {
+            EnsureActorReference();
+            return combatActor;
+        }
+    }
 
     public event Action<CombatExecutionReport> ExecutionResolved;
 
@@ -67,7 +75,7 @@ public class PlayerCombat : MonoBehaviour
             equipmentRuntime = GetComponent<PlayerEquipmentRuntime>();
 
         animator = GetComponentInChildren<PlayerAnimator>();
-        combatActor = new CombatActorReference($"player:{gameObject.GetEntityId()}", CombatActorKind.Player);
+        EnsureActorReference();
     }
 
     // Check kd
@@ -182,5 +190,15 @@ public class PlayerCombat : MonoBehaviour
         ItemDefinition definition = mainHand != null ? mainHand.Definition : null;
 
         return definition != null && definition.IsWeapon ? definition : null;
+    }
+
+    private void EnsureActorReference()
+    {
+        if (combatActor.IsValid)
+            return;
+
+        combatActor = new CombatActorReference(
+            $"player:{gameObject.GetEntityId()}",
+            CombatActorKind.Player);
     }
 }

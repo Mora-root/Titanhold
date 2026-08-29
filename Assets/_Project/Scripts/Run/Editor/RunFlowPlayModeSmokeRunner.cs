@@ -22,6 +22,13 @@ namespace Titanhold.Run.Editor
         [MenuItem(MenuPath)]
         public static void StartSmokeTest()
         {
+            if (EditorApplication.isPlaying)
+            {
+                SessionState.SetBool(SessionKey, true);
+                EditorApplication.delayCall += RunSmokeTestInPlayMode;
+                return;
+            }
+
             if (EditorApplication.isPlayingOrWillChangePlaymode)
             {
                 Debug.LogError("Run Flow Play Mode smoke test cannot start while Play Mode is changing.");
@@ -52,6 +59,7 @@ namespace Titanhold.Run.Editor
         private static void RunSmokeTestInPlayMode()
         {
             GameObject temporaryEnemy = null;
+            GameObject portalTemplate = null;
 
             try
             {
@@ -70,9 +78,29 @@ namespace Titanhold.Run.Editor
                 Assert(runtime.State.Phase == RunPhase.Exploration,
                     "Run Flow did not start in Exploration.");
 
+                PlayerCombat playerCombat =
+                    UnityEngine.Object.FindAnyObjectByType<PlayerCombat>();
+                Assert(playerCombat != null,
+                    "PlayerCombat was not found for portal smoke validation.");
+
+                portalTemplate = new GameObject("RunPortal_PlayModeTemplate");
+                RunPortalInteractable portalTemplateComponent =
+                    portalTemplate.AddComponent<RunPortalInteractable>();
+                portalTemplate.SetActive(false);
+                RunPortalSpawner portalSpawner =
+                    runtime.gameObject.AddComponent<RunPortalSpawner>();
+                portalSpawner.Configure(
+                    runtime,
+                    portalTemplateComponent,
+                    playerCombat.transform);
+
                 temporaryEnemy = new GameObject("RunFlow_PlayModeSmokeEnemy");
                 EnemyRunContributionSource contributionSource =
                     temporaryEnemy.AddComponent<EnemyRunContributionSource>();
+                SerializedObject serializedContribution =
+                    new SerializedObject(contributionSource);
+                serializedContribution.FindProperty("threatAmount").floatValue = 100f;
+                serializedContribution.ApplyModifiedPropertiesWithoutUndo();
                 Health health = temporaryEnemy.GetComponent<Health>();
                 CombatExecutionId executionId = CombatExecutionId.New();
                 CombatActorReference player = new CombatActorReference(
@@ -101,6 +129,17 @@ namespace Titanhold.Run.Editor
                 Assert(result.Success, $"Play Mode kill batch failed: {result.Error}.");
                 Assert(Math.Abs(runtime.State.CurrentThreat - contributionSource.ThreatAmount) <= 0.0001f,
                     "Play Mode Threat did not match the enemy contribution.");
+                Assert(runtime.State.Phase == RunPhase.PortalOpen,
+                    "Play Mode lethal report did not open the portal phase.");
+                Assert(portalSpawner.HasActivePortal,
+                    "RunPortalSpawner did not create a portal near the player.");
+
+                portalSpawner.ActivePortal.Interact(playerCombat.gameObject);
+
+                Assert(runtime.State.Phase == RunPhase.TransitionToAssault,
+                    "Portal interaction did not begin the Assault transition.");
+                Assert(!portalSpawner.HasActivePortal,
+                    "RunPortalSpawner retained the portal after entry.");
 
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
@@ -112,6 +151,9 @@ namespace Titanhold.Run.Editor
             {
                 if (temporaryEnemy != null)
                     UnityEngine.Object.Destroy(temporaryEnemy);
+
+                if (portalTemplate != null)
+                    UnityEngine.Object.Destroy(portalTemplate);
 
                 SessionState.SetBool(SessionKey, false);
                 EditorApplication.isPlaying = false;
