@@ -1,355 +1,169 @@
 # Titanhold — Current GDD Summary
 
-This document is the current short-form design reference for daily development.
+This document is the current short-form design reference for implementation.
 
-The full GDD may contain more details, but this file defines the current practical direction for implementation.
+The existing CampCore defense code is an older prototype. It remains available as legacy code while the new run loop is built side-by-side, but it is not the foundation for the vertical slice.
 
 ## Game Identity
 
-Titanhold is a Unity isometric ARPG/RPG with camp defense.
+Titanhold is a solo-first isometric action RPG with run-based progression, loot, character building, exploration, and dedicated Assault encounters.
 
-The game is not a pure tower defense and not a tower defense game with a hero. The main activity is ARPG gameplay:
+The first release is single-player. The architecture should allow future host-authoritative cooperative play for four players and later up to eight, without adding networking code now.
 
-- exploring locations;
-- fighting enemies;
-- gaining XP;
-- collecting loot;
-- gathering resources;
-- completing quests;
-- improving the hero;
-- improving the camp;
-- progressing through acts.
+The intended combat rhythm is deliberate and readable rather than high-APM screen clearing. Positioning, target priority, cooldowns, build choices, and enemy composition should matter.
 
-Camp defense is a pressure layer that periodically interrupts or complements exploration.
+## Current Core Loop
 
-## Core Fantasy
+```text
+Run preparation
+→ explore a location
+→ kill enemies and collect RunXP, RunGold, and loot
+→ fill the Threat Meter
+→ open a portal to the Assault arena
+→ optionally keep farming while Rift Instability grows
+→ enter the portal
+→ complete the Assault
+→ receive the Assault chest and use the intermission shop
+→ return to the same exploration location
+→ repeat until the final encounter
+→ settle the run and return to camp
+```
 
-The player explores dangerous locations and provokes danger through their actions.
+The player protects no CampCore, crystal, tower, or other defense object in the current vertical-slice direction. A protected-object activity may be reconsidered later as separate content.
 
-The more active the player is, the more the Threat Meter grows. When the threat becomes critical, enemies attack the active camp.
+## Vertical Slice Goal
 
-The player must decide:
+The first playable build should prove one complete cycle:
 
-- continue exploring and risk being far from camp;
-- return to prepare;
-- manually start the wave;
-- delay the wave if the camp has the required resources.
+1. Explore one existing location.
+2. Fight naturally respawning world enemies.
+3. Gain RunXP, RunGold, and loot.
+4. Fill Threat through eligible exploration kills.
+5. Open a portal near the player.
+6. Optionally continue farming and raise Rift Instability.
+7. Enter a separate Assault arena.
+8. Defeat an Assault encounter with gradual reinforcement batches.
+9. Receive a simple reward.
+10. Return to the same exploration location.
 
-## Core Gameplay Loop
+After this cycle works reliably, the slice expands to three exploration/Assault rounds in one biome. The third Assault ends with a mini-boss or the slice boss.
 
-Camp preparation  
-→ exploration  
-→ combat  
-→ XP / loot / resources  
-→ Threat Meter growth  
-→ pending wave warning  
-→ return to camp or continue risking  
-→ camp defense  
-→ rewards or consequences  
-→ upgrade hero and camp  
-→ progress through act  
-→ defeat act boss  
-→ move Main Camp to next act
+## Exploration and Threat
 
-## Design Pillars
+Threat belongs to the active run cycle, not to an enemy, scene object, camp building, or generic Health component.
 
-### 1. Conscious ARPG Combat
+Eligible naturally spawned exploration enemies contribute Threat when killed. Assault enemies and summoned enemies do not contribute Threat.
 
-Titanhold should not be balanced around pure high-speed zoom-zoom farming.
+The final authoritative damage-resolution batch that fills Threat is resolved as one batch. Every eligible kill in that batch receives its ordinary rewards and contributes Threat; none of those same-batch kills increases Rift Instability.
 
-The preferred combat and farming rhythm is more deliberate:
+When Threat reaches its maximum:
 
-- the player explores the location;
-- evaluates enemy groups;
-- may gather a larger pack;
-- uses positioning, cooldowns, and skill timing;
-- kills the pack through prepared execution;
-- or plays a build focused on quickly eliminating priority or single targets.
+- Threat is locked at its maximum;
+- a persistent portal appears near the player;
+- exploration rewards and enemy respawning continue normally;
+- subsequent eligible exploration kills add Rift Instability instead of Threat;
+- the player chooses when to enter the portal.
 
-Both AoE pack-clearing and priority-target / single-target playstyles should be viable.
+Infinite post-portal farming is an allowed alternative strategy. It does not unlock the next difficulty or grant Assault chests and final encounter rewards. Its long-term reward rate should be balanced below successful full-run progression rather than blocked by special reward rules.
 
-The optimal strategy should not become infinite full-map pulling. Enemy types, ranged units, elites, aggro rules, cooldowns, and Threat Meter should limit mindless mass pulling.
+## Rift Instability
 
-### 2. Threat Through Activity
+Rift Instability is a visible, run-cycle-owned accumulator.
 
-Threat Meter grows because of player activity, not only because of time.
+Each eligible post-portal exploration kill grants instability points based on the enemy's authored escalation value. Ordinary enemies grant less; stronger enemies, support units, and elites may grant more.
 
-Threat can grow from:
+Instability is presented in discrete levels so the player can read the danger clearly. Initial tuning target:
 
-- killing regular enemies;
-- killing elite enemies;
-- killing mini-bosses;
-- completing events;
-- progressing story actions;
-- possibly slow passive growth during active gameplay.
+- 10 instability points per level;
+- +10% Assault maximum health per level;
+- +5% Assault damage per level.
 
-This makes the world feel reactive.
+Bonuses are additive from base values, not multiplicative per kill.
 
-### 3. Camp as Long-Term Progression
+Newly respawned exploration enemies snapshot the current instability level when spawned. Enemies already alive do not silently gain health or damage during combat. Portal VFX, HUD feedback, and an enemy visual modifier should communicate the current level.
 
-The Main Camp is not disposable.
+When the player enters the portal, the current instability level is snapshotted for the upcoming Assault. The snapshot affects all Assault participants, including elites and the round's mini-boss.
 
-The player develops long-term camp progress. When moving to a new act, the active camp moves forward, while previous camps become outposts.
+Rage and other class-specific resources keep their normal rules. Rage is not specially clamped at the portal and may decay naturally while the character is out of combat.
 
-Camp progression should be separated from physical camp layout:
+## Assault
 
-- `CampProgressData` — what is unlocked and upgraded.
-- `CampLayoutData` — how the current camp is physically placed in the current location.
+An Assault is one encounter whose enemies appear in gradual batches. Assault enemies do not grant individual Threat and initially do not grant individual economic rewards. The completion reward is issued by the Assault chest.
 
-### 4. Multiplayer-Friendly Foundation
+The Assault completion timer starts when the encounter actually begins, not when Threat becomes full.
 
-The project is single-player for now.
+Completing the encounter quickly can increase its RunXP completion reward. Initial maximum speed multiplier target is approximately 1.2–1.3.
 
-However, input, combat, skills, stats, and camp systems should be designed so they do not block future server-authoritative multiplayer.
+After the target completion time expires, one PressureEnrage effect begins growing without a gameplay cap. It increases enemy offensive and movement pressure so the encounter cannot be kited forever. Technical animation and navigation limits are still allowed.
 
-Do not add multiplayer code yet.
+Rift Instability and PressureEnrage are separate systems:
 
-### 5. Practical Scope
+- Rift Instability is chosen through additional farming before entering the arena;
+- PressureEnrage grows from taking too long inside the Assault.
 
-The MVP must stay narrow.
+## Returning to Exploration
 
-Do not build full RPG systems before the core loop is proven fun.
+After Assault completion and intermission, the player returns to the same exploration location instance.
 
-The main question for the prototype:
+The current implementation target preserves the location rather than rebuilding it as a fresh round. Threat and Rift Instability begin a new cycle. Individual enemies retain the stat snapshot with which they spawned; future respawns use the current cycle's instability state.
 
-Is the loop “fight enemies → grow threat → defend camp → improve hero/camp” fun?
+The exact Unity mechanism for suspending or continuing exploration simulation while the player is in the arena is an infrastructure decision and must not leak into the plain C# run model.
 
-## Current MVP Focus
+## Run Progression
 
-The current development focus is:
+CharacterLevel is permanent. RunLevel, RunXP, RunGold, run upgrades, run abilities, and run artifacts are temporary.
 
-- Player Movement
-- Input abstraction
-- StateMachine
-- Targeting
-- Health
-- Basic Combat
-- Basic Skill execution
-- Threat Meter prototype
-- CampCore prototype
-- Simple Wave prototype
+RunLevel choices pause the single-player simulation. Ability acquisition replaces an ordinary upgrade at configured milestone levels.
 
-## MVP Vertical Slice Goal
+The active ability bar initially has five universal slots. The player begins a run by choosing one of three class starter abilities and acquires additional abilities at fixed RunLevel milestones from functional pools.
 
-The first playable vertical slice should prove this flow:
+Permanent talents unlock new definitions into those pools. The selected run abilities reset when the run ends.
 
-1. Player appears in a small test location.
-2. Player moves around.
-3. Player selects or attacks enemies.
-4. Enemies take damage and die.
-5. Threat Meter grows from enemy kills.
-6. At 100%, wave becomes pending.
-7. Player returns to camp.
-8. Wave starts.
-9. Enemies move toward CampCore.
-10. Player defends CampCore.
-11. Wave succeeds or fails.
-12. Player receives a simple reward.
+## Rewards and Persistence
 
-## Current Out of Scope
+Exploration enemies can grant RunXP, RunGold, and gear according to their reward definitions. Harder spots trade slower and riskier Threat progress for better XP and loot.
 
-Do not implement these unless explicitly requested:
+Assault completion creates a one-shot reward chest:
+
+- RunXP is granted immediately on opening;
+- RunGold is granted logically and may use visual auto-picked coins;
+- rolled gear is emitted into the world;
+- the chest disappears after opening.
+
+The first save model uses one active checkpoint at an Assault/intermission boundary. Mid-round Continue Later rolls back to the last checkpoint. Reward instances use stable IDs and fixed payloads so loading cannot reroll them.
+
+## Multiplayer-Friendly Boundaries
+
+Do not implement networking yet. New gameplay code should nevertheless follow these boundaries:
+
+- input and AI emit commands or intents;
+- an authoritative application service validates and changes run state;
+- gameplay state contains stable identifiers and serializable values where practical;
+- UI, animation, VFX, scenes, and prefabs observe state but do not own rules;
+- economy, rewards, Threat, Instability, combat, and transitions must be host-validatable later;
+- no gameplay decision should depend on a local camera, pointer, animation event, or scene-only singleton.
+
+## Current Implementation Priority
+
+1. Pure C# Run Flow state and transition rules.
+2. Player-attributed damage/death context and atomic kill batches.
+3. Exploration kill integration for Threat and Rift Instability.
+4. Portal transition and preservation of the exploration location.
+5. New Assault controller and batch spawner side-by-side with legacy CampDefense.
+6. Assault reward and return flow.
+7. RunLevel and starter ability acquisition.
+8. Save/checkpoint integration.
+
+## Out of Scope for the First Build
 
 - multiplayer implementation;
+- the final five-to-six-round public demo structure;
+- multiple biomes;
 - full talent tree;
-- full inventory system;
-- full crafting system;
-- full quest system;
-- full dialogue system;
-- gamepad mode;
-- risk instances;
-- endgame systems;
-- large procedural content;
-- complex economy;
-- full loot affix system;
-- full class/subclass system.
-
-## Input and Control Direction
-
-The game should eventually support:
-
-- Mouse Mode;
-- WASD Mode;
-- Gamepad Mode.
-
-Core systems should not depend on specific physical buttons.
-
-Physical input should be converted into abstract commands or intents, such as:
-
-- `MoveCommand`
-- `ActionCommand`
-- `SelectionCommand`
-- `ClearTargetCommand`
-- `SkillSlotCommand`
-- `InteractCommand`
-- `CancelCommand`
-
-Mouse Mode can support click-to-move and auto-approach.
-
-WASD Mode should keep movement under direct player control. In WASD Mode, target skills should not automatically move the player to the target unless explicitly designed.
-
-Gamepad Mode is out of scope for now.
-
-## Targeting Direction
-
-The design separates several target concepts:
-
-- `InspectTarget` — the target shown in UI or inspected by the player.
-- `CombatTarget` — the current combat target.
-- `CastTarget` — the target locked when a cast begins.
-
-These concepts may differ.
-
-For example, the player may attack enemy A while inspecting enemy B.
-
-Combat visuals and UI should make this distinction clear.
-
-## Combat Direction
-
-Combat should feel deliberate and readable.
-
-Important principles:
-
-- positioning matters;
-- cooldown timing matters;
-- target priority matters;
-- enemy composition matters;
-- not every skill should be spammed without cooldown;
-- AoE builds and single-target builds should both have a purpose.
-
-Basic enemy groups should be satisfying to clear, but the game should avoid becoming pure screen-clearing speed farming.
-
-## Threat Meter Direction
-
-Threat Meter belongs to the currently active Main Camp, not to a scene, location, act, enemy, or wave spawner.
-
-Threat Meter represents accumulated Camp Crystal resonance / charge for the currently active Main Camp.
-
-The Camp Crystal / CampCore concentrates monster death energy and resonance. This energy powers the camp and attracts camp-defense pressure.
-
-Player actions anywhere in the world can increase threat for the currently active Main Camp as long as that camp has not been transferred.
-
-The player may travel to previous act locations, future act locations, optional dungeons, event zones, or other exploration areas. Enemy kills and other threat sources still increase threat for the active Main Camp.
-
-Changing location, scene, or act does not reset threat by itself.
-
-Threat resets when the current active camp threat cycle is resolved.
-
-The current active camp threat cycle can be resolved by:
-
-- successful camp defense;
-- confirmed Main Camp transfer;
-- camp recovery after failed defense.
-
-If camp defense fails, threat is not reset immediately. The camp enters a broken/unresolved state until a future repair or recovery flow resolves it.
-
-During the broken/unresolved state, threat gain should be disabled, frozen, or ignored until recovery.
-
-The full camp recovery system is future scope.
-
-When camp transfer is confirmed:
-
-- the previous Main Camp becomes inactive or becomes an outpost;
-- the new Main Camp becomes the active Main Camp;
-- current threat is reset;
-- pending wave state is cleared;
-- a new active camp threat cycle begins.
-
-Threat can grow from:
-
-- killing regular enemies;
-- killing elite enemies;
-- killing mini-bosses;
-- completing events;
-- progressing story actions;
-- gathering important resources;
-- activating special artifacts;
-- possibly slow passive growth during active gameplay.
-
-When Threat Meter reaches 100%:
-
-- the wave becomes pending;
-- the player receives a warning;
-- the wave does not have to start instantly;
-- the player may manually start it;
-- camp resources or altar systems may delay it later.
-
-Threat should create pressure, not constant annoyance.
-
-For MVP, `ThreatMeter` may exist as a scene component in the prototype scene. Long-term, it should represent the active Main Camp threat and be saved/restored as part of game state.
-
-## Camp Defense Direction
-
-Waves are not strictly lane-based tower defense.
-
-The Camp Crystal / CampCore is the primary camp-defense command object.
-
-In prototype scenes, this object may be named Camp Crystal.
-
-The player interacts with the Camp Crystal to:
-
-- start a pending camp-defense wave;
-- restore or recover a broken camp;
-- later open camp overview / management UI.
-
-The Altar / Resonance Altar is a future secondary building for wave modifiers and resource interactions. It is not the primary start / restore object.
-
-For the current MVP, the `CampCommandInteractable` code component may be used on the Camp Crystal object.
-
-Enemies may spawn from:
-
-- portals;
-- rifts;
-- lairs;
-- invasion routes.
-
-Enemies move toward the active camp, especially CampCore.
-
-Wave enemies attack the Camp Crystal because it powers the camp.
-
-If the Camp Crystal is destroyed, many camp buildings and functions stop working until recovery.
-
-The player may help defend the camp directly.
-
-Camp defenses may help, but the player character remains important.
-
-World enemy prefabs and camp-defense wave enemy prefabs should be separate long-term.
-
-World enemies may have `EnemyThreatSource` and generate threat for the currently active Main Camp.
-
-Camp-defense wave enemies should usually not have `EnemyThreatSource`, because the wave is already the result of accumulated threat.
-
-Wave enemies need separate behavior focused on CampCore / camp attack logic.
-
-`CampDefenseEnemySpawner` should use wave-specific enemy prefabs long-term, not generic world enemy prefabs.
-
-For the current MVP, shared prefab usage is acceptable temporarily only for testing.
-
-## Failure Direction
-
-If CampCore is destroyed:
-
-- the wave fails;
-- wave rewards are not granted;
-- Threat Meter may be frozen;
-- camp enters a broken state;
-- the player must restore the camp.
-
-Failure should be meaningful but not permanently destructive.
-
-Do not punish offline camp destruction in future multiplayer scenarios.
-
-## Development Priority
-
-When choosing between systems, prioritize:
-
-1. Core movement and control feel.
-2. Clean input-to-intent pipeline.
-3. StateMachine clarity.
-4. Basic combat loop.
-5. Targeting clarity.
-6. Health/damage reliability.
-7. Threat Meter prototype.
-8. Camp defense prototype.
-
-Do not prioritize advanced RPG features before the basic loop feels good.
+- full crafting and economy;
+- procedural maps;
+- gamepad controls;
+- protected camp objects;
+- production shop content;
+- advanced boss phases;
+- full save migration and account services.

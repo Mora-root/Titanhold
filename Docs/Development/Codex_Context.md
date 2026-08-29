@@ -6,6 +6,23 @@ For small tasks, read `AGENTS.md`, this file, and directly relevant source files
 
 Read the full GDD / Architecture docs only for design or architecture changes.
 
+## Active Vertical-Slice Direction
+
+The active direction is now:
+
+```text
+exploration
+→ Threat full
+→ persistent portal and optional Rift Instability farming
+→ separate Assault arena
+→ reward/intermission
+→ return to the same exploration location
+```
+
+The existing CampCore defense implementation is legacy prototype code. Keep it working side-by-side, but do not use `CampDefenseWaveController`, `CampDefenseEnemySpawner`, or `ThreatPendingState` as the foundation for the new run loop.
+
+Threat and Rift Instability belong to the runtime run cycle and should be changed through a plain C# application service. Unity components are adapters and presentation.
+
 ## Camp Defense
 
 Camp Crystal / CampCore is the primary camp-defense command object and protected object.

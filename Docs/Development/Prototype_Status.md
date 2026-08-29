@@ -2,6 +2,8 @@
 
 This document summarizes the current prototype state for daily development.
 
+> Direction note: the CampCore defense flow below describes the currently implemented legacy prototype. The active vertical-slice direction is now a run-based exploration → portal → separate Assault arena → return-to-location loop defined in `Docs/GDD/GDD_Current.md`. New run work must be built side-by-side and must not expand the legacy CampDefense controllers into the new foundation.
+
 ## Working Prototype Loops
 
 - Player movement.

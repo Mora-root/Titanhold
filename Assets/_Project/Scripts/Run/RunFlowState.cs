@@ -1,0 +1,59 @@
+using System;
+
+namespace Titanhold.Run
+{
+    public sealed class RunFlowState
+    {
+        internal RunFlowState(RunFlowConfiguration configuration)
+        {
+            if (configuration == null)
+                throw new ArgumentNullException(nameof(configuration));
+
+            MaxThreat = configuration.MaxThreat;
+            RoundNumber = configuration.StartingRound;
+            Phase = RunPhase.Exploration;
+            RiftInstability = new RiftInstabilityState(configuration.InstabilityPointsPerLevel);
+            AssaultScaling = AssaultScalingSnapshot.None;
+        }
+
+        public RunPhase Phase { get; private set; }
+        public int RoundNumber { get; private set; }
+        public float CurrentThreat { get; private set; }
+        public float MaxThreat { get; }
+        public bool IsThreatFull => CurrentThreat >= MaxThreat;
+        public RiftInstabilityState RiftInstability { get; }
+        public AssaultScalingSnapshot AssaultScaling { get; private set; }
+
+        internal float AddThreat(float amount)
+        {
+            if (amount <= 0f || IsThreatFull)
+                return 0f;
+
+            float previousThreat = CurrentThreat;
+            double total = (double)CurrentThreat + amount;
+            CurrentThreat = total >= MaxThreat ? MaxThreat : (float)total;
+            return CurrentThreat - previousThreat;
+        }
+
+        internal void SetPhase(RunPhase phase)
+        {
+            Phase = phase;
+        }
+
+        internal void SetAssaultScaling(AssaultScalingSnapshot snapshot)
+        {
+            AssaultScaling = snapshot;
+        }
+
+        internal void BeginNextRound()
+        {
+            if (RoundNumber < int.MaxValue)
+                RoundNumber++;
+
+            CurrentThreat = 0f;
+            RiftInstability.Reset();
+            AssaultScaling = AssaultScalingSnapshot.None;
+            Phase = RunPhase.Exploration;
+        }
+    }
+}

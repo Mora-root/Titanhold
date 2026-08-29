@@ -267,55 +267,37 @@ Health should not directly handle:
 
 Other systems should react to Health events.
 
-## Threat Architecture Rule
+## Run Flow, Threat, and Rift Instability
 
-Threat is owned by the currently active Main Camp.
+The current vertical-slice direction owns Threat and Rift Instability inside the active run cycle.
 
-Threat must not be tied directly to:
+They must not be tied directly to:
 
 - Unity scenes;
-- locations;
-- acts;
-- individual enemies;
+- individual enemy objects;
 - generic Health;
-- legacy WaveSpawner.
+- UI;
+- portals or VFX;
+- legacy CampDefense or WaveSpawner components.
 
-Any threat source in the world should report threat gain to the active camp threat system.
+Generic Health must not know about rewards, Threat, or Rift Instability.
 
-Generic Health must not know about threat.
+An enemy-specific adapter may translate an attributed, eligible death into a run application command. The authoritative run service decides whether that kill contributes Threat, contributes Rift Instability, or has no run-flow effect.
 
-Enemy-specific adapters may convert enemy deaths into threat gain, but the final owner of threat is the currently active Main Camp.
+Expected flow:
 
-Changing scene, location, or act must not reset threat automatically.
+```text
+Attributed exploration kill batch
+→ run application service
+→ Threat while exploring
+→ Rift Instability after the portal opens
+→ immutable Assault scaling snapshot on portal entry
+→ presentation and Unity adapters react to state changes
+```
 
-Threat resets when the current active camp threat cycle is resolved.
+The final damage-resolution batch that fills Threat must be atomic. Kills from the same authoritative attack batch must not be split between Threat and Rift Instability because of listener order.
 
-The current active camp threat cycle can be resolved by:
-
-- successful camp defense;
-- confirmed Main Camp transfer;
-- camp recovery after failed defense.
-
-If camp defense fails, threat is not reset immediately. The camp enters a broken/unresolved state.
-
-During the broken/unresolved state, threat gain should be disabled, frozen, or ignored until recovery.
-
-The full camp recovery system is future scope.
-
-For MVP, scene-level components may be used as temporary adapters, but they should be easy to replace with an active camp threat model later.
-
-Good temporary MVP flow:
-
-EnemyDeathNotifier  
-→ EnemyDeathThreatListener  
-→ ThreatMeter.AddThreat(amount)
-
-Long-term direction:
-
-World threat source  
-→ active camp threat system  
-→ active Main Camp threat state  
-→ wave pending / camp defense flow
+The plain C# run model owns phases and transitions. Scene loading, teleportation, portal visuals, encounter spawning, and preservation of the exploration location are infrastructure/presentation concerns driven by that model.
 
 ## ScriptableObject Usage
 
