@@ -25,9 +25,10 @@ MonoBehaviour:
   overridePickupLabelColor: 0
   pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
   equipmentSlotType: 1
+  equipmentBaseArmor: 0
   modifiers: []
   weaponType: 1
-  weaponBaseDamage: 9
+  weaponBaseDamage: 7
   weaponBaseAttacksPerSecond: 1.3
   consumableSubtype: 0
   useActionId: 

@@ -897,7 +897,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
   attackCooldown: 1
   attackRange: 1.4
-  damage: 25
+  damage: 15
 --- !u!114 &6639298528611623125
 MonoBehaviour:
   m_ObjectHideFlags: 0
