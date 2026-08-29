@@ -1,4 +1,5 @@
 using System.Collections;
+using Titanhold.Combat;
 using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
@@ -13,6 +14,8 @@ public class PlayerCombat : MonoBehaviour
     private float lastAttackTime;
     private float multiplierDamageRadius = 1.5f;
     private ITargetable currentTarget;
+    private CombatActorReference combatActor;
+    private CombatExecutionId currentExecutionId;
 
     private PlayerAnimator animator;
 
@@ -61,6 +64,7 @@ public class PlayerCombat : MonoBehaviour
             equipmentRuntime = GetComponent<PlayerEquipmentRuntime>();
 
         animator = GetComponentInChildren<PlayerAnimator>();
+        combatActor = new CombatActorReference($"player:{gameObject.GetEntityId()}", CombatActorKind.Player);
     }
 
     // Check kd
@@ -77,6 +81,7 @@ public class PlayerCombat : MonoBehaviour
         if (target == null || !target.IsTargetable) return;
 
         currentTarget = target;
+        currentExecutionId = CombatExecutionId.New();
         lastAttackTime = Time.time;
 
         isAttacking = true;
@@ -99,7 +104,12 @@ public class PlayerCombat : MonoBehaviour
             return;
 
         var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
-        damageable?.TakeDamage(Damage);
+        DamageRequest request = new DamageRequest(
+            currentExecutionId.IsValid ? currentExecutionId : CombatExecutionId.New(),
+            combatActor,
+            Damage,
+            DamageCause.BasicAttack);
+        damageable.ApplyDamageRequest(request);
 
     }
 
@@ -107,11 +117,13 @@ public class PlayerCombat : MonoBehaviour
     public void OnAttackFinished()
     {
         isAttacking = false;
+        currentExecutionId = default;
     }
     public void CancelAttack()
     {
         isAttacking = false;
         currentTarget = null;
+        currentExecutionId = default;
         animator?.ResetPlaybackSpeed();
     }
 

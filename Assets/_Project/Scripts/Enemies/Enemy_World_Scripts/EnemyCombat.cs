@@ -1,3 +1,4 @@
+using Titanhold.Combat;
 using UnityEngine;
 
 public class EnemyCombat : MonoBehaviour
@@ -9,6 +10,8 @@ public class EnemyCombat : MonoBehaviour
     private float lastAttackTime;
     private float multiplierDamageRadius = 3f;
     private ITargetable currentTarget;
+    private CombatActorReference combatActor;
+    private CombatExecutionId currentExecutionId;
 
     private EnemyAnimator animator;
 
@@ -20,6 +23,7 @@ public class EnemyCombat : MonoBehaviour
     private void Awake()
     {
         animator = GetComponentInChildren<EnemyAnimator>();
+        combatActor = new CombatActorReference($"enemy:{gameObject.GetEntityId()}", CombatActorKind.Enemy);
     }
 
     // Check kd
@@ -31,9 +35,11 @@ public class EnemyCombat : MonoBehaviour
     // Try attack(called from State)
     public void TryAttack(ITargetable target)
     {
+        if (isAttacking) return;
         if (!CanAttack()) return;
         if (target == null || !target.IsTargetable) return;
         currentTarget = target;
+        currentExecutionId = CombatExecutionId.New();
         lastAttackTime = Time.time;
 
         isAttacking = true;
@@ -54,7 +60,12 @@ public class EnemyCombat : MonoBehaviour
         if (distance > attackRange * multiplierDamageRadius)
             return;
         var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
-        damageable?.TakeDamage(damage);
+        DamageRequest request = new DamageRequest(
+            currentExecutionId.IsValid ? currentExecutionId : CombatExecutionId.New(),
+            combatActor,
+            damage,
+            DamageCause.BasicAttack);
+        damageable.ApplyDamageRequest(request);
 
     }
 
@@ -62,5 +73,6 @@ public class EnemyCombat : MonoBehaviour
     public void OnAttackFinished()
     {
         isAttacking = false;
+        currentExecutionId = default;
     }
 }

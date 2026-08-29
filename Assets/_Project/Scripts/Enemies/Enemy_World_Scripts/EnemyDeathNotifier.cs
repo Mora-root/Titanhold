@@ -1,4 +1,5 @@
 using System;
+using Titanhold.Combat;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -8,6 +9,9 @@ public sealed class EnemyDeathNotifier : MonoBehaviour
     private Health health;
 
     public event Action<EnemyDeathNotifier> Died;
+    public event Action<EnemyDeathNotifier, DeathContext> DiedWithContext;
+
+    public DeathContext LastDeathContext { get; private set; }
 
     private void Awake()
     {
@@ -17,10 +21,11 @@ public sealed class EnemyDeathNotifier : MonoBehaviour
     private void OnEnable()
     {
         health ??= GetComponent<Health>();
+        LastDeathContext = default;
 
         if (health != null)
         {
-            health.OnDeath += HandleDeath;
+            health.OnDeathContext += HandleDeath;
         }
     }
 
@@ -28,12 +33,14 @@ public sealed class EnemyDeathNotifier : MonoBehaviour
     {
         if (health != null)
         {
-            health.OnDeath -= HandleDeath;
+            health.OnDeathContext -= HandleDeath;
         }
     }
 
-    private void HandleDeath()
+    private void HandleDeath(DeathContext context)
     {
+        LastDeathContext = context;
+        DiedWithContext?.Invoke(this, context);
         Died?.Invoke(this);
     }
 }

@@ -1,7 +1,8 @@
 using System;
+using Titanhold.Combat;
 using UnityEngine;
 
-public class Health : MonoBehaviour, IDamageable
+public class Health : MonoBehaviour, IContextualDamageable
 {
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private CharacterStats characterStats;
@@ -24,10 +25,13 @@ public class Health : MonoBehaviour, IDamageable
 
     public float CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0f;
+    public DeathContext LastDeathContext { get; private set; }
 
     public event Action<float> OnDamage;
+    public event Action<DamageResult> OnDamageResolved;
     public event Action<float, float> OnHealthChanged;
     public event Action OnDeath;
+    public event Action<DeathContext> OnDeathContext;
 
     private bool isDead;
 
@@ -71,23 +75,59 @@ public class Health : MonoBehaviour, IDamageable
 
     public void TakeDamage(float rawDamage)
     {
-        if (isDead) return;
-        if (rawDamage <= 0f) return;
+        ApplyDamage(DamageRequest.CreateUnattributed(rawDamage));
+    }
+
+    public DamageResult ApplyDamage(DamageRequest request)
+    {
+        if (isDead)
+            return DamageResult.Rejected(request, DamageRejectionReason.TargetAlreadyDead);
+
+        if (!request.ExecutionId.IsValid)
+            return DamageResult.Rejected(request, DamageRejectionReason.InvalidExecutionId);
+
+        if (request.RawDamage <= 0f || float.IsNaN(request.RawDamage) || float.IsInfinity(request.RawDamage))
+            return DamageResult.Rejected(request, DamageRejectionReason.InvalidAmount);
 
         float armor = characterStats != null ? characterStats.GetValue(StatType.Armor) : 0f;
-        float finalDamage = DamageMitigationCalculator.ApplyArmor(rawDamage, armor);
-        if (finalDamage <= 0f) return;
+        float finalDamage = DamageMitigationCalculator.ApplyArmor(request.RawDamage, armor);
+        if (finalDamage <= 0f)
+            return DamageResult.Rejected(request, DamageRejectionReason.FullyMitigated);
 
+        float healthBefore = CurrentHealth;
         CurrentHealth -= finalDamage;
         CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+        float appliedDamage = healthBefore - CurrentHealth;
+        bool killed = CurrentHealth <= 0f;
+        DeathContext deathContext = killed
+            ? new DeathContext(request, appliedDamage)
+            : default;
 
-        OnDamage?.Invoke(finalDamage);
-        NotifyHealthChanged();
-
-        if (CurrentHealth <= 0f)
+        if (killed)
         {
-            Die();
+            isDead = true;
+            LastDeathContext = deathContext;
         }
+
+        DamageResult result = DamageResult.Applied(
+            request,
+            healthBefore,
+            CurrentHealth,
+            appliedDamage,
+            killed,
+            deathContext);
+
+        OnDamage?.Invoke(appliedDamage);
+        NotifyHealthChanged();
+        OnDamageResolved?.Invoke(result);
+
+        if (killed)
+        {
+            OnDeathContext?.Invoke(deathContext);
+            OnDeath?.Invoke();
+        }
+
+        return result;
     }
 
     public void Heal(float amount)
@@ -117,6 +157,7 @@ public class Health : MonoBehaviour, IDamageable
     {
         CurrentHealth = MaxHealth;
         isDead = false;
+        LastDeathContext = default;
         NotifyHealthChanged();
     }
 
@@ -132,17 +173,6 @@ public class Health : MonoBehaviour, IDamageable
     private void HandleLevelChanged(int level)
     {
         RestoreFull();
-    }
-
-    private void Die()
-    {
-        if (isDead) return;
-
-        isDead = true;
-        CurrentHealth = 0f;
-
-        NotifyHealthChanged();
-        OnDeath?.Invoke();
     }
 
     private void NotifyHealthChanged()

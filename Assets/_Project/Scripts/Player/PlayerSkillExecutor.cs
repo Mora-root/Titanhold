@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Titanhold.Combat;
 using UnityEngine;
 
 public class PlayerSkillExecutor : MonoBehaviour
@@ -12,6 +13,8 @@ public class PlayerSkillExecutor : MonoBehaviour
     private readonly Dictionary<SkillData, float> lastUseTimes = new();
 
     private SkillData currentSkill;
+    private CombatActorReference combatActor;
+    private CombatExecutionId currentExecutionId;
 
     public bool IsUsingSkill { get; private set; }
 
@@ -20,6 +23,7 @@ public class PlayerSkillExecutor : MonoBehaviour
         stats = GetComponent<CharacterStats>();
         resource = GetComponent<PlayerResource>();
         animator = GetComponentInChildren<PlayerAnimator>();
+        combatActor = new CombatActorReference($"player:{gameObject.GetEntityId()}", CombatActorKind.Player);
     }
 
     public bool TryUseSkill1()
@@ -33,19 +37,21 @@ public class PlayerSkillExecutor : MonoBehaviour
         if (IsUsingSkill) return false;
         if (!IsCooldownReady(skill)) return false;
 
-        if (resource != null && !resource.TrySpend(skill.ResourceCost))
-            return false;
-
-        currentSkill = skill;
-        IsUsingSkill = true;
-
-        lastUseTimes[skill] = Time.time;
-
         if (animator == null)
         {
             Debug.LogError("PlayerAnimator not found on player children.");
             return false;
         }
+
+        if (resource != null && !resource.TrySpend(skill.ResourceCost))
+            return false;
+
+        currentSkill = skill;
+        currentExecutionId = CombatExecutionId.New();
+        IsUsingSkill = true;
+
+        lastUseTimes[skill] = Time.time;
+
         animator.PlaySkill(skill.AnimatorTrigger);
 
         return true;
@@ -77,6 +83,12 @@ public class PlayerSkillExecutor : MonoBehaviour
         HashSet<IDamageable> damagedTargets = new();
 
         float finalDamage = CombatDamageCalculator.GetSkillDamage(stats, skill);
+        CombatExecutionId executionId = currentExecutionId.IsValid
+            ? currentExecutionId
+            : CombatExecutionId.New();
+        string abilityId = string.IsNullOrWhiteSpace(skill.name)
+            ? "legacy:unknown"
+            : $"legacy:{skill.name}";
 
         foreach (var hit in hits)
         {
@@ -93,7 +105,13 @@ public class PlayerSkillExecutor : MonoBehaviour
                 continue;
 
             damagedTargets.Add(damageable);
-            damageable.TakeDamage(finalDamage);
+            DamageRequest request = new DamageRequest(
+                executionId,
+                combatActor,
+                finalDamage,
+                DamageCause.Ability,
+                abilityId);
+            damageable.ApplyDamageRequest(request);
         }
     }
 
@@ -101,6 +119,7 @@ public class PlayerSkillExecutor : MonoBehaviour
     {
         IsUsingSkill = false;
         currentSkill = null;
+        currentExecutionId = default;
     }
 
     private void OnDrawGizmosSelected()
