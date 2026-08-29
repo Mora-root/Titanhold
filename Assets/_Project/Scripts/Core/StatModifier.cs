@@ -1,8 +1,10 @@
 
 public enum StatModifierType
 {
-    Flat,
-    Percent
+    Flat = 0,
+    Increased = 1,
+    More = 2,
+    Override = 3
 }
 
 public class StatModifier

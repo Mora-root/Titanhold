@@ -6,16 +6,16 @@ public class PlayerResource : MonoBehaviour
     [SerializeField] private float maxResource = 100f;
     [SerializeField] private float startResource = 100f;
     [SerializeField] private float regenerationPerSecond = 5f;
-
-    private CharacterStats stats;
+    [SerializeField] private CharacterStats characterStats;
+    [SerializeField] private PlayerExperience playerExperience;
 
     public float MaxResource
     {
         get
         {
-            if (stats != null)
+            if (characterStats != null)
             {
-                float statValue = stats.GetValue(StatType.MaxResource);
+                float statValue = characterStats.GetValue(StatType.MaxResource);
                 if (statValue > 0f)
                     return statValue;
             }
@@ -30,20 +30,28 @@ public class PlayerResource : MonoBehaviour
 
     private void Awake()
     {
-        stats = GetComponent<CharacterStats>();
-        CurrentResource = MaxResource;
+        ResolveReferences();
+        CurrentResource = Mathf.Clamp(startResource, 0f, MaxResource);
     }
 
     private void OnEnable()
     {
-        if (stats != null)
-            stats.OnStatChanged += HandleStatChanged;
+        ResolveReferences();
+
+        if (characterStats != null)
+            characterStats.OnStatChanged += HandleStatChanged;
+
+        if (playerExperience != null)
+            playerExperience.OnLevelChanged += HandleLevelChanged;
     }
 
     private void OnDisable()
     {
-        if (stats != null)
-            stats.OnStatChanged -= HandleStatChanged;
+        if (characterStats != null)
+            characterStats.OnStatChanged -= HandleStatChanged;
+
+        if (playerExperience != null)
+            playerExperience.OnLevelChanged -= HandleLevelChanged;
     }
 
     private void Start()
@@ -53,7 +61,7 @@ public class PlayerResource : MonoBehaviour
 
     private void Update()
     {
-        Regenerate();
+        TickRegeneration(Time.deltaTime);
     }
 
     public bool CanSpend(float amount)
@@ -83,12 +91,21 @@ public class PlayerResource : MonoBehaviour
         NotifyResourceChanged();
     }
 
-    private void Regenerate()
+    public void RestoreFull()
     {
-        if (regenerationPerSecond <= 0f) return;
+        CurrentResource = MaxResource;
+        NotifyResourceChanged();
+    }
+
+    public void TickRegeneration(float deltaTime)
+    {
+        if (deltaTime <= 0f) return;
         if (CurrentResource >= MaxResource) return;
 
-        CurrentResource += regenerationPerSecond * Time.deltaTime;
+        float regenPerSecond = GetRegenerationPerSecond();
+        if (regenPerSecond <= 0f) return;
+
+        CurrentResource += regenPerSecond * deltaTime;
         CurrentResource = Mathf.Clamp(CurrentResource, 0f, MaxResource);
 
         NotifyResourceChanged();
@@ -103,8 +120,42 @@ public class PlayerResource : MonoBehaviour
         NotifyResourceChanged();
     }
 
+    private void HandleLevelChanged(int level)
+    {
+        RestoreFull();
+    }
+
     private void NotifyResourceChanged()
     {
         OnResourceChanged?.Invoke(CurrentResource, MaxResource);
+    }
+
+    private float GetRegenerationPerSecond()
+    {
+        if (characterStats != null)
+            return characterStats.GetValue(StatType.ResourceRegen);
+
+        return regenerationPerSecond;
+    }
+
+    private void ResolveReferences()
+    {
+        if (characterStats == null)
+        {
+            characterStats = GetComponent<CharacterStats>();
+        }
+        if (characterStats == null)
+        {
+            characterStats = GetComponentInParent<CharacterStats>();
+        }
+
+        if (playerExperience == null)
+        {
+            playerExperience = GetComponent<PlayerExperience>();
+        }
+        if (playerExperience == null)
+        {
+            playerExperience = GetComponentInParent<PlayerExperience>();
+        }
     }
 }

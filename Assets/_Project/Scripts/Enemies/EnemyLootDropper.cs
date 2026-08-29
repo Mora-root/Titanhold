@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[System.Obsolete("Use EnemyLootTableDropper with LootTable entries for gold and items.")]
 [DisallowMultipleComponent]
 [RequireComponent(typeof(EnemyDeathNotifier))]
 public sealed class EnemyLootDropper : MonoBehaviour

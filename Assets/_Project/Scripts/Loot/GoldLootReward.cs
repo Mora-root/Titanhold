@@ -20,7 +20,8 @@ public sealed class GoldLootReward : MonoBehaviour, ILootReward, IAmountLootRewa
         if (wallet == null && picker != null)
             wallet = picker.GetComponent<PlayerGold>();
 
-        wallet ??= FindAnyObjectByType<PlayerGold>();
+        if (wallet == null && picker != null)
+            wallet = picker.GetComponentInParent<PlayerGold>();
 
         if (wallet == null)
             return false;

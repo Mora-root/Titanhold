@@ -9,11 +9,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df17b0933ed6cde47bb09e9bbda39da7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
   m_Name: MonsterFang
-  m_EditorClassIdentifier: Assembly-CSharp::LootItemDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: monster_fang
   displayName: Monster Fang
   shortName: Fang
-  description: A monster trophy that can be sold or used in future crafting.
   icon: {fileID: 0}
-  category: 1
+  description: A monster trophy that can be sold or used in future crafting.
+  category: 2
+  maxStack: 100
+  rarity: 0
+  worldPickupVisualPrefab: {fileID: 0}
+  worldPickupEffectPrefab: {fileID: 0}
+  overridePickupLabelColor: 0
+  pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
+  equipmentSlotType: 0
+  modifiers: []
+  weaponType: 0
+  weaponBaseDamage: 0
+  weaponBaseAttacksPerSecond: 1
+  consumableSubtype: 0
+  useActionId: 
+  consumeAmountOnUse: 1
+  activitySubtype: 0
+  activityModifiers: []
+  trophySubtype: 1
+  craftingSubtype: 0
+  sellValue: 100
+  canBeSold: 1
+  sellWarningType: 0
+  canBeDismantled: 0
+  externalDropAction: 0
+  requiresConfirmationOnExternalDrop: 0

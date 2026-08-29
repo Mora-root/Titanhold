@@ -7,18 +7,37 @@ public class PlayerMovement : MonoBehaviour
 
     private NavMeshAgent agent;
     private PlayerAnimator animator;
+    private CharacterStats stats;
+    private float fallbackMoveSpeed;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<PlayerAnimator>();
+        stats = GetComponent<CharacterStats>();
+        fallbackMoveSpeed = agent != null ? agent.speed : 0f;
 
         agent.updateRotation = false;
+        ApplyMoveSpeed();
+    }
+
+    private void OnEnable()
+    {
+        if (stats != null)
+            stats.OnStatChanged += HandleStatChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (stats != null)
+            stats.OnStatChanged -= HandleStatChanged;
     }
 
     public void Tick()
     {
-        animator.SetSpeed(agent.velocity.magnitude);
+        float currentSpeed = agent.velocity.magnitude;
+        animator.SetSpeed(currentSpeed);
+        animator.SetLocomotionPlaybackSpeed(GetLocomotionPlaybackSpeed(currentSpeed));
 
         if (agent.velocity.sqrMagnitude > 0.01f)
         {
@@ -64,5 +83,32 @@ public class PlayerMovement : MonoBehaviour
             return false;
 
         return true;
+    }
+
+    private void HandleStatChanged(StatType type)
+    {
+        if (type == StatType.MoveSpeed)
+            ApplyMoveSpeed();
+    }
+
+    private void ApplyMoveSpeed()
+    {
+        if (agent == null)
+            return;
+
+        float moveSpeed = stats != null ? stats.GetValue(StatType.MoveSpeed) : 0f;
+        agent.speed = moveSpeed > 0f ? moveSpeed : fallbackMoveSpeed;
+    }
+
+    private float GetLocomotionPlaybackSpeed(float currentSpeed)
+    {
+        if (currentSpeed <= 0.05f)
+            return 1f;
+
+        float baseSpeed = fallbackMoveSpeed > 0f ? fallbackMoveSpeed : agent.speed;
+        if (baseSpeed <= 0f)
+            return 1f;
+
+        return Mathf.Max(0.01f, currentSpeed / baseSpeed);
     }
 }

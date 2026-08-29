@@ -1,0 +1,158 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public sealed class ChestInventory : MonoBehaviour, IItemContainerOwner
+{
+    private const int MinSectionCapacity = 1;
+
+    [Header("Owner")]
+    [SerializeField] private string ownerId;
+
+    [Header("Section Capacities")]
+    [SerializeField, Min(MinSectionCapacity)] private int equipmentCapacity = 40;
+    [SerializeField, Min(MinSectionCapacity)] private int consumableCapacity = 40;
+    [SerializeField, Min(MinSectionCapacity)] private int trophyCapacity = 60;
+    [SerializeField, Min(MinSectionCapacity)] private int craftingCapacity = 60;
+    [SerializeField, Min(MinSectionCapacity)] private int questCapacity = 30;
+    [SerializeField, Min(MinSectionCapacity)] private int miscCapacity = 20;
+
+    private ItemContainer container;
+
+    public event Action Changed;
+    public event Action<ItemCategory> SectionChanged;
+
+    public ItemContainerOwnerKind OwnerKind => ItemContainerOwnerKind.Chest;
+    public string OwnerId => string.IsNullOrWhiteSpace(ownerId) ? name : ownerId;
+
+    public ItemContainer Container
+    {
+        get
+        {
+            EnsureInitialized();
+            return container;
+        }
+    }
+
+    private void Awake()
+    {
+        EnsureInitialized();
+    }
+
+    private void OnEnable()
+    {
+        EnsureInitialized();
+    }
+
+    private void OnValidate()
+    {
+        NormalizeCapacities();
+    }
+
+    public void EnsureInitialized()
+    {
+        if (container != null)
+            return;
+
+        NormalizeCapacities();
+        container = new ItemContainer(CreateSectionCapacities(), 0);
+    }
+
+    public AddItemResult TryAdd(ItemDefinition definition, int amount = 1)
+    {
+        EnsureInitialized();
+
+        AddItemResult result = container.TryAdd(definition, amount);
+
+        if (result.AddedAnything && definition != null)
+            NotifyChanged(definition.Category);
+
+        return result;
+    }
+
+    public AddItemResult TryAdd(ItemStack stack)
+    {
+        EnsureInitialized();
+
+        AddItemResult result = container.TryAdd(stack);
+        ItemDefinition definition = stack != null ? stack.Definition : null;
+
+        if (result.AddedAnything && definition != null)
+            NotifyChanged(definition.Category);
+
+        return result;
+    }
+
+    public AddItemResult TryAddInstance(ItemInstance instance)
+    {
+        if (instance == null || instance.Definition == null)
+            return new AddItemResult(0, 0);
+
+        if (instance.Definition.MaxStack > 1)
+            return new AddItemResult(0, 1);
+
+        return TryAdd(ItemStack.CreateNonStackable(instance));
+    }
+
+    public ItemContainerSection GetSection(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.GetSection(category);
+    }
+
+    public ItemSlot GetSlot(ItemCategory category, int index)
+    {
+        EnsureInitialized();
+        return container.GetSlot(category, index);
+    }
+
+    public int CountFreeSlots(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.CountFreeSlots(category);
+    }
+
+    public int CountOccupiedSlots(ItemCategory category)
+    {
+        EnsureInitialized();
+        return container.CountOccupiedSlots(category);
+    }
+
+    public void NotifyChanged(ItemCategory category)
+    {
+        Changed?.Invoke();
+        SectionChanged?.Invoke(category);
+    }
+
+    public void NotifyTransferChanged(ItemCategory sourceCategory, ItemCategory targetCategory)
+    {
+        Changed?.Invoke();
+        SectionChanged?.Invoke(sourceCategory);
+
+        if (targetCategory != sourceCategory)
+            SectionChanged?.Invoke(targetCategory);
+    }
+
+    private Dictionary<ItemCategory, int> CreateSectionCapacities()
+    {
+        return new Dictionary<ItemCategory, int>
+        {
+            [ItemCategory.Equipment] = equipmentCapacity,
+            [ItemCategory.Consumable] = consumableCapacity,
+            [ItemCategory.Trophy] = trophyCapacity,
+            [ItemCategory.Crafting] = craftingCapacity,
+            [ItemCategory.Quest] = questCapacity,
+            [ItemCategory.Misc] = miscCapacity
+        };
+    }
+
+    private void NormalizeCapacities()
+    {
+        equipmentCapacity = Mathf.Max(MinSectionCapacity, equipmentCapacity);
+        consumableCapacity = Mathf.Max(MinSectionCapacity, consumableCapacity);
+        trophyCapacity = Mathf.Max(MinSectionCapacity, trophyCapacity);
+        craftingCapacity = Mathf.Max(MinSectionCapacity, craftingCapacity);
+        questCapacity = Mathf.Max(MinSectionCapacity, questCapacity);
+        miscCapacity = Mathf.Max(MinSectionCapacity, miscCapacity);
+    }
+}

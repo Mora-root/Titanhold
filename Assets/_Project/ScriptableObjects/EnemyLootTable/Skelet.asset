@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4667417977bf4ff408606c323b43bb0a, type: 3}
+  m_Name: Skelet
+  m_EditorClassIdentifier: Assembly-CSharp::LootTable
+  entries:
+  - kind: 1
+    dropChance: 0.505
+    minAmount: 1
+    maxAmount: 10
+    item: {fileID: 0}
+    generatedModifierRules: []
+    minGeneratedModifiers: 0
+    maxGeneratedModifiers: 0
+  - kind: 0
+    dropChance: 0.051
+    minAmount: 1
+    maxAmount: 1
+    item: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+    generatedModifierRules:
+    - type: 6
+      modifierType: 0
+      minValue: 1
+      maxValue: 5
+      wholeNumberValues: 1
+    - type: 7
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 0
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 1
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 2
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 3
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    minGeneratedModifiers: 1
+    maxGeneratedModifiers: 2
+  - kind: 0
+    dropChance: 0.3
+    minAmount: 1
+    maxAmount: 2
+    item: {fileID: 11400000, guid: 67c73ffa4d1b5994e8030c1cf117527f, type: 2}
+    generatedModifierRules: []
+    minGeneratedModifiers: 0
+    maxGeneratedModifiers: 0
+  - kind: 0
+    dropChance: 0.503
+    minAmount: 1
+    maxAmount: 1
+    item: {fileID: 11400000, guid: 5e88c6e9c548f644d80792b3e416148e, type: 2}
+    generatedModifierRules: []
+    minGeneratedModifiers: 0
+    maxGeneratedModifiers: 0
+  - kind: 0
+    dropChance: 0.05
+    minAmount: 1
+    maxAmount: 1
+    item: {fileID: 11400000, guid: 1160ad875b691a847a1217b2056abef9, type: 2}
+    generatedModifierRules:
+    - type: 0
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 4
+      modifierType: 0
+      minValue: 10
+      maxValue: 30
+      wholeNumberValues: 1
+    - type: 10
+      modifierType: 0
+      minValue: 5
+      maxValue: 10
+      wholeNumberValues: 1
+    minGeneratedModifiers: 1
+    maxGeneratedModifiers: 2
+  - kind: 0
+    dropChance: 0.05
+    minAmount: 1
+    maxAmount: 1
+    item: {fileID: 11400000, guid: 7289840bddf42c54595372703a69dcad, type: 2}
+    generatedModifierRules:
+    - type: 0
+      modifierType: 0
+      minValue: 1
+      maxValue: 3
+      wholeNumberValues: 1
+    - type: 4
+      modifierType: 0
+      minValue: 10
+      maxValue: 30
+      wholeNumberValues: 1
+    - type: 10
+      modifierType: 0
+      minValue: 5
+      maxValue: 10
+      wholeNumberValues: 1
+    minGeneratedModifiers: 1
+    maxGeneratedModifiers: 2

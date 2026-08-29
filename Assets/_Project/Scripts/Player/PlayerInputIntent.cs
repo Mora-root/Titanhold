@@ -2,6 +2,8 @@ using UnityEngine;
 
 public readonly struct PlayerInputIntent
 {
+    public static PlayerInputIntent Empty => new(Vector3.zero, false, false, false, false, false, false);
+
     public Vector3 TargetPosition { get; }
     public bool HasMoveTarget { get; }
     public bool LeftClicked { get; }

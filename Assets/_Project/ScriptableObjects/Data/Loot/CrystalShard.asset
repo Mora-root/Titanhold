@@ -9,11 +9,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df17b0933ed6cde47bb09e9bbda39da7, type: 3}
+  m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
   m_Name: CrystalShard
-  m_EditorClassIdentifier: Assembly-CSharp::LootItemDefinition
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  id: crystal_shard
   displayName: Crystal Shard
   shortName: Shard
-  description: A resonant crystal fragment used in camp rituals and upgrades.
   icon: {fileID: 0}
-  category: 0
+  description: A resonant crystal fragment used in camp rituals and upgrades.
+  category: 3
+  maxStack: 100
+  rarity: 0
+  worldPickupVisualPrefab: {fileID: 0}
+  worldPickupEffectPrefab: {fileID: 0}
+  overridePickupLabelColor: 0
+  pickupLabelColor: {r: 1, g: 1, b: 1, a: 1}
+  equipmentSlotType: 0
+  modifiers: []
+  weaponType: 0
+  weaponBaseDamage: 0
+  weaponBaseAttacksPerSecond: 1
+  consumableSubtype: 0
+  useActionId: 
+  consumeAmountOnUse: 1
+  activitySubtype: 0
+  activityModifiers: []
+  trophySubtype: 0
+  craftingSubtype: 1
+  sellValue: 100
+  canBeSold: 1
+  sellWarningType: 0
+  canBeDismantled: 0
+  externalDropAction: 0
+  requiresConfirmationOnExternalDrop: 0

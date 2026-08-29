@@ -58,14 +58,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 743065920725331345, guid: cd4a68097c5a29944afc4a0026bd78fe, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -7284643618075216441}
+      addedObject: {fileID: -3710756514951259904}
   m_SourcePrefab: {fileID: 100100000, guid: cd4a68097c5a29944afc4a0026bd78fe, type: 3}
 --- !u!1 &1826512723434630158 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 743065920725331345, guid: cd4a68097c5a29944afc4a0026bd78fe, type: 3}
   m_PrefabInstance: {fileID: 1375556260765974943}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &-7284643618075216441
+--- !u!114 &-3710756514951259904
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -74,9 +74,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1826512723434630158}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 867721f5c9cb0784c825d7729a2ae2b1, type: 3}
+  m_Script: {fileID: 11500000, guid: 5485eca95469a584d825308cc5836afe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LootItemReward
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryLootReward
   item: {fileID: 11400000, guid: 5e88c6e9c548f644d80792b3e416148e, type: 2}
   amount: 1
-  playerLootInventory: {fileID: 0}
+  playerInventory: {fileID: 0}
