@@ -147,16 +147,28 @@ namespace Titanhold.Run.Editor
                 CombatActorReference assaultEnemy = new CombatActorReference(
                     "enemy:assault-play-mode-smoke",
                     CombatActorKind.Enemy);
-                Assert(runtime.AssaultEncounter.TryRegisterSpawn(
-                        new AssaultEnemyCommand(encounterId, assaultEnemy)).Success,
-                    "Runtime Assault enemy was not registered.");
-                AssaultEncounterResult encounterCompletion =
-                    runtime.AssaultEncounter.TryRegisterDefeat(
-                        new AssaultEnemyCommand(encounterId, assaultEnemy));
-                Assert(encounterCompletion.Success &&
-                       encounterCompletion.EncounterCompleted &&
+                AssaultEnemyRegistry assaultRegistry =
+                    runtime.gameObject.AddComponent<AssaultEnemyRegistry>();
+                EnemyDeathNotifier assaultNotifier =
+                    temporaryEnemy.GetComponent<EnemyDeathNotifier>();
+                Assert(assaultRegistry.TryRegister(
+                        assaultNotifier,
+                        encounterId,
+                        assaultEnemy).Success,
+                    "Runtime Assault enemy was not registered through the registry.");
+                Health assaultHealth = temporaryEnemy.GetComponent<Health>();
+                DamageRequest assaultDamageRequest = new DamageRequest(
+                    CombatExecutionId.New(),
+                    player,
+                    assaultHealth.MaxHealth * 2f,
+                    DamageCause.Ability,
+                    "ability:assault-play-mode-smoke");
+                DamageResult assaultDamage =
+                    assaultHealth.ApplyDamage(assaultDamageRequest);
+                Assert(assaultDamage.Killed &&
+                       runtime.AssaultEncounter.State.IsCompleted &&
                        runtime.State.Phase == RunPhase.Intermission,
-                    "Runtime Assault encounter did not complete.");
+                    "Runtime Assault death event did not complete the encounter.");
 
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
