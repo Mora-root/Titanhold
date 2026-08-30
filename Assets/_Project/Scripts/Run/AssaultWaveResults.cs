@@ -10,6 +10,8 @@ namespace Titanhold.Run
         AlreadySpawning,
         MissingRuntime,
         MissingRegistry,
+        MissingTargetRegistry,
+        NoRegisteredTargets,
         MissingDefinition,
         InvalidDefinition,
         MissingSpawnPoints,
@@ -73,6 +75,8 @@ namespace Titanhold.Run
 
     public enum AssaultWaveSpawnFailureReason
     {
+        MissingTargetProvider,
+        TargetProviderRejectedRegistry,
         MissingDeathNotifier,
         InactiveDeathNotifier,
         RegistryRejected

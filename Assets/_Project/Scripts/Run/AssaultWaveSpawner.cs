@@ -8,10 +8,12 @@ namespace Titanhold.Run
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RunFlowRuntime))]
     [RequireComponent(typeof(AssaultEnemyRegistry))]
+    [RequireComponent(typeof(AssaultTargetRegistry))]
     public sealed class AssaultWaveSpawner : MonoBehaviour
     {
         [SerializeField] private RunFlowRuntime runFlowRuntime;
         [SerializeField] private AssaultEnemyRegistry enemyRegistry;
+        [SerializeField] private AssaultTargetRegistry targetRegistry;
         [SerializeField] private AssaultWaveDefinition waveDefinition;
         [SerializeField] private Transform[] spawnPoints = Array.Empty<Transform>();
 
@@ -68,6 +70,18 @@ namespace Titanhold.Run
             {
                 return AssaultWaveStartResult.Failed(
                     AssaultWaveStartError.MissingRegistry);
+            }
+
+            if (targetRegistry == null || !targetRegistry.isActiveAndEnabled)
+            {
+                return AssaultWaveStartResult.Failed(
+                    AssaultWaveStartError.MissingTargetRegistry);
+            }
+
+            if (targetRegistry.Count == 0)
+            {
+                return AssaultWaveStartResult.Failed(
+                    AssaultWaveStartError.NoRegisteredTargets);
             }
 
             if (waveDefinition == null)
@@ -174,6 +188,33 @@ namespace Titanhold.Run
                 CombatActorKind.Enemy);
             EnemyDeathNotifier notifier =
                 enemyObject.GetComponentInChildren<EnemyDeathNotifier>(true);
+            AssaultAggroTargetProvider targetProvider =
+                enemyObject.GetComponentInChildren<AssaultAggroTargetProvider>(true);
+
+            if (targetProvider == null)
+            {
+                failure = new AssaultWaveSpawnFailure(
+                    sequenceNumber,
+                    AssaultWaveSpawnFailureReason.MissingTargetProvider,
+                    enemyObject,
+                    enemy,
+                    default);
+                Destroy(enemyObject);
+                return false;
+            }
+
+            targetProvider.Bind(targetRegistry);
+            if (!targetProvider.IsBound || targetProvider.GetTarget() == null)
+            {
+                failure = new AssaultWaveSpawnFailure(
+                    sequenceNumber,
+                    AssaultWaveSpawnFailureReason.TargetProviderRejectedRegistry,
+                    enemyObject,
+                    enemy,
+                    default);
+                Destroy(enemyObject);
+                return false;
+            }
 
             if (notifier == null)
             {
@@ -239,6 +280,7 @@ namespace Titanhold.Run
         {
             runFlowRuntime ??= GetComponent<RunFlowRuntime>();
             enemyRegistry ??= GetComponent<AssaultEnemyRegistry>();
+            targetRegistry ??= GetComponent<AssaultTargetRegistry>();
         }
     }
 }

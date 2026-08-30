@@ -25,7 +25,7 @@ namespace Titanhold.Run.Editor
             if (EditorApplication.isPlaying)
             {
                 SessionState.SetBool(SessionKey, true);
-                EditorApplication.delayCall += RunSmokeTestInPlayMode;
+                RunSmokeTestInPlayMode();
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace Titanhold.Run.Editor
                 return;
             }
 
-            EditorApplication.delayCall += RunSmokeTestInPlayMode;
+            RunSmokeTestInPlayMode();
         }
 
         private static void RunSmokeTestInPlayMode()
@@ -90,6 +90,64 @@ namespace Titanhold.Run.Editor
                     runtime.GetComponent<RunPortalSpawner>();
                 Assert(portalSpawner != null,
                     "Serialized RunPortalSpawner wiring was not found in Play Mode.");
+
+                AssaultEnemyRegistry assaultRegistry =
+                    runtime.GetComponent<AssaultEnemyRegistry>();
+                AssaultTargetRegistry assaultTargetRegistry =
+                    runtime.GetComponent<AssaultTargetRegistry>();
+                AssaultWaveSpawner assaultSpawner =
+                    runtime.GetComponent<AssaultWaveSpawner>();
+                LocalAssaultArenaGateway arenaGateway =
+                    runtime.GetComponent<LocalAssaultArenaGateway>();
+                AssaultArenaTransitionController transitionController =
+                    runtime.GetComponent<AssaultArenaTransitionController>();
+                Assert(assaultRegistry != null &&
+                       assaultTargetRegistry != null &&
+                       assaultSpawner != null &&
+                       arenaGateway != null &&
+                       transitionController != null,
+                    "Serialized Assault arena wiring was not found in Play Mode.");
+
+                Vector3 explorationPosition = playerCombat.transform.position;
+                SerializedObject serializedSpawner =
+                    new SerializedObject(assaultSpawner);
+                AssaultWaveDefinition installedDefinition =
+                    serializedSpawner.FindProperty("waveDefinition")
+                        .objectReferenceValue as AssaultWaveDefinition;
+                Assert(installedDefinition != null,
+                    "Installed Assault wave definition is missing.");
+                Assert(installedDefinition.TryCreatePlan(
+                        out AssaultWavePlan installedPlan,
+                        out _),
+                    "Installed Assault wave definition is invalid.");
+                assaultEnemyTemplate = installedPlan.Steps[0].EnemyPrefab;
+                assaultSpawnPoint = new GameObject("AssaultWave_PlayModeSmokeSpawnPoint");
+                assaultSpawnPoint.transform.position =
+                    arenaGateway.AssaultDestination.position + Vector3.forward * 4f;
+                temporaryWaveDefinition =
+                    ScriptableObject.CreateInstance<AssaultWaveDefinition>();
+                AssaultWaveDefinitionValidationRunner.ConfigureDefinition(
+                    temporaryWaveDefinition,
+                    assaultEnemyTemplate,
+                    initialDelay: 0f,
+                    enemyCount: 1,
+                    delayBeforeGroup: 0f,
+                    spawnInterval: 0f);
+
+                serializedSpawner.FindProperty("waveDefinition").objectReferenceValue =
+                    temporaryWaveDefinition;
+                SerializedProperty spawnPoints =
+                    serializedSpawner.FindProperty("spawnPoints");
+                spawnPoints.arraySize = 1;
+                spawnPoints.GetArrayElementAtIndex(0).objectReferenceValue =
+                    assaultSpawnPoint.transform;
+                serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
+
+                int completedSpawnSequenceCount = 0;
+                assaultSpawner.EnemySpawned += (enemyObject, _) =>
+                    spawnedAssaultEnemy = enemyObject;
+                assaultSpawner.SpawnSequenceCompleted += _ =>
+                    completedSpawnSequenceCount++;
 
                 temporaryEnemy = new GameObject("RunFlow_PlayModeSmokeEnemy");
                 EnemyRunContributionSource contributionSource =
@@ -137,61 +195,35 @@ namespace Titanhold.Run.Editor
 
                 portalSpawner.ActivePortal.Interact(playerCombat.gameObject);
 
-                Assert(runtime.State.Phase == RunPhase.TransitionToAssault,
-                    "Portal interaction did not begin the Assault transition.");
+                Assert(runtime.State.Phase == RunPhase.Assault,
+                    "Portal interaction did not enter the Assault phase.");
                 Assert(!portalSpawner.HasActivePortal,
                     "RunPortalSpawner retained the portal after entry.");
-
-                AssaultEnemyRegistry assaultRegistry =
-                    runtime.gameObject.AddComponent<AssaultEnemyRegistry>();
-                AssaultWaveSpawner assaultSpawner =
-                    runtime.gameObject.AddComponent<AssaultWaveSpawner>();
-                assaultEnemyTemplate = new GameObject(
-                    "AssaultWave_PlayModeSmokeTemplate");
-                assaultEnemyTemplate.transform.position = new Vector3(0f, -1000f, 0f);
-                assaultEnemyTemplate.AddComponent<EnemyDeathNotifier>();
-                assaultSpawnPoint = new GameObject("AssaultWave_PlayModeSmokeSpawnPoint");
-                assaultSpawnPoint.transform.position =
-                    playerCombat.transform.position + Vector3.forward * 4f;
-                temporaryWaveDefinition =
-                    ScriptableObject.CreateInstance<AssaultWaveDefinition>();
-                AssaultWaveDefinitionValidationRunner.ConfigureDefinition(
-                    temporaryWaveDefinition,
-                    assaultEnemyTemplate,
-                    initialDelay: 0f,
-                    enemyCount: 1,
-                    delayBeforeGroup: 0f,
-                    spawnInterval: 0f);
-
-                SerializedObject serializedSpawner =
-                    new SerializedObject(assaultSpawner);
-                serializedSpawner.FindProperty("runFlowRuntime").objectReferenceValue = runtime;
-                serializedSpawner.FindProperty("enemyRegistry").objectReferenceValue =
-                    assaultRegistry;
-                serializedSpawner.FindProperty("waveDefinition").objectReferenceValue =
-                    temporaryWaveDefinition;
-                SerializedProperty spawnPoints =
-                    serializedSpawner.FindProperty("spawnPoints");
-                spawnPoints.arraySize = 1;
-                spawnPoints.GetArrayElementAtIndex(0).objectReferenceValue =
-                    assaultSpawnPoint.transform;
-                serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
-
-                int completedSpawnSequenceCount = 0;
-                assaultSpawner.EnemySpawned += (enemyObject, _) =>
-                    spawnedAssaultEnemy = enemyObject;
-                assaultSpawner.SpawnSequenceCompleted += _ =>
-                    completedSpawnSequenceCount++;
-                AssaultWaveStartResult waveStart = assaultSpawner.TryStartWave();
-                Assert(waveStart.Success &&
-                       waveStart.PlannedEnemyCount == 1 &&
-                       runtime.State.Phase == RunPhase.Assault,
-                    "Runtime Assault wave did not start.");
+                Assert(arenaGateway.IsOccupied &&
+                       arenaGateway.Occupant == playerCombat.transform &&
+                       Vector3.Distance(
+                           playerCombat.transform.position,
+                           arenaGateway.AssaultDestination.position) <= 2f,
+                    "Assault gateway did not move the player to the arena.");
                 Assert(spawnedAssaultEnemy != null &&
                        assaultSpawner.SpawnedEnemyCount == 1 &&
                        completedSpawnSequenceCount == 1 &&
                        !assaultSpawner.IsSpawning,
                     "Runtime Assault wave did not finish its spawn sequence.");
+                Assert(
+                    spawnedAssaultEnemy.GetComponentInChildren<EnemyRewardSource>(true) != null &&
+                    spawnedAssaultEnemy.GetComponentInChildren<EnemyLootTableDropper>(true) == null &&
+                    spawnedAssaultEnemy.GetComponentInChildren<EnemyRunContributionSource>(true) == null &&
+                    spawnedAssaultEnemy.GetComponentInChildren<EnemyThreatSource>(true) == null,
+                    "Runtime Assault enemy reward composition is invalid.");
+                AssaultAggroTargetProvider assaultTargetProvider =
+                    spawnedAssaultEnemy.GetComponentInChildren<
+                        AssaultAggroTargetProvider>(true);
+                Assert(assaultTargetProvider != null &&
+                       assaultTargetProvider.IsBound &&
+                       assaultTargetProvider.CurrentTargetActor.IsPlayer &&
+                       assaultTargetProvider.GetTarget() != null,
+                    "Runtime Assault enemy did not acquire the player target.");
 
                 Health assaultHealth = spawnedAssaultEnemy.GetComponent<Health>();
                 DamageRequest assaultDamageRequest = new DamageRequest(
@@ -206,6 +238,19 @@ namespace Titanhold.Run.Editor
                        runtime.AssaultEncounter.State.IsCompleted &&
                        runtime.State.Phase == RunPhase.Intermission,
                     "Runtime Assault death event did not complete the encounter.");
+
+                AssaultArenaTransitionResult returned =
+                    transitionController.TryReturnToExploration();
+                Assert(returned.Success &&
+                       runtime.State.Phase == RunPhase.Exploration &&
+                       runtime.State.RoundNumber == 2 &&
+                       !arenaGateway.IsOccupied &&
+                       assaultTargetRegistry.Count == 0,
+                    "Assault gateway did not resume the next exploration round.");
+                Assert(Vector3.Distance(
+                           playerCombat.transform.position,
+                           explorationPosition) <= 2f,
+                    "Assault gateway did not restore the exploration position.");
 
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
@@ -223,9 +268,6 @@ namespace Titanhold.Run.Editor
 
                 if (assaultSpawnPoint != null)
                     UnityEngine.Object.Destroy(assaultSpawnPoint);
-
-                if (assaultEnemyTemplate != null)
-                    UnityEngine.Object.Destroy(assaultEnemyTemplate);
 
                 if (temporaryWaveDefinition != null)
                     UnityEngine.Object.Destroy(temporaryWaveDefinition);
