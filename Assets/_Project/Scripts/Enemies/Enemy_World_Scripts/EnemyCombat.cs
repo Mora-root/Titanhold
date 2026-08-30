@@ -7,6 +7,8 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private float attackRange = 1f;
     [SerializeField] private float damage = 10f;
 
+    private float encounterDamageMultiplier = 1f;
+
     private float lastAttackTime;
     private float multiplierDamageRadius = 3f;
     private ITargetable currentTarget;
@@ -19,6 +21,17 @@ public class EnemyCombat : MonoBehaviour
     public bool IsAttacking => isAttacking;
 
     public float AttackRange => attackRange;
+    public float Damage
+    {
+        get
+        {
+            double scaled = (double)damage * encounterDamageMultiplier;
+            return scaled >= float.MaxValue
+                ? float.MaxValue
+                : (float)scaled;
+        }
+    }
+    public float EncounterDamageMultiplier => encounterDamageMultiplier;
 
     private void Awake()
     {
@@ -30,6 +43,19 @@ public class EnemyCombat : MonoBehaviour
     public bool CanAttack()
     {
         return Time.time >= lastAttackTime + attackCooldown;
+    }
+
+    public bool TrySetEncounterDamageMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f ||
+            float.IsNaN(multiplier) ||
+            float.IsInfinity(multiplier))
+        {
+            return false;
+        }
+
+        encounterDamageMultiplier = multiplier;
+        return true;
     }
 
     // Try attack(called from State)
@@ -63,7 +89,7 @@ public class EnemyCombat : MonoBehaviour
         DamageRequest request = new DamageRequest(
             currentExecutionId.IsValid ? currentExecutionId : CombatExecutionId.New(),
             combatActor,
-            damage,
+            Damage,
             DamageCause.BasicAttack);
         damageable.ApplyDamageRequest(request);
 

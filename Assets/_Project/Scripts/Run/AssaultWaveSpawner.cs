@@ -18,6 +18,7 @@ namespace Titanhold.Run
         [SerializeField] private Transform[] spawnPoints = Array.Empty<Transform>();
 
         private Coroutine spawnRoutine;
+        private readonly AssaultEnemyScalingApplicator scalingApplicator = new();
         private AssaultEncounterId activeEncounterId;
         private int spawnedEnemyCount;
         private bool isSpawning;
@@ -188,6 +189,26 @@ namespace Titanhold.Run
                 CombatActorKind.Enemy);
             EnemyDeathNotifier notifier =
                 enemyObject.GetComponentInChildren<EnemyDeathNotifier>(true);
+            Health health = enemyObject.GetComponentInChildren<Health>(true);
+            EnemyCombat combat =
+                enemyObject.GetComponentInChildren<EnemyCombat>(true);
+            AssaultEnemyScalingResult scaling = scalingApplicator.TryApply(
+                health,
+                combat,
+                runFlowRuntime.State.AssaultScaling);
+            if (!scaling.Success)
+            {
+                failure = new AssaultWaveSpawnFailure(
+                    sequenceNumber,
+                    AssaultWaveSpawnFailureReason.ScalingRejected,
+                    enemyObject,
+                    enemy,
+                    default,
+                    scaling);
+                Destroy(enemyObject);
+                return false;
+            }
+
             AssaultAggroTargetProvider targetProvider =
                 enemyObject.GetComponentInChildren<AssaultAggroTargetProvider>(true);
 

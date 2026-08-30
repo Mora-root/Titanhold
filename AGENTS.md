@@ -103,7 +103,8 @@ where it provides real value.
 After code changes, recompile and run the narrowest relevant Unity validation.
 Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
-Mode smoke test.
+Mode smoke test. Use Assault Enemy Scaling validation when wave multipliers or
+enemy runtime combat values change.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,

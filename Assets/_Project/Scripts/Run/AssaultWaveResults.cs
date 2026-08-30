@@ -75,6 +75,7 @@ namespace Titanhold.Run
 
     public enum AssaultWaveSpawnFailureReason
     {
+        ScalingRejected,
         MissingTargetProvider,
         TargetProviderRejectedRegistry,
         MissingDeathNotifier,
@@ -89,13 +90,15 @@ namespace Titanhold.Run
             AssaultWaveSpawnFailureReason reason,
             GameObject enemyObject,
             CombatActorReference enemy,
-            AssaultEnemyRegistryResult registryResult)
+            AssaultEnemyRegistryResult registryResult,
+            AssaultEnemyScalingResult scalingResult = default)
         {
             SequenceNumber = sequenceNumber;
             Reason = reason;
             EnemyObject = enemyObject;
             Enemy = enemy;
             RegistryResult = registryResult;
+            ScalingResult = scalingResult;
         }
 
         public int SequenceNumber { get; }
@@ -103,5 +106,6 @@ namespace Titanhold.Run
         public GameObject EnemyObject { get; }
         public CombatActorReference Enemy { get; }
         public AssaultEnemyRegistryResult RegistryResult { get; }
+        public AssaultEnemyScalingResult ScalingResult { get; }
     }
 }

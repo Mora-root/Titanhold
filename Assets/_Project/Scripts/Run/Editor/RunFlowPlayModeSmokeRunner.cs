@@ -121,6 +121,14 @@ namespace Titanhold.Run.Editor
                         out _),
                     "Installed Assault wave definition is invalid.");
                 assaultEnemyTemplate = installedPlan.Steps[0].EnemyPrefab;
+                Health assaultTemplateHealth =
+                    assaultEnemyTemplate.GetComponentInChildren<Health>(true);
+                EnemyCombat assaultTemplateCombat =
+                    assaultEnemyTemplate.GetComponentInChildren<EnemyCombat>(true);
+                Assert(assaultTemplateHealth != null && assaultTemplateCombat != null,
+                    "Installed Assault enemy has no scalable combat components.");
+                float assaultBaseMaxHealth = assaultTemplateHealth.MaxHealth;
+                float assaultBaseDamage = assaultTemplateCombat.Damage;
                 assaultSpawnPoint = new GameObject("AssaultWave_PlayModeSmokeSpawnPoint");
                 assaultSpawnPoint.transform.position =
                     arenaGateway.AssaultDestination.position + Vector3.forward * 4f;
@@ -188,6 +196,12 @@ namespace Titanhold.Run.Editor
                     "Play Mode lethal report did not open the portal phase.");
                 Assert(portalSpawner.HasActivePortal,
                     "RunPortalSpawner did not create a portal near the player.");
+                ExplorationKillBatchResult instability =
+                    runtime.Service.TryRegisterExplorationKill(
+                        new ExplorationKillContribution(0f, 20));
+                Assert(instability.Success &&
+                       runtime.State.RiftInstability.Level == 2,
+                    "Play Mode setup did not create Assault instability.");
                 int interactableLayer = LayerMask.NameToLayer("Interactable");
                 Assert(interactableLayer >= 0 &&
                        portalSpawner.ActivePortal.gameObject.layer == interactableLayer,
@@ -226,6 +240,22 @@ namespace Titanhold.Run.Editor
                     "Runtime Assault enemy did not acquire the player target.");
 
                 Health assaultHealth = spawnedAssaultEnemy.GetComponent<Health>();
+                EnemyCombat assaultCombat =
+                    spawnedAssaultEnemy.GetComponent<EnemyCombat>();
+                AssaultScalingSnapshot scaling = runtime.State.AssaultScaling;
+                Assert(assaultCombat != null &&
+                       Math.Abs(
+                           assaultHealth.MaxHealth -
+                           assaultBaseMaxHealth * scaling.HealthMultiplier) <=
+                       0.0001f &&
+                       Math.Abs(
+                           assaultCombat.Damage -
+                           assaultBaseDamage * scaling.DamageMultiplier) <=
+                       0.0001f &&
+                       Math.Abs(
+                           assaultHealth.CurrentHealth -
+                           assaultHealth.MaxHealth) <= 0.0001f,
+                    "Runtime Assault enemy did not receive its scaling snapshot.");
                 DamageRequest assaultDamageRequest = new DamageRequest(
                     CombatExecutionId.New(),
                     player,

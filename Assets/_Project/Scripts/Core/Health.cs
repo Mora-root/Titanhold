@@ -8,23 +8,32 @@ public class Health : MonoBehaviour, IContextualDamageable
     [SerializeField] private CharacterStats characterStats;
     [SerializeField] private PlayerExperience playerExperience;
 
+    private float encounterMaxHealthMultiplier = 1f;
+
     public float MaxHealth
     {
         get
         {
+            float baseMaxHealth = maxHealth;
             if (characterStats != null)
             {
                 float statValue = characterStats.GetValue(StatType.MaxHealth);
                 if (statValue > 0f)
-                    return statValue;
+                    baseMaxHealth = statValue;
             }
 
-            return maxHealth;
+            double scaled =
+                (double)baseMaxHealth * encounterMaxHealthMultiplier;
+            return scaled >= float.MaxValue
+                ? float.MaxValue
+                : (float)scaled;
         }
     }
 
     public float CurrentHealth { get; private set; }
     public bool IsAlive => CurrentHealth > 0f;
+    public float EncounterMaxHealthMultiplier =>
+        encounterMaxHealthMultiplier;
     public DeathContext LastDeathContext { get; private set; }
 
     public event Action<float> OnDamage;
@@ -159,6 +168,21 @@ public class Health : MonoBehaviour, IContextualDamageable
         isDead = false;
         LastDeathContext = default;
         NotifyHealthChanged();
+    }
+
+    public bool TrySetEncounterMaxHealthMultiplier(float multiplier)
+    {
+        if (multiplier <= 0f ||
+            float.IsNaN(multiplier) ||
+            float.IsInfinity(multiplier))
+        {
+            return false;
+        }
+
+        encounterMaxHealthMultiplier = multiplier;
+        CurrentHealth = Mathf.Clamp(CurrentHealth, 0f, MaxHealth);
+        NotifyHealthChanged();
+        return true;
     }
 
     private void HandleStatChanged(StatType type)
