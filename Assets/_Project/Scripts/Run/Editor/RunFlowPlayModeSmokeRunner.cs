@@ -59,6 +59,10 @@ namespace Titanhold.Run.Editor
         private static void RunSmokeTestInPlayMode()
         {
             GameObject temporaryEnemy = null;
+            GameObject assaultEnemyTemplate = null;
+            GameObject assaultSpawnPoint = null;
+            GameObject spawnedAssaultEnemy = null;
+            AssaultWaveDefinition temporaryWaveDefinition = null;
 
             try
             {
@@ -138,25 +142,58 @@ namespace Titanhold.Run.Editor
                 Assert(!portalSpawner.HasActivePortal,
                     "RunPortalSpawner retained the portal after entry.");
 
-                AssaultEncounterId encounterId =
-                    new AssaultEncounterId("assault:play-mode-smoke");
-                AssaultEncounterResult encounterStart = runtime.AssaultEncounter.TryBegin(
-                    new BeginAssaultEncounterCommand(encounterId, 1, 1));
-                Assert(encounterStart.Success && runtime.State.Phase == RunPhase.Assault,
-                    "Runtime Assault encounter did not start.");
-                CombatActorReference assaultEnemy = new CombatActorReference(
-                    "enemy:assault-play-mode-smoke",
-                    CombatActorKind.Enemy);
                 AssaultEnemyRegistry assaultRegistry =
                     runtime.gameObject.AddComponent<AssaultEnemyRegistry>();
-                EnemyDeathNotifier assaultNotifier =
-                    temporaryEnemy.GetComponent<EnemyDeathNotifier>();
-                Assert(assaultRegistry.TryRegister(
-                        assaultNotifier,
-                        encounterId,
-                        assaultEnemy).Success,
-                    "Runtime Assault enemy was not registered through the registry.");
-                Health assaultHealth = temporaryEnemy.GetComponent<Health>();
+                AssaultWaveSpawner assaultSpawner =
+                    runtime.gameObject.AddComponent<AssaultWaveSpawner>();
+                assaultEnemyTemplate = new GameObject(
+                    "AssaultWave_PlayModeSmokeTemplate");
+                assaultEnemyTemplate.transform.position = new Vector3(0f, -1000f, 0f);
+                assaultEnemyTemplate.AddComponent<EnemyDeathNotifier>();
+                assaultSpawnPoint = new GameObject("AssaultWave_PlayModeSmokeSpawnPoint");
+                assaultSpawnPoint.transform.position =
+                    playerCombat.transform.position + Vector3.forward * 4f;
+                temporaryWaveDefinition =
+                    ScriptableObject.CreateInstance<AssaultWaveDefinition>();
+                AssaultWaveDefinitionValidationRunner.ConfigureDefinition(
+                    temporaryWaveDefinition,
+                    assaultEnemyTemplate,
+                    initialDelay: 0f,
+                    enemyCount: 1,
+                    delayBeforeGroup: 0f,
+                    spawnInterval: 0f);
+
+                SerializedObject serializedSpawner =
+                    new SerializedObject(assaultSpawner);
+                serializedSpawner.FindProperty("runFlowRuntime").objectReferenceValue = runtime;
+                serializedSpawner.FindProperty("enemyRegistry").objectReferenceValue =
+                    assaultRegistry;
+                serializedSpawner.FindProperty("waveDefinition").objectReferenceValue =
+                    temporaryWaveDefinition;
+                SerializedProperty spawnPoints =
+                    serializedSpawner.FindProperty("spawnPoints");
+                spawnPoints.arraySize = 1;
+                spawnPoints.GetArrayElementAtIndex(0).objectReferenceValue =
+                    assaultSpawnPoint.transform;
+                serializedSpawner.ApplyModifiedPropertiesWithoutUndo();
+
+                int completedSpawnSequenceCount = 0;
+                assaultSpawner.EnemySpawned += (enemyObject, _) =>
+                    spawnedAssaultEnemy = enemyObject;
+                assaultSpawner.SpawnSequenceCompleted += _ =>
+                    completedSpawnSequenceCount++;
+                AssaultWaveStartResult waveStart = assaultSpawner.TryStartWave();
+                Assert(waveStart.Success &&
+                       waveStart.PlannedEnemyCount == 1 &&
+                       runtime.State.Phase == RunPhase.Assault,
+                    "Runtime Assault wave did not start.");
+                Assert(spawnedAssaultEnemy != null &&
+                       assaultSpawner.SpawnedEnemyCount == 1 &&
+                       completedSpawnSequenceCount == 1 &&
+                       !assaultSpawner.IsSpawning,
+                    "Runtime Assault wave did not finish its spawn sequence.");
+
+                Health assaultHealth = spawnedAssaultEnemy.GetComponent<Health>();
                 DamageRequest assaultDamageRequest = new DamageRequest(
                     CombatExecutionId.New(),
                     player,
@@ -180,6 +217,18 @@ namespace Titanhold.Run.Editor
             {
                 if (temporaryEnemy != null)
                     UnityEngine.Object.Destroy(temporaryEnemy);
+
+                if (spawnedAssaultEnemy != null)
+                    UnityEngine.Object.Destroy(spawnedAssaultEnemy);
+
+                if (assaultSpawnPoint != null)
+                    UnityEngine.Object.Destroy(assaultSpawnPoint);
+
+                if (assaultEnemyTemplate != null)
+                    UnityEngine.Object.Destroy(assaultEnemyTemplate);
+
+                if (temporaryWaveDefinition != null)
+                    UnityEngine.Object.Destroy(temporaryWaveDefinition);
 
                 SessionState.SetBool(SessionKey, false);
                 EditorApplication.isPlaying = false;
