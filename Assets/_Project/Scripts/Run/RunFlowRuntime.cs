@@ -16,6 +16,7 @@ namespace Titanhold.Run
         private RunFlowService service;
         private ExplorationKillApplicationService killApplication;
         private RunPortalEntryApplicationService portalEntry;
+        private AssaultEncounterApplicationService assaultEncounter;
 
         public RunFlowService Service
         {
@@ -41,6 +42,15 @@ namespace Titanhold.Run
             {
                 EnsureInitialized();
                 return portalEntry;
+            }
+        }
+
+        public AssaultEncounterApplicationService AssaultEncounter
+        {
+            get
+            {
+                EnsureInitialized();
+                return assaultEncounter;
             }
         }
 
@@ -73,6 +83,7 @@ namespace Titanhold.Run
             service = new RunFlowService(configuration);
             killApplication = new ExplorationKillApplicationService(service);
             portalEntry = new RunPortalEntryApplicationService(service);
+            assaultEncounter = new AssaultEncounterApplicationService(service);
             service.StateChanged += HandleStateChanged;
         }
 

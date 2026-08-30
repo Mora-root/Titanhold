@@ -58,6 +58,10 @@ namespace Titanhold.Run.Editor
                 RunFlowRuntime runtime = runtimeObject.AddComponent<RunFlowRuntime>();
                 ExplorationCombatExecutionAdapter adapter =
                     runtimeObject.AddComponent<ExplorationCombatExecutionAdapter>();
+                Assert(ReferenceEquals(runtime.AssaultEncounter, runtime.AssaultEncounter),
+                    "Runtime recreated its Assault encounter application service.");
+                Assert(!runtime.AssaultEncounter.State.IsStarted,
+                    "Runtime Assault encounter started without a command.");
                 EnemyRunContributionSource firstSource =
                     ConfigureEnemySource(firstEnemy, 60f, 2);
                 EnemyRunContributionSource secondSource =

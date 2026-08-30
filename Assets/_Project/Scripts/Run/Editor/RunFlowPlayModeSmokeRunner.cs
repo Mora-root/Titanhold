@@ -138,6 +138,26 @@ namespace Titanhold.Run.Editor
                 Assert(!portalSpawner.HasActivePortal,
                     "RunPortalSpawner retained the portal after entry.");
 
+                AssaultEncounterId encounterId =
+                    new AssaultEncounterId("assault:play-mode-smoke");
+                AssaultEncounterResult encounterStart = runtime.AssaultEncounter.TryBegin(
+                    new BeginAssaultEncounterCommand(encounterId, 1, 1));
+                Assert(encounterStart.Success && runtime.State.Phase == RunPhase.Assault,
+                    "Runtime Assault encounter did not start.");
+                CombatActorReference assaultEnemy = new CombatActorReference(
+                    "enemy:assault-play-mode-smoke",
+                    CombatActorKind.Enemy);
+                Assert(runtime.AssaultEncounter.TryRegisterSpawn(
+                        new AssaultEnemyCommand(encounterId, assaultEnemy)).Success,
+                    "Runtime Assault enemy was not registered.");
+                AssaultEncounterResult encounterCompletion =
+                    runtime.AssaultEncounter.TryRegisterDefeat(
+                        new AssaultEnemyCommand(encounterId, assaultEnemy));
+                Assert(encounterCompletion.Success &&
+                       encounterCompletion.EncounterCompleted &&
+                       runtime.State.Phase == RunPhase.Intermission,
+                    "Runtime Assault encounter did not complete.");
+
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
             catch (Exception exception)
