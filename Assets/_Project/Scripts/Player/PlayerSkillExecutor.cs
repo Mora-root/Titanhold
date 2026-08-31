@@ -32,7 +32,16 @@ public class PlayerSkillExecutor : MonoBehaviour
 
     public bool TryUseSkill1()
     {
-        return TryUseSkill(skill1);
+        return TryUseSkillSlot(0);
+    }
+
+    public bool TryUseSkillSlot(int slotIndex)
+    {
+        return slotIndex switch
+        {
+            0 => TryUseSkill(skill1),
+            _ => false
+        };
     }
 
     private bool TryUseSkill(SkillData skill)

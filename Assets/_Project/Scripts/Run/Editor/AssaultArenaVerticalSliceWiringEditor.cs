@@ -15,6 +15,12 @@ namespace Titanhold.Run.Editor
         private const string ArenaObjectName = "AssaultArena_Prototype";
         private const string ArenaDestinationName = "PlayerDestination";
         private const string SpawnPointsObjectName = "EnemySpawnPoints";
+        private const string ReturnPortalSpawnPointName =
+            "ReturnPortalSpawnPoint";
+        private const string SourcePortalPrefabPath =
+            "Assets/_Project/Prefabs/Run/RunPortal.prefab";
+        private const string ReturnPortalPrefabPath =
+            "Assets/_Project/Prefabs/Run/AssaultReturnPortal.prefab";
         private const string SourceEnemyPrefabPath =
             "Assets/_Project/Prefabs/Enemy/Skelet.prefab";
         private const string AssaultEnemyPrefabPath =
@@ -30,6 +36,7 @@ namespace Titanhold.Run.Editor
         private const string SpawnMaterialPath =
             "Assets/_Project/Materials/Spawn.mat";
         private const int GroundLayer = 9;
+        private const int InteractableLayer = 10;
 
         [MenuItem("Tools/Titanhold/Install Assault Arena Vertical Slice Wiring")]
         public static void Install()
@@ -39,9 +46,11 @@ namespace Titanhold.Run.Editor
                 RequireEditMode("installation");
                 Scene scene = RequireCleanSampleScene();
                 GameObject enemyPrefab = CreateOrUpdateAssaultEnemyPrefab();
+                AssaultReturnPortalInteractable returnPortalPrefab =
+                    CreateOrUpdateReturnPortalPrefab();
                 AssaultWaveDefinition waveDefinition =
                     CreateOrUpdateWaveDefinition(enemyPrefab);
-                ConfigureScene(scene, waveDefinition);
+                ConfigureScene(scene, waveDefinition, returnPortalPrefab);
                 AssetDatabase.SaveAssets();
                 ValidateInternal();
                 Debug.Log("Assault Arena vertical-slice wiring installed.");
@@ -164,9 +173,64 @@ namespace Titanhold.Run.Editor
             return definition;
         }
 
+        private static AssaultReturnPortalInteractable
+            CreateOrUpdateReturnPortalPrefab()
+        {
+            GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(
+                SourcePortalPrefabPath);
+            if (source == null)
+            {
+                throw new InvalidOperationException(
+                    $"Source portal prefab is missing: {SourcePortalPrefabPath}");
+            }
+
+            GameObject contents = PrefabUtility.LoadPrefabContents(
+                SourcePortalPrefabPath);
+            try
+            {
+                contents.name = "AssaultReturnPortal";
+                RunPortalInteractable entryPortal =
+                    contents.GetComponent<RunPortalInteractable>();
+                if (entryPortal != null)
+                    UnityEngine.Object.DestroyImmediate(entryPortal, true);
+
+                AssaultReturnPortalInteractable returnPortal =
+                    contents.GetComponent<AssaultReturnPortalInteractable>();
+                if (returnPortal == null)
+                {
+                    returnPortal =
+                        contents.AddComponent<AssaultReturnPortalInteractable>();
+                }
+
+                SerializedObject serializedPortal =
+                    new SerializedObject(returnPortal);
+                serializedPortal.FindProperty("interactionRange").floatValue = 2f;
+                serializedPortal.ApplyModifiedPropertiesWithoutUndo();
+
+                GameObject saved = PrefabUtility.SaveAsPrefabAsset(
+                    contents,
+                    ReturnPortalPrefabPath);
+                if (saved == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not save {ReturnPortalPrefabPath}.");
+                }
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+            }
+
+            AssetDatabase.ImportAsset(
+                ReturnPortalPrefabPath,
+                ImportAssetOptions.ForceSynchronousImport);
+            return ValidateReturnPortalPrefab();
+        }
+
         private static void ConfigureScene(
             Scene scene,
-            AssaultWaveDefinition waveDefinition)
+            AssaultWaveDefinition waveDefinition,
+            AssaultReturnPortalInteractable returnPortalPrefab)
         {
             GameObject runtimeObject = FindRootObject(scene, RuntimeObjectName);
             if (runtimeObject == null)
@@ -183,6 +247,16 @@ namespace Titanhold.Run.Editor
             Transform destination = arenaRoot.transform.Find(ArenaDestinationName);
             Transform spawnPointsRoot = arenaRoot.transform.Find(
                 SpawnPointsObjectName);
+            Transform returnPortalSpawnPoint = arenaRoot.transform.Find(
+                ReturnPortalSpawnPointName);
+            if (returnPortalSpawnPoint == null)
+            {
+                returnPortalSpawnPoint = CreateAnchor(
+                    ReturnPortalSpawnPointName,
+                    arenaRoot.transform,
+                    new Vector3(0f, 0f, -10f));
+                returnPortalSpawnPoint.localRotation = Quaternion.identity;
+            }
             if (destination == null || spawnPointsRoot == null ||
                 spawnPointsRoot.childCount == 0)
             {
@@ -200,6 +274,8 @@ namespace Titanhold.Run.Editor
                 GetOrAddComponent<AssaultWaveSpawner>(runtimeObject);
             AssaultArenaTransitionController transitionController =
                 GetOrAddComponent<AssaultArenaTransitionController>(runtimeObject);
+            AssaultReturnPortalSpawner returnPortalSpawner =
+                GetOrAddComponent<AssaultReturnPortalSpawner>(runtimeObject);
 
             SerializedObject serializedRegistry = new SerializedObject(registry);
             serializedRegistry.FindProperty("runFlowRuntime").objectReferenceValue = runtime;
@@ -244,6 +320,20 @@ namespace Titanhold.Run.Editor
                 gateway;
             serializedTransition.FindProperty("localPlayer").objectReferenceValue = player;
             serializedTransition.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedReturnPortalSpawner =
+                new SerializedObject(returnPortalSpawner);
+            serializedReturnPortalSpawner.FindProperty("runFlowRuntime")
+                .objectReferenceValue = runtime;
+            serializedReturnPortalSpawner.FindProperty("transitionController")
+                .objectReferenceValue = transitionController;
+            serializedReturnPortalSpawner.FindProperty("targetRegistry")
+                .objectReferenceValue = targetRegistry;
+            serializedReturnPortalSpawner.FindProperty("portalPrefab")
+                .objectReferenceValue = returnPortalPrefab;
+            serializedReturnPortalSpawner.FindProperty("spawnPoint")
+                .objectReferenceValue = returnPortalSpawnPoint;
+            serializedReturnPortalSpawner.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -302,6 +392,12 @@ namespace Titanhold.Run.Editor
                 root.transform,
                 new Vector3(0f, 0f, -7f));
             destination.localRotation = Quaternion.identity;
+
+            Transform returnPortalSpawnPoint = CreateAnchor(
+                ReturnPortalSpawnPointName,
+                root.transform,
+                new Vector3(0f, 0f, -10f));
+            returnPortalSpawnPoint.localRotation = Quaternion.identity;
 
             GameObject spawnPointsRoot = new GameObject(SpawnPointsObjectName);
             spawnPointsRoot.transform.SetParent(root.transform, false);
@@ -412,6 +508,8 @@ namespace Titanhold.Run.Editor
                 throw new InvalidOperationException($"Open {ScenePath} before validation.");
 
             GameObject enemyPrefab = ValidateAssaultEnemyPrefab();
+            AssaultReturnPortalInteractable returnPortalPrefab =
+                ValidateReturnPortalPrefab();
             AssaultWaveDefinition definition =
                 AssetDatabase.LoadAssetAtPath<AssaultWaveDefinition>(
                     WaveDefinitionPath);
@@ -443,6 +541,14 @@ namespace Titanhold.Run.Editor
             if (arenaRoot == null)
                 throw new InvalidOperationException("Assault arena root is missing.");
 
+            Transform returnPortalSpawnPoint = arenaRoot.transform.Find(
+                ReturnPortalSpawnPointName);
+            if (returnPortalSpawnPoint == null)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal spawn point is missing.");
+            }
+
             NavMeshSurface surface = arenaRoot.GetComponent<NavMeshSurface>();
             if (surface == null || surface.navMeshData == null ||
                 AssetDatabase.GetAssetPath(surface.navMeshData) != ArenaNavMeshDataPath)
@@ -471,8 +577,13 @@ namespace Titanhold.Run.Editor
                 runtimeObject != null
                     ? runtimeObject.GetComponent<AssaultArenaTransitionController>()
                     : null;
+            AssaultReturnPortalSpawner returnPortalSpawner =
+                runtimeObject != null
+                    ? runtimeObject.GetComponent<AssaultReturnPortalSpawner>()
+                    : null;
             if (registry == null || targetRegistry == null || spawner == null ||
-                gateway == null || controller == null)
+                gateway == null || controller == null ||
+                returnPortalSpawner == null)
             {
                 throw new InvalidOperationException(
                     "RunFlowRuntime assault arena components are incomplete.");
@@ -500,6 +611,74 @@ namespace Titanhold.Run.Editor
                 throw new InvalidOperationException(
                     "Assault transition scene wiring is incomplete.");
             }
+
+            SerializedObject serializedReturnPortalSpawner =
+                new SerializedObject(returnPortalSpawner);
+            if (serializedReturnPortalSpawner.FindProperty("runFlowRuntime")
+                    .objectReferenceValue != runtimeObject.GetComponent<RunFlowRuntime>() ||
+                serializedReturnPortalSpawner.FindProperty("transitionController")
+                    .objectReferenceValue != controller ||
+                serializedReturnPortalSpawner.FindProperty("targetRegistry")
+                    .objectReferenceValue != targetRegistry ||
+                serializedReturnPortalSpawner.FindProperty("portalPrefab")
+                    .objectReferenceValue != returnPortalPrefab ||
+                serializedReturnPortalSpawner.FindProperty("spawnPoint")
+                    .objectReferenceValue != returnPortalSpawnPoint)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal scene wiring is incomplete.");
+            }
+        }
+
+        private static AssaultReturnPortalInteractable
+            ValidateReturnPortalPrefab()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(
+                ReturnPortalPrefabPath);
+            if (prefab == null)
+            {
+                throw new InvalidOperationException(
+                    $"Assault return portal prefab is missing: {ReturnPortalPrefabPath}");
+            }
+
+            if (PrefabUtility.GetPrefabAssetType(prefab) == PrefabAssetType.Variant)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal must remain independent from the entry prefab.");
+            }
+
+            AssaultReturnPortalInteractable interactable =
+                prefab.GetComponent<AssaultReturnPortalInteractable>();
+            CapsuleCollider collider = prefab.GetComponent<CapsuleCollider>();
+            TargetVisual visual = prefab.GetComponent<TargetVisual>();
+            if (interactable == null || collider == null || visual == null)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal is missing required components.");
+            }
+
+            if (prefab.GetComponent<RunPortalInteractable>() != null)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal still contains the entry interaction.");
+            }
+
+            if (!collider.isTrigger)
+            {
+                throw new InvalidOperationException(
+                    "Assault return portal collider must remain a trigger.");
+            }
+
+            foreach (Transform child in prefab.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.gameObject.layer != InteractableLayer)
+                {
+                    throw new InvalidOperationException(
+                        "Assault return portal does not use the Interactable layer.");
+                }
+            }
+
+            return interactable;
         }
 
         private static GameObject ValidateAssaultEnemyPrefab()

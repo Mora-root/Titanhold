@@ -18,6 +18,8 @@ Current assault rules:
   future aggro, taunts, death, disconnects, and reselection;
 - assault enemies give experience but no item loot, exploration threat, or run
   contribution; encounter rewards are intended to come from a reward chest;
+- the return portal appears only during intermission and completes the return to
+  the saved exploration position;
 - `Skelet_Assault` is independent from exploration and legacy wave prefabs.
 
 Camp defense, towers, and the old wave flow are outside this vertical slice.
@@ -53,6 +55,7 @@ Current run assets:
 
 - `Scenes/SampleScene.unity` — exploration plus prototype assault arena;
 - `Prefabs/Enemy/Skelet_Assault.prefab` — current assault enemy;
+- `Prefabs/Run/AssaultReturnPortal.prefab` — intermission return portal;
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
 - `Prefabs/Old/` — legacy only.
 
@@ -104,7 +107,8 @@ After code changes, recompile and run the narrowest relevant Unity validation.
 Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
 Mode smoke test. Use Assault Enemy Scaling validation when wave multipliers or
-enemy runtime combat values change.
+enemy runtime combat values change. Use Player Skill Command Buffer validation
+when player action sequencing changes.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,

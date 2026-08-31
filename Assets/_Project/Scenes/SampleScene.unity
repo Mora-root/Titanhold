@@ -10244,6 +10244,37 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &735744716
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 735744717}
+  m_Layer: 0
+  m_Name: ReturnPortalSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &735744717
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735744716}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1678903486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &742204034
 Material:
   serializedVersion: 8
@@ -17389,6 +17420,7 @@ GameObject:
   - component: {fileID: 1489734146}
   - component: {fileID: 1489734145}
   - component: {fileID: 1489734149}
+  - component: {fileID: 1489734150}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -17558,6 +17590,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d051541c4704fa24e921bdbd09020406, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.AssaultTargetRegistry
+--- !u!114 &1489734150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fbae6a361bafa14086a9a794e51cf76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.AssaultReturnPortalSpawner
+  runFlowRuntime: {fileID: 1489734142}
+  transitionController: {fileID: 1489734145}
+  targetRegistry: {fileID: 1489734149}
+  portalPrefab: {fileID: 5765383836566911619, guid: a99d598b64b8de6438dce700fa60df57, type: 3}
+  spawnPoint: {fileID: 735744717}
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0
@@ -19259,6 +19308,7 @@ Transform:
   - {fileID: 66012215}
   - {fileID: 547161850}
   - {fileID: 2082392987}
+  - {fileID: 735744717}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1687696575

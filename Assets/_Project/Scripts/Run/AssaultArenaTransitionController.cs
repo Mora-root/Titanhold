@@ -235,6 +235,7 @@ namespace Titanhold.Run
         {
             player.Stop();
             player.ClearAllSelections();
+            player.ClearQueuedAction();
             player.Input.ClearAll();
         }
 

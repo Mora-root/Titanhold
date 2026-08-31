@@ -101,11 +101,14 @@ namespace Titanhold.Run.Editor
                     runtime.GetComponent<LocalAssaultArenaGateway>();
                 AssaultArenaTransitionController transitionController =
                     runtime.GetComponent<AssaultArenaTransitionController>();
+                AssaultReturnPortalSpawner returnPortalSpawner =
+                    runtime.GetComponent<AssaultReturnPortalSpawner>();
                 Assert(assaultRegistry != null &&
                        assaultTargetRegistry != null &&
                        assaultSpawner != null &&
                        arenaGateway != null &&
-                       transitionController != null,
+                       transitionController != null &&
+                       returnPortalSpawner != null,
                     "Serialized Assault arena wiring was not found in Play Mode.");
 
                 Vector3 explorationPosition = playerCombat.transform.position;
@@ -266,17 +269,21 @@ namespace Titanhold.Run.Editor
                     assaultHealth.ApplyDamage(assaultDamageRequest);
                 Assert(assaultDamage.Killed &&
                        runtime.AssaultEncounter.State.IsCompleted &&
-                       runtime.State.Phase == RunPhase.Intermission,
+                       runtime.State.Phase == RunPhase.Intermission &&
+                       returnPortalSpawner.HasActivePortal,
                     "Runtime Assault death event did not complete the encounter.");
 
-                AssaultArenaTransitionResult returned =
-                    transitionController.TryReturnToExploration();
-                Assert(returned.Success &&
+                AssaultReturnPortalResult returnResult = default;
+                returnPortalSpawner.ActivePortal.ReturnResolved += result =>
+                    returnResult = result;
+                returnPortalSpawner.ActivePortal.Interact(playerCombat.gameObject);
+                Assert(returnResult.Success &&
                        runtime.State.Phase == RunPhase.Exploration &&
                        runtime.State.RoundNumber == 2 &&
                        !arenaGateway.IsOccupied &&
+                       !returnPortalSpawner.HasActivePortal &&
                        assaultTargetRegistry.Count == 0,
-                    "Assault gateway did not resume the next exploration round.");
+                    "Assault return portal did not resume the next exploration round.");
                 Assert(Vector3.Distance(
                            playerCombat.transform.position,
                            explorationPosition) <= 2f,

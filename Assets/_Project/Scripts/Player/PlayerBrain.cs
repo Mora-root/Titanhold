@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerBrain : MonoBehaviour
 {
+    private const int Skill1SlotIndex = 0;
+
     public PlayerInput Input { get; private set; }
     public PlayerMovement Movement { get; private set; }
     public PlayerTargeting Targeting { get; private set; }
@@ -30,6 +32,11 @@ public class PlayerBrain : MonoBehaviour
     public IState AttackState { get; private set; }
     public IState InteractState { get; private set; }
     public IState LootState { get; private set; }
+
+    private readonly PlayerSkillCommandBuffer skillCommandBuffer = new();
+
+    public bool HasQueuedSkillCommand =>
+        skillCommandBuffer.HasPendingCommand;
 
     private void Awake()
     {
@@ -69,22 +76,31 @@ public class PlayerBrain : MonoBehaviour
     {
         PlayerInputIntent intent = Input.CurrentIntent;
 
+        if (intent.Skill1Pressed)
+        {
+            PlayerSkillCommand command =
+                new PlayerSkillCommand(Skill1SlotIndex);
+            if (Combat.IsAttacking || Skills.IsUsingSkill)
+            {
+                skillCommandBuffer.TryBuffer(command);
+                return;
+            }
+
+            skillCommandBuffer.Clear();
+            if (TryExecuteSkill(command))
+                return;
+        }
+
         if (Skills.IsUsingSkill)
+            return;
+
+        if (!Combat.IsAttacking &&
+            skillCommandBuffer.TryTake(out PlayerSkillCommand queuedCommand) &&
+            TryExecuteSkill(queuedCommand))
         {
             return;
         }
 
-        if (intent.Skill1Pressed)
-        {
-            if (Skills.TryUseSkill1())
-            {
-                Combat.CancelAttack();
-
-                Stop();
-                ChangeToSkill();
-                return;
-            }
-        }
         // Right click = for UI-selection
         if (intent.RightClicked)
         {
@@ -161,6 +177,11 @@ public class PlayerBrain : MonoBehaviour
         TargetSelection.Clear();
     }
 
+    public void ClearQueuedAction()
+    {
+        skillCommandBuffer.Clear();
+    }
+
     public void MoveTo(Vector3 pos) => Movement.MoveTo(pos);
     public void Stop() => Movement.Stop();
 
@@ -174,4 +195,17 @@ public class PlayerBrain : MonoBehaviour
     public void ChangeToAttack() => StateMachine.ChangeState(AttackState);
     public void ChangeToInteract() => StateMachine.ChangeState(InteractState);
     public void ChangeToLoot() => StateMachine.ChangeState(LootState);
+
+    private bool TryExecuteSkill(PlayerSkillCommand command)
+    {
+        if (!command.IsValid ||
+            !Skills.TryUseSkillSlot(command.SlotIndex))
+        {
+            return false;
+        }
+
+        Stop();
+        ChangeToSkill();
+        return true;
+    }
 }
