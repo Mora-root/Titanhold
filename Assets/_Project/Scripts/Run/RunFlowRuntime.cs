@@ -17,6 +17,7 @@ namespace Titanhold.Run
         private ExplorationKillApplicationService killApplication;
         private RunPortalEntryApplicationService portalEntry;
         private AssaultEncounterApplicationService assaultEncounter;
+        private AssaultRewardApplicationService assaultReward;
 
         public RunFlowService Service
         {
@@ -54,6 +55,15 @@ namespace Titanhold.Run
             }
         }
 
+        public AssaultRewardApplicationService AssaultReward
+        {
+            get
+            {
+                EnsureInitialized();
+                return assaultReward;
+            }
+        }
+
         public RunFlowState State => Service.State;
 
         public event Action<RunFlowState> StateChanged;
@@ -65,6 +75,8 @@ namespace Titanhold.Run
 
         private void OnDestroy()
         {
+            assaultReward?.Dispose();
+
             if (service != null)
                 service.StateChanged -= HandleStateChanged;
         }
@@ -84,6 +96,7 @@ namespace Titanhold.Run
             killApplication = new ExplorationKillApplicationService(service);
             portalEntry = new RunPortalEntryApplicationService(service);
             assaultEncounter = new AssaultEncounterApplicationService(service);
+            assaultReward = new AssaultRewardApplicationService(service);
             service.StateChanged += HandleStateChanged;
         }
 

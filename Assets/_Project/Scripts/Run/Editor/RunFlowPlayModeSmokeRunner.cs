@@ -103,12 +103,15 @@ namespace Titanhold.Run.Editor
                     runtime.GetComponent<AssaultArenaTransitionController>();
                 AssaultReturnPortalSpawner returnPortalSpawner =
                     runtime.GetComponent<AssaultReturnPortalSpawner>();
+                AssaultRewardChestSpawner rewardChestSpawner =
+                    runtime.GetComponent<AssaultRewardChestSpawner>();
                 Assert(assaultRegistry != null &&
                        assaultTargetRegistry != null &&
                        assaultSpawner != null &&
                        arenaGateway != null &&
                        transitionController != null &&
-                       returnPortalSpawner != null,
+                       returnPortalSpawner != null &&
+                       rewardChestSpawner != null,
                     "Serialized Assault arena wiring was not found in Play Mode.");
 
                 Vector3 explorationPosition = playerCombat.transform.position;
@@ -270,8 +273,24 @@ namespace Titanhold.Run.Editor
                 Assert(assaultDamage.Killed &&
                        runtime.AssaultEncounter.State.IsCompleted &&
                        runtime.State.Phase == RunPhase.Intermission &&
-                       returnPortalSpawner.HasActivePortal,
+                       returnPortalSpawner.HasActivePortal &&
+                       runtime.AssaultReward.State.HasReward &&
+                       !runtime.AssaultReward.State.IsClaimed &&
+                       rewardChestSpawner.HasActiveChest,
                     "Runtime Assault death event did not complete the encounter.");
+
+                AssaultRewardChestResult rewardChestResult = default;
+                rewardChestSpawner.ActiveChest.OpenResolved += result =>
+                    rewardChestResult = result;
+                rewardChestSpawner.ActiveChest.Interact(playerCombat.gameObject);
+                Assert(rewardChestResult.Success &&
+                       rewardChestResult.EmissionResult.EmittedDropCount ==
+                           runtime.AssaultReward.State.Drops.Count &&
+                       runtime.AssaultReward.State.IsClaimed &&
+                       runtime.AssaultReward.State.ClaimedBy ==
+                           playerCombat.ActorReference &&
+                       !rewardChestSpawner.ActiveChest.IsInteractable,
+                    "Assault reward chest did not emit its fixed reward once.");
 
                 AssaultReturnPortalResult returnResult = default;
                 returnPortalSpawner.ActivePortal.ReturnResolved += result =>
@@ -282,6 +301,7 @@ namespace Titanhold.Run.Editor
                        runtime.State.RoundNumber == 2 &&
                        !arenaGateway.IsOccupied &&
                        !returnPortalSpawner.HasActivePortal &&
+                       !runtime.AssaultReward.State.HasReward &&
                        assaultTargetRegistry.Count == 0,
                     "Assault return portal did not resume the next exploration round.");
                 Assert(Vector3.Distance(

@@ -13888,6 +13888,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8379852873407926100, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
   m_PrefabInstance: {fileID: 1358804414}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1082403957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1082403958}
+  m_Layer: 0
+  m_Name: RewardChestSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1082403958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1082403957}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0.25881907, z: 0, w: 0.9659259}
+  m_LocalPosition: {x: 3, y: 0, z: -7}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1678903486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1082492531
 GameObject:
   m_ObjectHideFlags: 0
@@ -17421,6 +17452,7 @@ GameObject:
   - component: {fileID: 1489734145}
   - component: {fileID: 1489734149}
   - component: {fileID: 1489734150}
+  - component: {fileID: 1489734151}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -17607,6 +17639,24 @@ MonoBehaviour:
   targetRegistry: {fileID: 1489734149}
   portalPrefab: {fileID: 5765383836566911619, guid: a99d598b64b8de6438dce700fa60df57, type: 3}
   spawnPoint: {fileID: 735744717}
+--- !u!114 &1489734151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a87dd6c950116545bdb55dd383176ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.AssaultRewardChestSpawner
+  runFlowRuntime: {fileID: 1489734142}
+  enemyRegistry: {fileID: 1489734148}
+  targetRegistry: {fileID: 1489734149}
+  rewardTable: {fileID: 11400000, guid: 62bfa0c533d55844f8b0b3acbc4d83ac, type: 2}
+  chestPrefab: {fileID: 2518920992569897903, guid: 2b490e2487f569445bb07adc7d0f7f13, type: 3}
+  spawnPoint: {fileID: 1082403958}
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0
@@ -19309,6 +19359,7 @@ Transform:
   - {fileID: 547161850}
   - {fileID: 2082392987}
   - {fileID: 735744717}
+  - {fileID: 1082403958}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1687696575
@@ -20455,13 +20506,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryDebugSeeder
   playerInventory: {fileID: 8744477821165718926}
   entries:
-  - item: {fileID: 11400000, guid: 999ba61c8528c88499aa917b5efeac73, type: 2}
+  - item: {fileID: 11400000, guid: 7289840bddf42c54595372703a69dcad, type: 2}
     amount: 1
-  - item: {fileID: 11400000, guid: dc130aab9707f254b875d34a13ee0a9a, type: 2}
+  - item: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
     amount: 1
   - item: {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
     amount: 2
-  - item: {fileID: 11400000, guid: 586b403631859be4f849b2dcb820926d, type: 2}
+  - item: {fileID: 11400000, guid: 1160ad875b691a847a1217b2056abef9, type: 2}
     amount: 1
   - item: {fileID: 11400000, guid: 67c73ffa4d1b5994e8030c1cf117527f, type: 2}
     amount: 150

@@ -18,6 +18,8 @@ Current assault rules:
   future aggro, taunts, death, disconnects, and reselection;
 - assault enemies give experience but no item loot, exploration threat, or run
   contribution; encounter rewards are intended to come from a reward chest;
+- the assault reward is rolled once when the encounter completes; its optional
+  one-use chest appears during intermission and emits world pickups when opened;
 - the return portal appears only during intermission and completes the return to
   the saved exploration position;
 - `Skelet_Assault` is independent from exploration and legacy wave prefabs.
@@ -55,8 +57,10 @@ Current run assets:
 
 - `Scenes/SampleScene.unity` — exploration plus prototype assault arena;
 - `Prefabs/Enemy/Skelet_Assault.prefab` — current assault enemy;
+- `Prefabs/Run/AssaultRewardChest.prefab` — optional intermission reward chest;
 - `Prefabs/Run/AssaultReturnPortal.prefab` — intermission return portal;
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
+- `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
 - `Prefabs/Old/` — legacy only.
 
 Inspect Unity assets only when wiring or balance requires it and asset changes
@@ -108,7 +112,8 @@ Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
 Mode smoke test. Use Assault Enemy Scaling validation when wave multipliers or
 enemy runtime combat values change. Use Player Skill Command Buffer validation
-when player action sequencing changes.
+when player action sequencing changes. Use Assault Reward and Assault Reward
+Vertical Slice Wiring validation when encounter rewards change.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,
