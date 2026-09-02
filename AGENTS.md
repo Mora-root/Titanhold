@@ -53,8 +53,10 @@ The first-build meta layer is a separate UI Hub scene, not the legacy camp in
 `SampleScene`. It will own preparation, difficulty selection, and run results;
 it may later grow into a physical 3D camp without changing the underlying
 commands. `GameSessionService` is the scene-independent outer lifecycle around
-the inner `RunFlowService`. Character-state transfer and scene loading are not
-connected yet.
+the inner `RunFlowService`. `CharacterSnapshotService` captures and atomically
+restores inventory slots, equipment instances/modifiers, level, experience, and
+gold by stable item-definition ids. An item-definition catalog, persistent
+session owner, and actual scene loading are not connected yet.
 
 ## Search and Project Map
 

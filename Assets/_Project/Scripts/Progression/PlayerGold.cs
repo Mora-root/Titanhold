@@ -17,4 +17,21 @@ public sealed class PlayerGold : MonoBehaviour
         amount += value;
         OnChanged?.Invoke(amount);
     }
+
+    internal bool CanRestoreState(int restoredAmount)
+    {
+        return restoredAmount >= 0;
+    }
+
+    internal void RestoreState(int restoredAmount)
+    {
+        if (!CanRestoreState(restoredAmount))
+            throw new ArgumentOutOfRangeException(nameof(restoredAmount));
+
+        if (amount == restoredAmount)
+            return;
+
+        amount = restoredAmount;
+        OnChanged?.Invoke(amount);
+    }
 }

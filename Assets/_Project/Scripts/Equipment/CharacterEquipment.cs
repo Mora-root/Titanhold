@@ -71,6 +71,36 @@ public sealed class CharacterEquipment
             Changed?.Invoke();
     }
 
+    internal void ReplaceState(CharacterEquipment restoredEquipment)
+    {
+        if (restoredEquipment == null)
+            throw new ArgumentNullException(nameof(restoredEquipment));
+
+        List<(EquipmentSlotId SlotId, ItemInstance OldItem, ItemInstance NewItem)> changes =
+            new List<(EquipmentSlotId, ItemInstance, ItemInstance)>();
+
+        foreach (EquipmentSlotId slotId in Enum.GetValues(typeof(EquipmentSlotId)))
+        {
+            ItemInstance oldItem = GetEquipped(slotId);
+            ItemInstance newItem = restoredEquipment.GetEquipped(slotId);
+            if (ReferenceEquals(oldItem, newItem))
+                continue;
+
+            slots[slotId] = newItem;
+            changes.Add((slotId, oldItem, newItem));
+        }
+
+        for (int i = 0; i < changes.Count; i++)
+        {
+            (EquipmentSlotId slotId, ItemInstance oldItem, ItemInstance newItem) =
+                changes[i];
+            SlotChanged?.Invoke(slotId, oldItem, newItem);
+        }
+
+        if (changes.Count > 0)
+            Changed?.Invoke();
+    }
+
     private bool CanSetSlot(EquipmentSlotId slotId, ItemInstance instance)
     {
         if (!slots.ContainsKey(slotId))

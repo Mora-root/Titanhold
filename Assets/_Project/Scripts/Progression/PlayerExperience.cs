@@ -32,11 +32,42 @@ public sealed class PlayerExperience : MonoBehaviour
         OnExperienceChanged?.Invoke(currentExperience);
     }
 
+    internal bool CanRestoreState(int level, int experience)
+    {
+        return level >= 1 &&
+               experience >= 0 &&
+               experience < GetExperienceToNextLevel(level);
+    }
+
+    internal void RestoreState(int level, int experience)
+    {
+        if (!CanRestoreState(level, experience))
+            throw new ArgumentOutOfRangeException(nameof(experience));
+
+        bool levelChanged = currentLevel != level;
+        bool experienceChanged = currentExperience != experience;
+        currentLevel = level;
+        currentExperience = experience;
+
+        if (levelChanged)
+            OnLevelChanged?.Invoke(currentLevel);
+
+        if (experienceChanged || levelChanged)
+            OnExperienceChanged?.Invoke(currentExperience);
+    }
+
     private int GetExperienceToNextLevel()
     {
-        int levelIndex = Mathf.Max(0, currentLevel - 1);
-        int experienceToNextLevel = baseExperienceToNextLevel + experienceIncreasePerLevel * levelIndex;
+        return GetExperienceToNextLevel(currentLevel);
+    }
 
-        return Mathf.Max(1, experienceToNextLevel);
+    private int GetExperienceToNextLevel(int level)
+    {
+        int levelIndex = Mathf.Max(0, level - 1);
+        long experienceToNextLevel =
+            baseExperienceToNextLevel +
+            (long)experienceIncreasePerLevel * levelIndex;
+
+        return (int)Math.Max(1L, Math.Min(int.MaxValue, experienceToNextLevel));
     }
 }

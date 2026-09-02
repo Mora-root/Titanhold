@@ -442,7 +442,7 @@ namespace Titanhold.Run.Editor
             text.fontStyle = fontStyle;
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
-            text.enableWordWrapping = true;
+            text.textWrappingMode = TextWrappingModes.Normal;
             text.raycastTarget = false;
             return text;
         }

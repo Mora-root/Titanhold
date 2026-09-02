@@ -176,6 +176,16 @@ public sealed class PlayerInventory : MonoBehaviour, IItemContainerOwner
             SectionChanged?.Invoke(targetCategory);
     }
 
+    internal void ReplaceContainerState(ItemContainer restoredContainer)
+    {
+        container = restoredContainer ?? throw new ArgumentNullException(nameof(restoredContainer));
+        transferService ??= new ItemTransferService();
+
+        Changed?.Invoke();
+        foreach (ItemCategory category in Enum.GetValues(typeof(ItemCategory)))
+            SectionChanged?.Invoke(category);
+    }
+
     public ItemContainerSection GetSection(ItemCategory category)
     {
         EnsureInitialized();
