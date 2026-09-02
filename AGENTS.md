@@ -89,6 +89,7 @@ Paths above are under `Assets/_Project/`. For a run/arena task, start in
 
 Current run assets:
 
+- `Scenes/HubScene.unity` — first-build UI Hub and persistent session root;
 - `Scenes/SampleScene.unity` — exploration plus prototype assault arena;
 - `Prefabs/Enemy/Skelet_Assault.prefab` — current assault enemy;
 - `Prefabs/Enemy/Skelet_Boss_Prototype.prefab` — temporary round-four boss;

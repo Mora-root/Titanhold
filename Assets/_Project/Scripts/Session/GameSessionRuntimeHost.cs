@@ -11,6 +11,14 @@ namespace Titanhold.Session
 
         public GameSessionRuntime Runtime { get; private set; }
         public bool IsInitialized => Runtime != null;
+        public ItemDefinitionCatalog ItemDefinitions => itemDefinitions;
+
+#if UNITY_EDITOR
+        public void ConfigureForEditor(ItemDefinitionCatalog definitions)
+        {
+            itemDefinitions = definitions;
+        }
+#endif
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStaticState()
