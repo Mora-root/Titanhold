@@ -29,6 +29,7 @@ namespace Titanhold.Run.Editor
             ValidateInstabilityProgression();
             ValidateInvalidBatchIsAtomic();
             ValidateAssaultLifecycle();
+            ValidateFinalEncounterLifecycle();
             ValidateTerminalState();
 
             return "Run Flow foundation validation passed.";
@@ -46,6 +47,10 @@ namespace Titanhold.Run.Editor
                 "Default round damage bonus");
             AssertApproximately(defaults.AssaultHealthBonusPerLevel, 0.10f, "Default Assault health bonus");
             AssertApproximately(defaults.AssaultDamageBonusPerLevel, 0.05f, "Default Assault damage bonus");
+            Assert(defaults.RegularRoundCount == 3,
+                "Default regular round count mismatch.");
+            Assert(defaults.FinalRoundNumber == 4,
+                "Default final round number mismatch.");
 
             AssertThrows<ArgumentOutOfRangeException>(
                 () => new RunFlowConfiguration(0f, 10, 0.2f, 0.1f, 0.1f, 0.05f),
@@ -56,6 +61,27 @@ namespace Titanhold.Run.Editor
             AssertThrows<ArgumentOutOfRangeException>(
                 () => new RunFlowConfiguration(100f, 10, 0.2f, 0.1f, -0.1f, 0.05f),
                 "Negative health scaling should be rejected.");
+            AssertThrows<ArgumentOutOfRangeException>(
+                () => new RunFlowConfiguration(
+                    100f,
+                    10,
+                    0.2f,
+                    0.1f,
+                    0.1f,
+                    0.05f,
+                    regularRoundCount: 0),
+                "Zero regular rounds should be rejected.");
+            AssertThrows<ArgumentOutOfRangeException>(
+                () => new RunFlowConfiguration(
+                    100f,
+                    10,
+                    0.2f,
+                    0.1f,
+                    0.1f,
+                    0.05f,
+                    regularRoundCount: 3,
+                    startingRound: 5),
+                "A starting round after the boss should be rejected.");
         }
 
         private static void ValidateAtomicThreatBatch()
@@ -205,6 +231,64 @@ namespace Titanhold.Run.Editor
                 new ExplorationKillContribution(10f, 1));
             Assert(!terminalKill.Success && terminalKill.Error == RunFlowError.InvalidPhase,
                 "Terminal run accepted an exploration kill.");
+        }
+
+        private static void ValidateFinalEncounterLifecycle()
+        {
+            RunFlowService service = CreateService();
+
+            for (int round = 1; round <= 3; round++)
+            {
+                Assert(service.State.RoundNumber == round,
+                    $"Expected regular round {round}.");
+                Assert(service.State.CurrentEncounterKind == RunEncounterKind.AssaultWave,
+                    $"Round {round} was not classified as a regular Assault wave.");
+
+                CompleteCurrentEncounter(service);
+                RunFlowTransitionResult earlyCompletion = service.TryCompleteRun();
+                Assert(!earlyCompletion.Success &&
+                       earlyCompletion.Error == RunFlowError.NotFinalEncounter,
+                    $"Regular round {round} completed the run early.");
+                Assert(service.TryBeginReturnToExploration().Success,
+                    $"Regular round {round} could not begin its return.");
+                Assert(service.TryResumeExploration().Success,
+                    $"Regular round {round} could not resume exploration.");
+            }
+
+            Assert(service.State.RoundNumber == 4,
+                "The run did not advance to round four.");
+            Assert(service.State.FinalRoundNumber == 4 &&
+                   service.State.CurrentEncounterKind == RunEncounterKind.Boss,
+                "Round four was not classified as the final boss round.");
+            AssertApproximately(service.State.RoundScaling.HealthMultiplier, 1.60f,
+                "Boss-round health multiplier");
+            AssertApproximately(service.State.RoundScaling.DamageMultiplier, 1.30f,
+                "Boss-round damage multiplier");
+
+            CompleteCurrentEncounter(service);
+            RunFlowTransitionResult rejectedReturn =
+                service.TryBeginReturnToExploration();
+            Assert(!rejectedReturn.Success &&
+                   rejectedReturn.Error == RunFlowError.FinalEncounterCompleted,
+                "Final boss intermission allowed another exploration round.");
+
+            RunFlowTransitionResult completion = service.TryCompleteRun();
+            Assert(completion.Success && service.State.Phase == RunPhase.Completed,
+                "Final boss intermission did not complete the run.");
+        }
+
+        private static void CompleteCurrentEncounter(RunFlowService service)
+        {
+            ExplorationKillBatchResult fill = service.TryRegisterExplorationKill(
+                new ExplorationKillContribution(service.State.MaxThreat, 0));
+            Assert(fill.Success && service.State.Phase == RunPhase.PortalOpen,
+                "Could not fill the current round meter.");
+            Assert(service.TryBeginAssaultTransition().Success,
+                "Could not begin the current encounter transition.");
+            Assert(service.TryStartAssault().Success,
+                "Could not start the current encounter.");
+            Assert(service.TryCompleteAssault().Success,
+                "Could not complete the current encounter.");
         }
 
         private static RunFlowService CreateService()

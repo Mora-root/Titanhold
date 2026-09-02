@@ -15,6 +15,7 @@ namespace Titanhold.Run
         [SerializeField] private AssaultEnemyRegistry enemyRegistry;
         [SerializeField] private AssaultTargetRegistry targetRegistry;
         [SerializeField] private AssaultWaveDefinition waveDefinition;
+        [SerializeField] private AssaultWaveDefinition bossWaveDefinition;
         [SerializeField] private Transform[] spawnPoints = Array.Empty<Transform>();
 
         private Coroutine spawnRoutine;
@@ -85,13 +86,15 @@ namespace Titanhold.Run
                     AssaultWaveStartError.NoRegisteredTargets);
             }
 
-            if (waveDefinition == null)
+            AssaultWaveDefinition activeDefinition =
+                ResolveDefinition(runFlowRuntime.State.CurrentEncounterKind);
+            if (activeDefinition == null)
             {
                 return AssaultWaveStartResult.Failed(
                     AssaultWaveStartError.MissingDefinition);
             }
 
-            if (!waveDefinition.TryCreatePlan(
+            if (!activeDefinition.TryCreatePlan(
                     out AssaultWavePlan plan,
                     out string definitionError))
             {
@@ -112,8 +115,12 @@ namespace Titanhold.Run
                     AssaultWaveStartError.InvalidPhase);
             }
 
+            string encounterPrefix =
+                runFlowRuntime.State.CurrentEncounterKind == RunEncounterKind.Boss
+                    ? "boss"
+                    : "assault";
             activeEncounterId = new AssaultEncounterId(
-                $"assault:{runFlowRuntime.State.RoundNumber}:{Guid.NewGuid():N}");
+                $"{encounterPrefix}:{runFlowRuntime.State.RoundNumber}:{Guid.NewGuid():N}");
             AssaultEncounterResult encounterResult =
                 runFlowRuntime.AssaultEncounter.TryBegin(
                     new BeginAssaultEncounterCommand(
@@ -295,6 +302,13 @@ namespace Titanhold.Run
             }
 
             return true;
+        }
+
+        private AssaultWaveDefinition ResolveDefinition(RunEncounterKind encounterKind)
+        {
+            return encounterKind == RunEncounterKind.Boss
+                ? bossWaveDefinition
+                : waveDefinition;
         }
 
         private void ResolveReferences()

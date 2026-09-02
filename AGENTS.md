@@ -11,6 +11,11 @@ Active run loop:
 `exploration/farming → fill run meter → manual portal → separate assault arena →
 assault wave → intermission/reward → return to the same exploration location`
 
+The vertical slice has three regular rounds. Round four still includes its full
+exploration/farming phase, but its portal starts the final boss encounter instead
+of a regular assault wave. Boss victory enters a final intermission for rewards;
+it must not create a return portal or advance to round five.
+
 Current assault rules:
 
 - enemies immediately pursue an eligible player;
@@ -23,6 +28,8 @@ Current assault rules:
 - the return portal appears only during intermission and completes the return to
   the saved exploration position;
 - `Skelet_Assault` is independent from exploration and legacy wave prefabs.
+- `Skelet_Boss_Prototype` is a temporary independent boss prefab; boss abilities,
+  telegraphs, and final completion UI are later stages.
 
 Current round scaling:
 
@@ -68,9 +75,11 @@ Current run assets:
 
 - `Scenes/SampleScene.unity` — exploration plus prototype assault arena;
 - `Prefabs/Enemy/Skelet_Assault.prefab` — current assault enemy;
+- `Prefabs/Enemy/Skelet_Boss_Prototype.prefab` — temporary round-four boss;
 - `Prefabs/Run/AssaultRewardChest.prefab` — optional intermission reward chest;
 - `Prefabs/Run/AssaultReturnPortal.prefab` — intermission return portal;
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
+- `ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset` — prototype boss encounter;
 - `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
 - `Prefabs/Old/` — legacy only.
 
@@ -125,7 +134,9 @@ Mode smoke test. Use Round Enemy Scaling and its wiring validation for round
 progression changes. Use Assault Enemy Scaling validation when wave multipliers
 or enemy runtime combat values change. Use Player Skill Command Buffer validation
 when player action sequencing changes. Use Assault Reward and Assault Reward
-Vertical Slice Wiring validation when encounter rewards change.
+Vertical Slice Wiring validation when encounter rewards change. Use Boss
+Encounter Wiring validation when the final-round prefab, definition, or scene
+reference changes.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,

@@ -7,6 +7,8 @@ namespace Titanhold.Run
         EmptyKillBatch,
         InvalidKillContribution,
         NoApplicableContribution,
+        NotFinalEncounter,
+        FinalEncounterCompleted,
         TerminalState
     }
 

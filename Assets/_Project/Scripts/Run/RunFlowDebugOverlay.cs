@@ -38,7 +38,8 @@ namespace Titanhold.Run
             GUI.Box(
                 screenRect,
                 $"Run Flow (new)\n" +
-                $"Phase: {state.Phase} | Round: {state.RoundNumber}\n" +
+                $"Phase: {state.Phase} | Round: {state.RoundNumber}/{state.FinalRoundNumber} " +
+                $"({state.CurrentEncounterKind})\n" +
                 $"Threat: {state.CurrentThreat:0.##}/{state.MaxThreat:0.##}\n" +
                 $"Instability: {state.RiftInstability.Points} (level {state.RiftInstability.Level})\n" +
                 $"Last batch: {lastBatch}");

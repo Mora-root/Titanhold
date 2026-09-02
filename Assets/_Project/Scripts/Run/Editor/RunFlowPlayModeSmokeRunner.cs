@@ -84,6 +84,9 @@ namespace Titanhold.Run.Editor
                        Math.Abs(runtime.State.RoundScaling.HealthMultiplier - 1f) <= 0.0001f &&
                        Math.Abs(runtime.State.RoundScaling.DamageMultiplier - 1f) <= 0.0001f,
                     "Run Flow did not start with round-one enemy scaling.");
+                Assert(runtime.State.FinalRoundNumber == 4 &&
+                       runtime.State.CurrentEncounterKind == RunEncounterKind.AssaultWave,
+                    "Run Flow did not start on the first of three regular rounds.");
 
                 PlayerCombat playerCombat =
                     UnityEngine.Object.FindAnyObjectByType<PlayerCombat>();

@@ -11,6 +11,7 @@ namespace Titanhold.Run
             float enemyDamageBonusPerRound,
             float assaultHealthBonusPerLevel,
             float assaultDamageBonusPerLevel,
+            int regularRoundCount = 3,
             int startingRound = 1)
         {
             if (!IsFinitePositive(maxThreat))
@@ -31,7 +32,10 @@ namespace Titanhold.Run
             if (!IsFiniteNonNegative(assaultDamageBonusPerLevel))
                 throw new ArgumentOutOfRangeException(nameof(assaultDamageBonusPerLevel));
 
-            if (startingRound <= 0)
+            if (regularRoundCount <= 0 || regularRoundCount == int.MaxValue)
+                throw new ArgumentOutOfRangeException(nameof(regularRoundCount));
+
+            if (startingRound <= 0 || startingRound > regularRoundCount + 1)
                 throw new ArgumentOutOfRangeException(nameof(startingRound));
 
             MaxThreat = maxThreat;
@@ -40,6 +44,7 @@ namespace Titanhold.Run
             EnemyDamageBonusPerRound = enemyDamageBonusPerRound;
             AssaultHealthBonusPerLevel = assaultHealthBonusPerLevel;
             AssaultDamageBonusPerLevel = assaultDamageBonusPerLevel;
+            RegularRoundCount = regularRoundCount;
             StartingRound = startingRound;
         }
 
@@ -49,6 +54,8 @@ namespace Titanhold.Run
         public float EnemyDamageBonusPerRound { get; }
         public float AssaultHealthBonusPerLevel { get; }
         public float AssaultDamageBonusPerLevel { get; }
+        public int RegularRoundCount { get; }
+        public int FinalRoundNumber => RegularRoundCount + 1;
         public int StartingRound { get; }
 
         public static RunFlowConfiguration CreateVerticalSliceDefaults()
@@ -59,7 +66,8 @@ namespace Titanhold.Run
                 enemyHealthBonusPerRound: 0.20f,
                 enemyDamageBonusPerRound: 0.10f,
                 assaultHealthBonusPerLevel: 0.10f,
-                assaultDamageBonusPerLevel: 0.05f);
+                assaultDamageBonusPerLevel: 0.05f,
+                regularRoundCount: 3);
         }
 
         private static bool IsFinitePositive(float value)

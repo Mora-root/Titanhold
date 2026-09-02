@@ -62,7 +62,8 @@ namespace Titanhold.Run
 
         private void SynchronizeWithState(RunFlowState state)
         {
-            if (state.Phase == RunPhase.Intermission)
+            if (state.Phase == RunPhase.Intermission &&
+                state.CanReturnToExploration)
             {
                 EnsurePortal(state.RoundNumber);
                 return;

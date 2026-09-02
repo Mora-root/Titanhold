@@ -17514,6 +17514,7 @@ MonoBehaviour:
   enemyDamageBonusPerRound: 0.1
   assaultHealthBonusPerLevel: 0.1
   assaultDamageBonusPerLevel: 0.05
+  regularRoundCount: 3
   startingRound: 1
 --- !u!4 &1489734143
 Transform:
@@ -17581,6 +17582,7 @@ MonoBehaviour:
   enemyRegistry: {fileID: 1489734148}
   targetRegistry: {fileID: 1489734149}
   waveDefinition: {fileID: 11400000, guid: 925b5062213b3ab4db547268bdbfc0dc, type: 2}
+  bossWaveDefinition: {fileID: 11400000, guid: 83fefc46ac35d1b4399915dada7bdbcc, type: 2}
   spawnPoints:
   - {fileID: 1235355711}
   - {fileID: 2071258478}

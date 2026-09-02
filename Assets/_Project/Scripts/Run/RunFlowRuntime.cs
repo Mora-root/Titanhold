@@ -13,6 +13,7 @@ namespace Titanhold.Run
         [SerializeField, Min(0f)] private float enemyDamageBonusPerRound = 0.10f;
         [SerializeField, Min(0f)] private float assaultHealthBonusPerLevel = 0.10f;
         [SerializeField, Min(0f)] private float assaultDamageBonusPerLevel = 0.05f;
+        [SerializeField, Min(1)] private int regularRoundCount = 3;
         [SerializeField, Min(1)] private int startingRound = 1;
 
         private RunFlowService service;
@@ -95,6 +96,7 @@ namespace Titanhold.Run
                 enemyDamageBonusPerRound,
                 assaultHealthBonusPerLevel,
                 assaultDamageBonusPerLevel,
+                regularRoundCount,
                 startingRound);
             service = new RunFlowService(configuration);
             killApplication = new ExplorationKillApplicationService(service);
@@ -117,6 +119,8 @@ namespace Titanhold.Run
             enemyDamageBonusPerRound = Mathf.Max(0f, enemyDamageBonusPerRound);
             assaultHealthBonusPerLevel = Mathf.Max(0f, assaultHealthBonusPerLevel);
             assaultDamageBonusPerLevel = Mathf.Max(0f, assaultDamageBonusPerLevel);
+            regularRoundCount = Mathf.Clamp(regularRoundCount, 1, int.MaxValue - 1);
+            startingRound = Mathf.Min(startingRound, regularRoundCount + 1);
             startingRound = Mathf.Max(1, startingRound);
         }
     }

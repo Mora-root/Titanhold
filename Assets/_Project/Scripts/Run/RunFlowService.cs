@@ -93,6 +93,14 @@ namespace Titanhold.Run
 
         public RunFlowTransitionResult TryBeginReturnToExploration()
         {
+            if (State.Phase == RunPhase.Intermission &&
+                !State.CanReturnToExploration)
+            {
+                return RunFlowTransitionResult.Failed(
+                    RunFlowError.FinalEncounterCompleted,
+                    State.Phase);
+            }
+
             return TryTransition(RunPhase.Intermission, RunPhase.ReturningToExploration);
         }
 
@@ -112,6 +120,14 @@ namespace Titanhold.Run
 
         public RunFlowTransitionResult TryCompleteRun()
         {
+            if (State.Phase == RunPhase.Intermission &&
+                State.CurrentEncounterKind != RunEncounterKind.Boss)
+            {
+                return RunFlowTransitionResult.Failed(
+                    RunFlowError.NotFinalEncounter,
+                    State.Phase);
+            }
+
             return TryTransition(RunPhase.Intermission, RunPhase.Completed);
         }
 

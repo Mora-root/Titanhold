@@ -12,6 +12,7 @@ namespace Titanhold.Run
                 throw new ArgumentNullException(nameof(configuration));
 
             MaxThreat = configuration.MaxThreat;
+            FinalRoundNumber = configuration.FinalRoundNumber;
             RoundNumber = configuration.StartingRound;
             Phase = RunPhase.Exploration;
             RiftInstability = new RiftInstabilityState(configuration.InstabilityPointsPerLevel);
@@ -23,7 +24,14 @@ namespace Titanhold.Run
         public int RoundNumber { get; private set; }
         public float CurrentThreat { get; private set; }
         public float MaxThreat { get; }
+        public int FinalRoundNumber { get; }
         public bool IsThreatFull => CurrentThreat >= MaxThreat;
+        public RunEncounterKind CurrentEncounterKind =>
+            RoundNumber == FinalRoundNumber
+                ? RunEncounterKind.Boss
+                : RunEncounterKind.AssaultWave;
+        public bool CanReturnToExploration =>
+            CurrentEncounterKind == RunEncounterKind.AssaultWave;
         public RiftInstabilityState RiftInstability { get; }
         public EnemyScalingSnapshot RoundScaling { get; private set; }
         public AssaultScalingSnapshot AssaultScaling { get; private set; }
