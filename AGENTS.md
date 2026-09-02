@@ -49,6 +49,13 @@ Camp defense, towers, and the old wave flow are outside this vertical slice.
 Treat them as legacy/future-activity code unless explicitly requested. Do not
 delete them.
 
+The first-build meta layer is a separate UI Hub scene, not the legacy camp in
+`SampleScene`. It will own preparation, difficulty selection, and run results;
+it may later grow into a physical 3D camp without changing the underlying
+commands. `GameSessionService` is the scene-independent outer lifecycle around
+the inner `RunFlowService`. Character-state transfer and scene loading are not
+connected yet.
+
 ## Search and Project Map
 
 - Start in the smallest relevant project-owned folder and use exact names with
@@ -61,6 +68,8 @@ delete them.
 Code routes:
 
 - `Scripts/Run/` — current run, portal, arena, assault, registries, validators.
+- `Scripts/Session/` — Hub/run lifecycle, launch parameters, participants, and
+  final run results across scene boundaries.
 - `Scripts/Enemies/` — AI, targeting, death, enemy reward integration.
 - `Scripts/Combat/` — damage, attacks, combat identities, abilities.
 - `Scripts/Player/` — player components and runtime wrappers.
