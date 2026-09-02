@@ -17510,6 +17510,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunFlowRuntime
   maxThreat: 100
   instabilityPointsPerLevel: 10
+  enemyHealthBonusPerRound: 0.2
+  enemyDamageBonusPerRound: 0.1
   assaultHealthBonusPerLevel: 0.1
   assaultDamageBonusPerLevel: 0.05
   startingRound: 1
@@ -22721,6 +22723,7 @@ MonoBehaviour:
   navMeshSampleDistance: 1
   maxSpawnAttempts: 20
   spawnOnStart: 1
+  runFlowRuntime: {fileID: 1489734142}
 --- !u!1 &2071258477
 GameObject:
   m_ObjectHideFlags: 0

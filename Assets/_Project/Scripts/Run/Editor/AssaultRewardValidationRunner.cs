@@ -25,7 +25,13 @@ namespace Titanhold.Run.Editor
         private static void ValidateRewardLifecycle()
         {
             RunFlowService flow = new RunFlowService(
-                new RunFlowConfiguration(1f, 10, 0.1f, 0.05f));
+                new RunFlowConfiguration(
+                    maxThreat: 1f,
+                    instabilityPointsPerLevel: 10,
+                    enemyHealthBonusPerRound: 0.20f,
+                    enemyDamageBonusPerRound: 0.10f,
+                    assaultHealthBonusPerLevel: 0.10f,
+                    assaultDamageBonusPerLevel: 0.05f));
             AssaultEncounterApplicationService encounter =
                 new AssaultEncounterApplicationService(flow);
             using AssaultRewardApplicationService reward =

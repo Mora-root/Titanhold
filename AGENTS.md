@@ -24,6 +24,17 @@ Current assault rules:
   the saved exploration position;
 - `Skelet_Assault` is independent from exploration and legacy wave prefabs.
 
+Current round scaling:
+
+- round one uses base enemy values;
+- each later round adds `+20%` maximum health and `+10%` damage per completed
+  round;
+- living exploration enemies are rescaled and restored to their new full health
+  when the next exploration round begins;
+- assault scaling multiplies the current round snapshot by the locked Rift
+  Instability snapshot; do not compound runtime values from the previous round;
+- out-of-combat enemy regeneration is a later stage and is not implemented yet.
+
 Camp defense, towers, and the old wave flow are outside this vertical slice.
 Treat them as legacy/future-activity code unless explicitly requested. Do not
 delete them.
@@ -110,8 +121,9 @@ where it provides real value.
 After code changes, recompile and run the narrowest relevant Unity validation.
 Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
-Mode smoke test. Use Assault Enemy Scaling validation when wave multipliers or
-enemy runtime combat values change. Use Player Skill Command Buffer validation
+Mode smoke test. Use Round Enemy Scaling and its wiring validation for round
+progression changes. Use Assault Enemy Scaling validation when wave multipliers
+or enemy runtime combat values change. Use Player Skill Command Buffer validation
 when player action sequencing changes. Use Assault Reward and Assault Reward
 Vertical Slice Wiring validation when encounter rewards change.
 

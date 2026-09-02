@@ -6,13 +6,19 @@ namespace Titanhold.Run
     public sealed class RunFlowService
     {
         private readonly AssaultScalingCalculator assaultScalingCalculator;
+        private readonly RoundScalingCalculator roundScalingCalculator;
 
         public RunFlowService(RunFlowConfiguration configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            State = new RunFlowState(configuration);
+            roundScalingCalculator = new RoundScalingCalculator(
+                configuration.EnemyHealthBonusPerRound,
+                configuration.EnemyDamageBonusPerRound);
+            State = new RunFlowState(
+                configuration,
+                roundScalingCalculator.CreateSnapshot(configuration.StartingRound));
             assaultScalingCalculator = new AssaultScalingCalculator(
                 configuration.AssaultHealthBonusPerLevel,
                 configuration.AssaultDamageBonusPerLevel);
@@ -68,7 +74,10 @@ namespace Titanhold.Run
             if (State.Phase != RunPhase.PortalOpen)
                 return RunFlowTransitionResult.Failed(RunFlowError.InvalidPhase, State.Phase);
 
-            State.SetAssaultScaling(assaultScalingCalculator.CreateSnapshot(State.RiftInstability));
+            State.SetAssaultScaling(
+                assaultScalingCalculator.CreateSnapshot(
+                    State.RiftInstability,
+                    State.RoundScaling));
             return TransitionTo(RunPhase.TransitionToAssault);
         }
 
@@ -93,7 +102,10 @@ namespace Titanhold.Run
                 return RunFlowTransitionResult.Failed(RunFlowError.InvalidPhase, State.Phase);
 
             RunPhase previousPhase = State.Phase;
-            State.BeginNextRound();
+            int nextRound = State.RoundNumber < int.MaxValue
+                ? State.RoundNumber + 1
+                : State.RoundNumber;
+            State.BeginNextRound(roundScalingCalculator.CreateSnapshot(nextRound));
             NotifyStateChanged();
             return RunFlowTransitionResult.Succeeded(previousPhase, State.Phase);
         }

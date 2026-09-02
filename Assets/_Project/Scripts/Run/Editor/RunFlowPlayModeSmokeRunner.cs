@@ -80,6 +80,10 @@ namespace Titanhold.Run.Editor
                     "PlayerSkillExecutor was not bound automatically in Play Mode.");
                 Assert(runtime.State.Phase == RunPhase.Exploration,
                     "Run Flow did not start in Exploration.");
+                Assert(runtime.State.RoundScaling.RoundNumber == 1 &&
+                       Math.Abs(runtime.State.RoundScaling.HealthMultiplier - 1f) <= 0.0001f &&
+                       Math.Abs(runtime.State.RoundScaling.DamageMultiplier - 1f) <= 0.0001f,
+                    "Run Flow did not start with round-one enemy scaling.");
 
                 PlayerCombat playerCombat =
                     UnityEngine.Object.FindAnyObjectByType<PlayerCombat>();
@@ -299,6 +303,9 @@ namespace Titanhold.Run.Editor
                 Assert(returnResult.Success &&
                        runtime.State.Phase == RunPhase.Exploration &&
                        runtime.State.RoundNumber == 2 &&
+                       runtime.State.RoundScaling.RoundNumber == 2 &&
+                       Math.Abs(runtime.State.RoundScaling.HealthMultiplier - 1.20f) <= 0.0001f &&
+                       Math.Abs(runtime.State.RoundScaling.DamageMultiplier - 1.10f) <= 0.0001f &&
                        !arenaGateway.IsOccupied &&
                        !returnPortalSpawner.HasActivePortal &&
                        !runtime.AssaultReward.State.HasReward &&

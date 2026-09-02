@@ -5,20 +5,29 @@ namespace Titanhold.Run
         public AssaultScalingSnapshot(
             int instabilityPoints,
             int instabilityLevel,
-            float healthMultiplier,
-            float damageMultiplier)
+            EnemyScalingSnapshot enemyScaling)
         {
             InstabilityPoints = instabilityPoints;
             InstabilityLevel = instabilityLevel;
-            HealthMultiplier = healthMultiplier;
-            DamageMultiplier = damageMultiplier;
+            EnemyScaling = enemyScaling;
         }
 
         public int InstabilityPoints { get; }
         public int InstabilityLevel { get; }
-        public float HealthMultiplier { get; }
-        public float DamageMultiplier { get; }
+        public EnemyScalingSnapshot EnemyScaling { get; }
+        public int RoundNumber => EnemyScaling.RoundNumber;
+        public float HealthMultiplier => EnemyScaling.HealthMultiplier;
+        public float DamageMultiplier => EnemyScaling.DamageMultiplier;
 
-        public static AssaultScalingSnapshot None => new AssaultScalingSnapshot(0, 0, 1f, 1f);
+        public static AssaultScalingSnapshot None =>
+            NoneForRound(1);
+
+        public static AssaultScalingSnapshot NoneForRound(int roundNumber)
+        {
+            return new AssaultScalingSnapshot(
+                0,
+                0,
+                EnemyScalingSnapshot.Identity(roundNumber));
+        }
     }
 }

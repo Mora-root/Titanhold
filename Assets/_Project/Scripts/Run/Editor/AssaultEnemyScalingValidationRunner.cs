@@ -20,7 +20,10 @@ namespace Titanhold.Run.Editor
 
                 AssaultEnemyScalingApplicator applicator = new();
                 AssaultScalingSnapshot firstSnapshot =
-                    new AssaultScalingSnapshot(20, 2, 1.5f, 1.25f);
+                    new AssaultScalingSnapshot(
+                        20,
+                        2,
+                        new EnemyScalingSnapshot(1, 1.5f, 1.25f));
                 AssaultEnemyScalingResult first = applicator.TryApply(
                     health,
                     combat,
@@ -35,7 +38,10 @@ namespace Titanhold.Run.Editor
                     "Scaled damage mismatch.");
 
                 AssaultScalingSnapshot replacementSnapshot =
-                    new AssaultScalingSnapshot(30, 3, 2f, 2f);
+                    new AssaultScalingSnapshot(
+                        30,
+                        3,
+                        new EnemyScalingSnapshot(2, 2f, 2f));
                 AssaultEnemyScalingResult replacement = applicator.TryApply(
                     health,
                     combat,
@@ -51,7 +57,10 @@ namespace Titanhold.Run.Editor
                 AssaultEnemyScalingResult invalid = applicator.TryApply(
                     health,
                     combat,
-                    new AssaultScalingSnapshot(0, 0, float.NaN, 1f));
+                    new AssaultScalingSnapshot(
+                        0,
+                        0,
+                        new EnemyScalingSnapshot(1, float.NaN, 1f)));
                 Assert(!invalid.Success &&
                        invalid.Error == AssaultEnemyScalingError.InvalidSnapshot,
                     "Invalid scaling snapshot was accepted.");

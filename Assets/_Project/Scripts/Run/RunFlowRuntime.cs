@@ -9,6 +9,8 @@ namespace Titanhold.Run
         [Header("Vertical Slice Configuration")]
         [SerializeField, Min(0.01f)] private float maxThreat = 100f;
         [SerializeField, Min(1)] private int instabilityPointsPerLevel = 10;
+        [SerializeField, Min(0f)] private float enemyHealthBonusPerRound = 0.20f;
+        [SerializeField, Min(0f)] private float enemyDamageBonusPerRound = 0.10f;
         [SerializeField, Min(0f)] private float assaultHealthBonusPerLevel = 0.10f;
         [SerializeField, Min(0f)] private float assaultDamageBonusPerLevel = 0.05f;
         [SerializeField, Min(1)] private int startingRound = 1;
@@ -89,6 +91,8 @@ namespace Titanhold.Run
             RunFlowConfiguration configuration = new RunFlowConfiguration(
                 maxThreat,
                 instabilityPointsPerLevel,
+                enemyHealthBonusPerRound,
+                enemyDamageBonusPerRound,
                 assaultHealthBonusPerLevel,
                 assaultDamageBonusPerLevel,
                 startingRound);
@@ -109,6 +113,8 @@ namespace Titanhold.Run
         {
             maxThreat = Mathf.Max(0.01f, maxThreat);
             instabilityPointsPerLevel = Mathf.Max(1, instabilityPointsPerLevel);
+            enemyHealthBonusPerRound = Mathf.Max(0f, enemyHealthBonusPerRound);
+            enemyDamageBonusPerRound = Mathf.Max(0f, enemyDamageBonusPerRound);
             assaultHealthBonusPerLevel = Mathf.Max(0f, assaultHealthBonusPerLevel);
             assaultDamageBonusPerLevel = Mathf.Max(0f, assaultDamageBonusPerLevel);
             startingRound = Mathf.Max(1, startingRound);

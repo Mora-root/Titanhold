@@ -4,7 +4,9 @@ namespace Titanhold.Run
 {
     public sealed class RunFlowState
     {
-        internal RunFlowState(RunFlowConfiguration configuration)
+        internal RunFlowState(
+            RunFlowConfiguration configuration,
+            EnemyScalingSnapshot roundScaling)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
@@ -13,7 +15,8 @@ namespace Titanhold.Run
             RoundNumber = configuration.StartingRound;
             Phase = RunPhase.Exploration;
             RiftInstability = new RiftInstabilityState(configuration.InstabilityPointsPerLevel);
-            AssaultScaling = AssaultScalingSnapshot.None;
+            RoundScaling = roundScaling;
+            AssaultScaling = AssaultScalingSnapshot.NoneForRound(roundScaling.RoundNumber);
         }
 
         public RunPhase Phase { get; private set; }
@@ -22,6 +25,7 @@ namespace Titanhold.Run
         public float MaxThreat { get; }
         public bool IsThreatFull => CurrentThreat >= MaxThreat;
         public RiftInstabilityState RiftInstability { get; }
+        public EnemyScalingSnapshot RoundScaling { get; private set; }
         public AssaultScalingSnapshot AssaultScaling { get; private set; }
 
         internal float AddThreat(float amount)
@@ -45,14 +49,15 @@ namespace Titanhold.Run
             AssaultScaling = snapshot;
         }
 
-        internal void BeginNextRound()
+        internal void BeginNextRound(EnemyScalingSnapshot roundScaling)
         {
             if (RoundNumber < int.MaxValue)
                 RoundNumber++;
 
             CurrentThreat = 0f;
             RiftInstability.Reset();
-            AssaultScaling = AssaultScalingSnapshot.None;
+            RoundScaling = roundScaling;
+            AssaultScaling = AssaultScalingSnapshot.NoneForRound(roundScaling.RoundNumber);
             Phase = RunPhase.Exploration;
         }
     }

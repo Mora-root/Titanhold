@@ -19,7 +19,9 @@ namespace Titanhold.Run
             this.damageBonusPerLevel = damageBonusPerLevel;
         }
 
-        public AssaultScalingSnapshot CreateSnapshot(RiftInstabilityState instability)
+        public AssaultScalingSnapshot CreateSnapshot(
+            RiftInstabilityState instability,
+            EnemyScalingSnapshot roundScaling)
         {
             if (instability == null)
                 throw new ArgumentNullException(nameof(instability));
@@ -28,14 +30,26 @@ namespace Titanhold.Run
             return new AssaultScalingSnapshot(
                 instability.Points,
                 level,
-                CalculateMultiplier(level, healthBonusPerLevel),
-                CalculateMultiplier(level, damageBonusPerLevel));
+                new EnemyScalingSnapshot(
+                    roundScaling.RoundNumber,
+                    Multiply(
+                        roundScaling.HealthMultiplier,
+                        CalculateMultiplier(level, healthBonusPerLevel)),
+                    Multiply(
+                        roundScaling.DamageMultiplier,
+                        CalculateMultiplier(level, damageBonusPerLevel))));
         }
 
         private static float CalculateMultiplier(int level, float bonusPerLevel)
         {
             double multiplier = 1d + (double)level * bonusPerLevel;
             return multiplier >= float.MaxValue ? float.MaxValue : (float)multiplier;
+        }
+
+        private static float Multiply(float left, float right)
+        {
+            double result = (double)left * right;
+            return result >= float.MaxValue ? float.MaxValue : (float)result;
         }
 
         private static bool IsFiniteNonNegative(float value)

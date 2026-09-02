@@ -40,17 +40,21 @@ namespace Titanhold.Run.Editor
 
             AssertApproximately(defaults.MaxThreat, 100f, "Default max Threat");
             Assert(defaults.InstabilityPointsPerLevel == 10, "Default instability threshold mismatch.");
+            AssertApproximately(defaults.EnemyHealthBonusPerRound, 0.20f,
+                "Default round health bonus");
+            AssertApproximately(defaults.EnemyDamageBonusPerRound, 0.10f,
+                "Default round damage bonus");
             AssertApproximately(defaults.AssaultHealthBonusPerLevel, 0.10f, "Default Assault health bonus");
             AssertApproximately(defaults.AssaultDamageBonusPerLevel, 0.05f, "Default Assault damage bonus");
 
             AssertThrows<ArgumentOutOfRangeException>(
-                () => new RunFlowConfiguration(0f, 10, 0.1f, 0.05f),
+                () => new RunFlowConfiguration(0f, 10, 0.2f, 0.1f, 0.1f, 0.05f),
                 "Zero max Threat should be rejected.");
             AssertThrows<ArgumentOutOfRangeException>(
-                () => new RunFlowConfiguration(100f, 0, 0.1f, 0.05f),
+                () => new RunFlowConfiguration(100f, 0, 0.2f, 0.1f, 0.1f, 0.05f),
                 "Zero instability threshold should be rejected.");
             AssertThrows<ArgumentOutOfRangeException>(
-                () => new RunFlowConfiguration(100f, 10, -0.1f, 0.05f),
+                () => new RunFlowConfiguration(100f, 10, 0.2f, 0.1f, -0.1f, 0.05f),
                 "Negative health scaling should be rejected.");
         }
 
@@ -170,6 +174,10 @@ namespace Titanhold.Run.Editor
 
             Assert(service.State.Phase == RunPhase.Exploration, "Run did not return to exploration.");
             Assert(service.State.RoundNumber == 2, "Round number did not advance.");
+            AssertApproximately(service.State.RoundScaling.HealthMultiplier, 1.20f,
+                "Round-two health multiplier");
+            AssertApproximately(service.State.RoundScaling.DamageMultiplier, 1.10f,
+                "Round-two damage multiplier");
             AssertApproximately(service.State.CurrentThreat, 0f, "Threat did not reset for next cycle");
             Assert(service.State.RiftInstability.Points == 0,
                 "Rift Instability did not reset for next cycle.");
@@ -177,6 +185,8 @@ namespace Titanhold.Run.Editor
                 "Assault health snapshot did not reset");
             AssertApproximately(service.State.AssaultScaling.DamageMultiplier, 1f,
                 "Assault damage snapshot did not reset");
+            Assert(service.State.AssaultScaling.RoundNumber == 2,
+                "Reset Assault snapshot retained a stale round identity.");
         }
 
         private static void ValidateTerminalState()

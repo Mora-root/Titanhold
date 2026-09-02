@@ -1,4 +1,5 @@
 using System.Collections;
+using Titanhold.Run;
 using UnityEngine;
 
 public sealed class WorldEnemyRespawnPoint : MonoBehaviour
@@ -7,9 +8,23 @@ public sealed class WorldEnemyRespawnPoint : MonoBehaviour
     [SerializeField] private Transform spawnPoint;
     [SerializeField] private float respawnDelay = 10f;
     [SerializeField] private bool spawnOnStart = true;
+    [SerializeField] private RunFlowRuntime runFlowRuntime;
 
     private EnemyDeathNotifier currentEnemy;
     private Coroutine respawnCoroutine;
+    private readonly EnemyScalingApplicator scalingApplicator = new EnemyScalingApplicator();
+    private int appliedRound;
+
+    public RunFlowRuntime RunFlowRuntime => runFlowRuntime;
+
+    private void OnEnable()
+    {
+        if (runFlowRuntime == null)
+            return;
+
+        runFlowRuntime.StateChanged += HandleRunFlowStateChanged;
+        appliedRound = runFlowRuntime.State.RoundNumber;
+    }
 
     private void Start()
     {
@@ -21,6 +36,9 @@ public sealed class WorldEnemyRespawnPoint : MonoBehaviour
 
     private void OnDisable()
     {
+        if (runFlowRuntime != null)
+            runFlowRuntime.StateChanged -= HandleRunFlowStateChanged;
+
         if (currentEnemy != null)
         {
             currentEnemy.Died -= HandleEnemyDied;
@@ -52,8 +70,51 @@ public sealed class WorldEnemyRespawnPoint : MonoBehaviour
             return;
         }
 
+        if (!TryApplyCurrentRoundScaling(createdEnemy, restoreFullHealth: true))
+        {
+            Destroy(createdEnemy);
+            return;
+        }
+
         currentEnemy = notifier;
         currentEnemy.Died += HandleEnemyDied;
+    }
+
+    private void HandleRunFlowStateChanged(RunFlowState state)
+    {
+        if (state.Phase != RunPhase.Exploration || state.RoundNumber == appliedRound)
+            return;
+
+        appliedRound = state.RoundNumber;
+        if (currentEnemy != null)
+        {
+            TryApplyCurrentRoundScaling(
+                currentEnemy.transform.root.gameObject,
+                restoreFullHealth: true);
+        }
+    }
+
+    private bool TryApplyCurrentRoundScaling(
+        GameObject enemyObject,
+        bool restoreFullHealth)
+    {
+        if (runFlowRuntime == null)
+            return true;
+
+        Health health = enemyObject.GetComponentInChildren<Health>(true);
+        EnemyCombat combat = enemyObject.GetComponentInChildren<EnemyCombat>(true);
+        EnemyScalingResult result = scalingApplicator.TryApply(
+            health,
+            combat,
+            runFlowRuntime.State.RoundScaling,
+            restoreFullHealth);
+        if (result.Success)
+            return true;
+
+        Debug.LogError(
+            $"Could not apply round scaling to exploration enemy '{enemyObject.name}': {result.Error}.",
+            this);
+        return false;
     }
 
     private void HandleEnemyDied(EnemyDeathNotifier notifier)

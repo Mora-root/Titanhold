@@ -7,6 +7,8 @@ namespace Titanhold.Run
         public RunFlowConfiguration(
             float maxThreat,
             int instabilityPointsPerLevel,
+            float enemyHealthBonusPerRound,
+            float enemyDamageBonusPerRound,
             float assaultHealthBonusPerLevel,
             float assaultDamageBonusPerLevel,
             int startingRound = 1)
@@ -20,6 +22,12 @@ namespace Titanhold.Run
             if (!IsFiniteNonNegative(assaultHealthBonusPerLevel))
                 throw new ArgumentOutOfRangeException(nameof(assaultHealthBonusPerLevel));
 
+            if (!IsFiniteNonNegative(enemyHealthBonusPerRound))
+                throw new ArgumentOutOfRangeException(nameof(enemyHealthBonusPerRound));
+
+            if (!IsFiniteNonNegative(enemyDamageBonusPerRound))
+                throw new ArgumentOutOfRangeException(nameof(enemyDamageBonusPerRound));
+
             if (!IsFiniteNonNegative(assaultDamageBonusPerLevel))
                 throw new ArgumentOutOfRangeException(nameof(assaultDamageBonusPerLevel));
 
@@ -28,6 +36,8 @@ namespace Titanhold.Run
 
             MaxThreat = maxThreat;
             InstabilityPointsPerLevel = instabilityPointsPerLevel;
+            EnemyHealthBonusPerRound = enemyHealthBonusPerRound;
+            EnemyDamageBonusPerRound = enemyDamageBonusPerRound;
             AssaultHealthBonusPerLevel = assaultHealthBonusPerLevel;
             AssaultDamageBonusPerLevel = assaultDamageBonusPerLevel;
             StartingRound = startingRound;
@@ -35,6 +45,8 @@ namespace Titanhold.Run
 
         public float MaxThreat { get; }
         public int InstabilityPointsPerLevel { get; }
+        public float EnemyHealthBonusPerRound { get; }
+        public float EnemyDamageBonusPerRound { get; }
         public float AssaultHealthBonusPerLevel { get; }
         public float AssaultDamageBonusPerLevel { get; }
         public int StartingRound { get; }
@@ -44,6 +56,8 @@ namespace Titanhold.Run
             return new RunFlowConfiguration(
                 maxThreat: 100f,
                 instabilityPointsPerLevel: 10,
+                enemyHealthBonusPerRound: 0.20f,
+                enemyDamageBonusPerRound: 0.10f,
                 assaultHealthBonusPerLevel: 0.10f,
                 assaultDamageBonusPerLevel: 0.05f);
         }
