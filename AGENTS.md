@@ -76,6 +76,8 @@ Code routes:
 - `Scripts/Combat/` — damage, attacks, combat identities, abilities.
 - `Scripts/Player/` — player components and runtime wrappers.
 - `Scripts/Inventory/`, `Equipment/`, `Loot/`, `Progression/` — named systems.
+- `Scripts/Session/` — cross-scene session state, character snapshots, and stable
+  item-definition resolution.
 - `Scripts/UI/` — views and interaction controllers.
 - `Scripts/Core/` — shared runtime utilities.
 - `Scripts/Threat/`, `Camp/`, `Towers/` — outside the current slice unless asked.
@@ -120,6 +122,10 @@ logic independent from UI, camera, physical input, and scene-only objects.
 Prefer practical composition over large managers or speculative abstractions.
 Avoid global mutable state, per-frame logs, per-enemy scene searches, and
 per-enemy physics scans as authoritative targeting.
+
+`ItemDefinitionCatalog` is the runtime resolver for persisted item ids. Treat an
+invalid catalog (null entries, empty ids, or duplicate ids) as wholly unusable;
+do not resolve a partially valid subset.
 
 For future multiplayer compatibility, use stable ids for static definitions,
 explicit runtime ids for entities, replaceable encounter participants/targets,
