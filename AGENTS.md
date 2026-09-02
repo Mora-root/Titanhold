@@ -99,6 +99,8 @@ Current run assets:
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
 - `ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset` — prototype boss encounter;
 - `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
+- `ScriptableObjects/Items/ItemDefinitionCatalog.asset` — runtime lookup for
+  persisted item-definition ids;
 - `Prefabs/Old/` — legacy only.
 
 Inspect Unity assets only when wiring or balance requires it and asset changes

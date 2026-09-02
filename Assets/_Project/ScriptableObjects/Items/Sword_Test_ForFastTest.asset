@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d972cac66a084f41be19cd97c5f725e, type: 3}
   m_Name: Sword_Test_ForFastTest
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
-  id: sword_test
+  id: sword_test_fast
   displayName: Sword Test
   shortName: Sword
   icon: {fileID: 21300000, guid: d86cd3739179afe4c87f0bd889e82c65, type: 3}

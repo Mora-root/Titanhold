@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97df9fd320c67aa4fb2033e721580762, type: 3}
+  m_Name: ItemDefinitionCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Session.ItemDefinitionCatalog
+  definitions:
+  - {fileID: 11400000, guid: 586b403631859be4f849b2dcb820926d, type: 2}
+  - {fileID: 11400000, guid: 7289840bddf42c54595372703a69dcad, type: 2}
+  - {fileID: 11400000, guid: 1160ad875b691a847a1217b2056abef9, type: 2}
+  - {fileID: 11400000, guid: dc130aab9707f254b875d34a13ee0a9a, type: 2}
+  - {fileID: 11400000, guid: 22a1cd90a7aa70c4595ca80efa86fa2f, type: 2}
+  - {fileID: 11400000, guid: 78ebb4f3bbaf28e46ae1089a8476db90, type: 2}
+  - {fileID: 11400000, guid: 999ba61c8528c88499aa917b5efeac73, type: 2}
