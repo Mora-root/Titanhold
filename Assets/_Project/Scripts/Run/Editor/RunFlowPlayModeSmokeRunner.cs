@@ -1,7 +1,9 @@
 using System;
 using Titanhold.Combat;
+using Titanhold.UI.Run;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Titanhold.Run.Editor
 {
@@ -62,6 +64,7 @@ namespace Titanhold.Run.Editor
             GameObject assaultEnemyTemplate = null;
             GameObject assaultSpawnPoint = null;
             GameObject spawnedAssaultEnemy = null;
+            GameObject completionSmokeRoot = null;
             AssaultWaveDefinition temporaryWaveDefinition = null;
 
             try
@@ -319,6 +322,8 @@ namespace Titanhold.Run.Editor
                            explorationPosition) <= 2f,
                     "Assault gateway did not restore the exploration position.");
 
+                completionSmokeRoot = ValidateRunCompletionUi();
+
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
             catch (Exception exception)
@@ -339,6 +344,9 @@ namespace Titanhold.Run.Editor
                 if (temporaryWaveDefinition != null)
                     UnityEngine.Object.Destroy(temporaryWaveDefinition);
 
+                if (completionSmokeRoot != null)
+                    UnityEngine.Object.Destroy(completionSmokeRoot);
+
                 SessionState.SetBool(SessionKey, false);
                 EditorApplication.isPlaying = false;
             }
@@ -348,6 +356,103 @@ namespace Titanhold.Run.Editor
         {
             if (!condition)
                 throw new InvalidOperationException(message);
+        }
+
+        private static GameObject ValidateRunCompletionUi()
+        {
+            GameObject root = new GameObject("RunCompletion_PlayModeSmoke");
+            root.SetActive(false);
+
+            RunFlowRuntime runtime = root.AddComponent<RunFlowRuntime>();
+            SerializedObject serializedRuntime = new SerializedObject(runtime);
+            serializedRuntime.FindProperty("startingRound").intValue = 4;
+            serializedRuntime.ApplyModifiedPropertiesWithoutUndo();
+
+            GameObject uiObject = new GameObject(
+                "RunCompletionUI",
+                typeof(RectTransform));
+            uiObject.transform.SetParent(root.transform, false);
+            RunCompletionView view = uiObject.AddComponent<RunCompletionView>();
+            RunCompletionController controller =
+                uiObject.AddComponent<RunCompletionController>();
+
+            GameObject victoryPanel = CreateSmokePanel(uiObject.transform, "VictoryPanel");
+            GameObject collapsedPanel = CreateSmokePanel(uiObject.transform, "CollapsedPanel");
+            GameObject confirmationPanel = CreateSmokePanel(uiObject.transform, "ConfirmationPanel");
+            GameObject completedPanel = CreateSmokePanel(uiObject.transform, "CompletedPanel");
+            Button continueButton = CreateSmokeButton(uiObject.transform, "Continue");
+            Button victoryCompleteButton = CreateSmokeButton(uiObject.transform, "VictoryComplete");
+            Button collapsedCompleteButton = CreateSmokeButton(uiObject.transform, "CollapsedComplete");
+            Button cancelButton = CreateSmokeButton(uiObject.transform, "Cancel");
+            Button confirmButton = CreateSmokeButton(uiObject.transform, "Confirm");
+
+            SerializedObject serializedView = new SerializedObject(view);
+            serializedView.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
+            serializedView.FindProperty("collapsedPanel").objectReferenceValue = collapsedPanel;
+            serializedView.FindProperty("confirmationPanel").objectReferenceValue = confirmationPanel;
+            serializedView.FindProperty("completedPanel").objectReferenceValue = completedPanel;
+            serializedView.FindProperty("continueCollectingButton").objectReferenceValue = continueButton;
+            serializedView.FindProperty("victoryCompleteButton").objectReferenceValue = victoryCompleteButton;
+            serializedView.FindProperty("collapsedCompleteButton").objectReferenceValue = collapsedCompleteButton;
+            serializedView.FindProperty("cancelCompletionButton").objectReferenceValue = cancelButton;
+            serializedView.FindProperty("confirmCompletionButton").objectReferenceValue = confirmButton;
+            serializedView.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedController = new SerializedObject(controller);
+            serializedController.FindProperty("runFlowRuntime").objectReferenceValue = runtime;
+            serializedController.FindProperty("view").objectReferenceValue = view;
+            serializedController.ApplyModifiedPropertiesWithoutUndo();
+
+            root.SetActive(true);
+            Assert(runtime.State.RoundNumber == 4 &&
+                   runtime.State.CurrentEncounterKind == RunEncounterKind.Boss,
+                "Run Completion smoke did not start on the boss round.");
+            Assert(view.Mode == RunCompletionViewMode.Hidden,
+                "Run Completion UI was visible before the final intermission.");
+
+            Assert(runtime.Service.TryRegisterExplorationKill(
+                    new ExplorationKillContribution(100f, 0)).Success,
+                "Run Completion smoke could not fill the boss-round meter.");
+            Assert(runtime.Service.TryBeginAssaultTransition().Success &&
+                   runtime.Service.TryStartAssault().Success &&
+                   runtime.Service.TryCompleteAssault().Success,
+                "Run Completion smoke could not enter the final intermission.");
+            Assert(view.Mode == RunCompletionViewMode.Victory,
+                "Run Completion UI did not show victory after the boss.");
+
+            continueButton.onClick.Invoke();
+            Assert(view.Mode == RunCompletionViewMode.Collapsed,
+                "Run Completion UI did not collapse for reward collection.");
+            collapsedCompleteButton.onClick.Invoke();
+            Assert(view.Mode == RunCompletionViewMode.Confirmation,
+                "Run Completion UI did not request confirmation.");
+            cancelButton.onClick.Invoke();
+            Assert(view.Mode == RunCompletionViewMode.Collapsed,
+                "Run Completion UI did not restore the collapsed state after cancellation.");
+            collapsedCompleteButton.onClick.Invoke();
+            confirmButton.onClick.Invoke();
+            Assert(runtime.State.Phase == RunPhase.Completed &&
+                   view.Mode == RunCompletionViewMode.Completed,
+                "Run Completion confirmation did not complete the run.");
+
+            return root;
+        }
+
+        private static GameObject CreateSmokePanel(Transform parent, string name)
+        {
+            GameObject panel = new GameObject(name);
+            panel.transform.SetParent(parent, false);
+            return panel;
+        }
+
+        private static Button CreateSmokeButton(Transform parent, string name)
+        {
+            GameObject buttonObject = new GameObject(
+                name,
+                typeof(RectTransform),
+                typeof(Button));
+            buttonObject.transform.SetParent(parent, false);
+            return buttonObject.GetComponent<Button>();
         }
     }
 }

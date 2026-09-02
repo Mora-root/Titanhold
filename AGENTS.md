@@ -29,7 +29,10 @@ Current assault rules:
   the saved exploration position;
 - `Skelet_Assault` is independent from exploration and legacy wave prefabs.
 - `Skelet_Boss_Prototype` is a temporary independent boss prefab; boss abilities,
-  telegraphs, and final completion UI are later stages.
+  and telegraphs are later stages;
+- boss victory opens a non-pausing completion UI. The player can collapse it to
+  collect remaining drops; completing the run requires confirmation and moves
+  the run to `Completed`. Camp transition is a later stage.
 
 Current round scaling:
 
@@ -78,6 +81,8 @@ Current run assets:
 - `Prefabs/Enemy/Skelet_Boss_Prototype.prefab` — temporary round-four boss;
 - `Prefabs/Run/AssaultRewardChest.prefab` — optional intermission reward chest;
 - `Prefabs/Run/AssaultReturnPortal.prefab` — intermission return portal;
+- `Prefabs/UI/RunCompletionUI.prefab` — final victory, confirmation, and
+  completed-state UI;
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
 - `ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset` — prototype boss encounter;
 - `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
@@ -136,7 +141,8 @@ or enemy runtime combat values change. Use Player Skill Command Buffer validatio
 when player action sequencing changes. Use Assault Reward and Assault Reward
 Vertical Slice Wiring validation when encounter rewards change. Use Boss
 Encounter Wiring validation when the final-round prefab, definition, or scene
-reference changes.
+reference changes. Use Run Completion UI Wiring validation and the Run Flow Play
+Mode smoke test when final-intermission UI or completion commands change.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,
