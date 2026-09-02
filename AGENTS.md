@@ -127,6 +127,11 @@ per-enemy physics scans as authoritative targeting.
 invalid catalog (null entries, empty ids, or duplicate ids) as wholly unusable;
 do not resolve a partially valid subset.
 
+`GameSessionRuntime` owns the cross-scene session service and character
+snapshots. `GameSessionRuntimeHost` is its persistent Unity adapter; keep it on
+a dedicated root object and discover it once at scene entry instead of exposing
+gameplay state through a global singleton.
+
 For future multiplayer compatibility, use stable ids for static definitions,
 explicit runtime ids for entities, replaceable encounter participants/targets,
 services or commands for meaningful actions, and serializable runtime state only

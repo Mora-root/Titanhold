@@ -4,6 +4,7 @@ namespace Titanhold.Session
     {
         None,
         MissingCharacterId,
+        SnapshotNotFound,
         MissingRuntimeSource,
         MissingDefinitionResolver,
         UnsupportedSchemaVersion,
