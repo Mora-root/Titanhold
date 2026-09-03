@@ -39,6 +39,11 @@ namespace Titanhold.Session.Editor
             {
                 RequireEditMode("build");
                 RequireCleanOpenScene();
+                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(HubScenePath) != null)
+                {
+                    throw new InvalidOperationException(
+                        "Hub scene already exists. Use targeted wiring commands instead of rebuilding it.");
+                }
 
                 ItemDefinitionCatalog catalog =
                     AssetDatabase.LoadAssetAtPath<ItemDefinitionCatalog>(
@@ -52,9 +57,9 @@ namespace Titanhold.Session.Editor
                 Scene scene = EditorSceneManager.NewScene(
                     NewSceneSetup.EmptyScene,
                     NewSceneMode.Single);
-                CreateSessionRoot(catalog);
+                GameSessionRuntimeHost sessionHost = CreateSessionRoot(catalog);
                 CreateHubCamera();
-                CreateHubUi();
+                CreateHubUi(sessionHost);
                 CreateEventSystem();
 
                 if (!EditorSceneManager.SaveScene(scene, HubScenePath))
@@ -69,6 +74,57 @@ namespace Titanhold.Session.Editor
             catch (Exception exception)
             {
                 Debug.LogError($"Run Preparation Hub scene build failed: {exception}");
+            }
+        }
+
+        [MenuItem("Tools/Titanhold/Install Run Preparation Hub Launch Wiring")]
+        public static void InstallLaunchWiring()
+        {
+            try
+            {
+                RequireEditMode("launch wiring installation");
+                RequireCleanOpenScene();
+                Scene scene = EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+
+                GameSessionRuntimeHost host =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        GameSessionRuntimeHost>(FindObjectsInactive.Include);
+                HubRunPreparationView view =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        HubRunPreparationView>(FindObjectsInactive.Include);
+                if (host == null || view == null)
+                {
+                    throw new InvalidOperationException(
+                        "Hub session host or run preparation view is missing.");
+                }
+
+                HubRunLaunchController controller =
+                    view.GetComponent<HubRunLaunchController>();
+                if (controller == null)
+                    controller = view.gameObject.AddComponent<
+                        HubRunLaunchController>();
+
+                controller.ConfigureForEditor(
+                    view,
+                    host,
+                    "player:local",
+                    "character:warrior",
+                    "difficulty:prototype",
+                    "SampleScene");
+                EditorUtility.SetDirty(controller);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene))
+                    throw new InvalidOperationException("Could not save Hub scene.");
+
+                ValidateInternal();
+                Debug.Log("Run Preparation Hub launch wiring installed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    $"Run Preparation Hub launch wiring installation failed: {exception}");
             }
         }
 
@@ -88,7 +144,8 @@ namespace Titanhold.Session.Editor
             }
         }
 
-        private static void CreateSessionRoot(ItemDefinitionCatalog catalog)
+        private static GameSessionRuntimeHost CreateSessionRoot(
+            ItemDefinitionCatalog catalog)
         {
             GameObject root = new("GameSessionRoot");
             GameSessionRuntimeHost host =
@@ -96,9 +153,10 @@ namespace Titanhold.Session.Editor
             host.ConfigureForEditor(catalog);
             EditorUtility.SetDirty(host);
             EditorSceneManager.MarkSceneDirty(root.scene);
+            return host;
         }
 
-        private static void CreateHubUi()
+        private static void CreateHubUi(GameSessionRuntimeHost sessionHost)
         {
             GameObject canvasObject = new(
                 "HubCanvas",
@@ -162,6 +220,8 @@ namespace Titanhold.Session.Editor
             panel.AddComponent<Image>().color = PanelColor;
             HubRunPreparationView view =
                 panel.AddComponent<HubRunPreparationView>();
+            HubRunLaunchController launchController =
+                panel.AddComponent<HubRunLaunchController>();
 
             CreateText(
                 panel.transform,
@@ -275,6 +335,15 @@ namespace Titanhold.Session.Editor
             serializedView.FindProperty("startRunButton").objectReferenceValue =
                 startButton;
             serializedView.ApplyModifiedPropertiesWithoutUndo();
+
+            launchController.ConfigureForEditor(
+                view,
+                sessionHost,
+                "player:local",
+                "character:warrior",
+                "difficulty:prototype",
+                "SampleScene");
+            EditorUtility.SetDirty(launchController);
         }
 
         private static void CreateHubCamera()
@@ -497,6 +566,9 @@ namespace Titanhold.Session.Editor
             HubRunPreparationView view =
                 UnityEngine.Object.FindAnyObjectByType<HubRunPreparationView>(
                     FindObjectsInactive.Include);
+            HubRunLaunchController launchController =
+                UnityEngine.Object.FindAnyObjectByType<HubRunLaunchController>(
+                    FindObjectsInactive.Include);
             EventSystem eventSystem =
                 UnityEngine.Object.FindAnyObjectByType<EventSystem>(
                     FindObjectsInactive.Include);
@@ -505,11 +577,24 @@ namespace Titanhold.Session.Editor
                 camera.clearFlags != CameraClearFlags.SolidColor ||
                 camera.cullingMask != 0 ||
                 camera.GetComponent<AudioListener>() == null ||
-                canvas == null || view == null || eventSystem == null ||
+                canvas == null || view == null || launchController == null ||
+                eventSystem == null ||
                 eventSystem.GetComponent<InputSystemUIInputModule>() == null)
             {
                 throw new InvalidOperationException(
                     "Hub camera, Canvas, view, or Input System EventSystem is missing.");
+            }
+
+            if (!launchController.HasRequiredReferences ||
+                launchController.View != view ||
+                launchController.SessionHost != host ||
+                launchController.PlayerId != "player:local" ||
+                launchController.CharacterId != "character:warrior" ||
+                launchController.DifficultyId != "difficulty:prototype" ||
+                launchController.RunSceneName != "SampleScene")
+            {
+                throw new InvalidOperationException(
+                    "Hub run launch controller wiring is invalid.");
             }
 
             SerializedObject serializedView = new(view);

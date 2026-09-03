@@ -2122,6 +2122,7 @@ GameObject:
   - component: {fileID: 1251277971}
   - component: {fileID: 1251277970}
   - component: {fileID: 1251277969}
+  - component: {fileID: 1251277972}
   m_Layer: 5
   m_Name: PreparationPanel
   m_TagString: Untagged
@@ -2208,6 +2209,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1251277967}
   m_CullTransparentMesh: 1
+--- !u!114 &1251277972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1251277967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5755a854a7210304e99b6510f58bf92c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Hub.HubRunLaunchController
+  view: {fileID: 1251277969}
+  sessionHost: {fileID: 2101906912}
+  playerId: player:local
+  characterId: character:warrior
+  difficultyId: difficulty:prototype
+  runSceneName: SampleScene
 --- !u!1 &1286382093
 GameObject:
   m_ObjectHideFlags: 0

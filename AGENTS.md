@@ -55,8 +55,10 @@ it may later grow into a physical 3D camp without changing the underlying
 commands. `GameSessionService` is the scene-independent outer lifecycle around
 the inner `RunFlowService`. `CharacterSnapshotService` captures and atomically
 restores inventory slots, equipment instances/modifiers, level, experience, and
-gold by stable item-definition ids. An item-definition catalog, persistent
-session owner, and actual scene loading are not connected yet.
+gold by stable item-definition ids. The item-definition catalog and persistent
+session owner are connected in `HubScene`; Hub-to-run scene loading and
+participant restoration are wired. Run-result handoff and return to the Hub are
+later stages.
 
 ## Search and Project Map
 
@@ -133,7 +135,10 @@ do not resolve a partially valid subset.
 `GameSessionRuntime` owns the cross-scene session service and character
 snapshots. `GameSessionRuntimeHost` is its persistent Unity adapter; keep it on
 a dedicated root object and discover it once at scene entry instead of exposing
-gameplay state through a global singleton.
+gameplay state through a global singleton. The Hub launch controller creates the
+outer run command before loading `SampleScene`; its scene entry point restores
+an existing character snapshot or captures scene defaults on the first launch,
+then activates the session run. Direct `SampleScene` Play Mode remains valid.
 
 For future multiplayer compatibility, use stable ids for static definitions,
 explicit runtime ids for entities, replaceable encounter participants/targets,
