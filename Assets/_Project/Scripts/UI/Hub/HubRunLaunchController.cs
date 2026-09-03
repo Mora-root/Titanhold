@@ -63,12 +63,17 @@ namespace Titanhold.UI.Hub
                 view.StartRequested -= HandleStartRequested;
         }
 
+        private void Start()
+        {
+            TryResolveSessionHost();
+        }
+
         private void HandleStartRequested()
         {
             if (launchInProgress)
                 return;
 
-            if (!HasRequiredReferences || !sessionHost.IsInitialized)
+            if (view == null || !TryResolveSessionHost())
             {
                 view?.SetStatus("SESSION IS NOT READY");
                 Debug.LogError(
@@ -137,6 +142,26 @@ namespace Titanhold.UI.Hub
         {
             byte[] bytes = Guid.NewGuid().ToByteArray();
             return BitConverter.ToInt32(bytes, 0);
+        }
+
+        private bool TryResolveSessionHost()
+        {
+            if (sessionHost != null && sessionHost.IsInitialized)
+                return true;
+
+            GameSessionRuntimeHost[] hosts =
+                FindObjectsByType<GameSessionRuntimeHost>(
+                    FindObjectsInactive.Include);
+            for (int i = 0; i < hosts.Length; i++)
+            {
+                if (hosts[i] == null || !hosts[i].IsInitialized)
+                    continue;
+
+                sessionHost = hosts[i];
+                return true;
+            }
+
+            return false;
         }
     }
 }

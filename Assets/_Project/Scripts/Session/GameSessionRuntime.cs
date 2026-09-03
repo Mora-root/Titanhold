@@ -93,5 +93,53 @@ namespace Titanhold.Session
                 experience,
                 gold);
         }
+
+        internal bool TryStoreCharacterSnapshots(
+            IReadOnlyList<CharacterSnapshot> snapshots,
+            out string error)
+        {
+            error = string.Empty;
+            if (snapshots == null || snapshots.Count == 0)
+            {
+                error = "No character snapshots were supplied.";
+                return false;
+            }
+
+            HashSet<string> characterIds = new(StringComparer.Ordinal);
+            for (int i = 0; i < snapshots.Count; i++)
+            {
+                CharacterSnapshot snapshot = snapshots[i];
+                if (snapshot == null ||
+                    string.IsNullOrWhiteSpace(snapshot.CharacterId) ||
+                    snapshot.SchemaVersion != CharacterSnapshot.CurrentSchemaVersion)
+                {
+                    error = $"Character snapshot {i} is invalid.";
+                    return false;
+                }
+
+                if (!characterIds.Add(snapshot.CharacterId))
+                {
+                    error =
+                        $"Character '{snapshot.CharacterId}' occurs more than once.";
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < snapshots.Count; i++)
+            {
+                CharacterSnapshot snapshot = snapshots[i];
+                characterSnapshots[snapshot.CharacterId] = snapshot;
+            }
+
+            for (int i = 0; i < snapshots.Count; i++)
+            {
+                CharacterSnapshot snapshot = snapshots[i];
+                CharacterSnapshotChanged?.Invoke(
+                    snapshot.CharacterId,
+                    snapshot);
+            }
+
+            return true;
+        }
     }
 }

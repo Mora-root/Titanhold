@@ -385,6 +385,7 @@ namespace Titanhold.Run.Editor
             Button collapsedCompleteButton = CreateSmokeButton(uiObject.transform, "CollapsedComplete");
             Button cancelButton = CreateSmokeButton(uiObject.transform, "Cancel");
             Button confirmButton = CreateSmokeButton(uiObject.transform, "Confirm");
+            Button returnToHubButton = CreateSmokeButton(uiObject.transform, "ReturnToHub");
 
             SerializedObject serializedView = new SerializedObject(view);
             serializedView.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
@@ -396,6 +397,7 @@ namespace Titanhold.Run.Editor
             serializedView.FindProperty("collapsedCompleteButton").objectReferenceValue = collapsedCompleteButton;
             serializedView.FindProperty("cancelCompletionButton").objectReferenceValue = cancelButton;
             serializedView.FindProperty("confirmCompletionButton").objectReferenceValue = confirmButton;
+            serializedView.FindProperty("returnToHubButton").objectReferenceValue = returnToHubButton;
             serializedView.ApplyModifiedPropertiesWithoutUndo();
 
             SerializedObject serializedController = new SerializedObject(controller);
@@ -434,6 +436,12 @@ namespace Titanhold.Run.Editor
             Assert(runtime.State.Phase == RunPhase.Completed &&
                    view.Mode == RunCompletionViewMode.Completed,
                 "Run Completion confirmation did not complete the run.");
+
+            int returnRequestCount = 0;
+            view.ReturnToHubRequested += () => returnRequestCount++;
+            returnToHubButton.onClick.Invoke();
+            Assert(returnRequestCount == 1,
+                "Completed Run UI did not emit the Hub return request.");
 
             return root;
         }

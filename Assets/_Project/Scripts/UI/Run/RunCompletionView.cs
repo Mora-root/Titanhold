@@ -25,11 +25,13 @@ namespace Titanhold.UI.Run
         [SerializeField] private Button collapsedCompleteButton;
         [SerializeField] private Button cancelCompletionButton;
         [SerializeField] private Button confirmCompletionButton;
+        [SerializeField] private Button returnToHubButton;
 
         public event Action CollapseRequested;
         public event Action CompletionRequested;
         public event Action CompletionCancelled;
         public event Action CompletionConfirmed;
+        public event Action ReturnToHubRequested;
 
         public RunCompletionViewMode Mode { get; private set; }
         public bool IsVisible => Mode != RunCompletionViewMode.Hidden;
@@ -58,6 +60,12 @@ namespace Titanhold.UI.Run
             SetActive(completedPanel, mode == RunCompletionViewMode.Completed);
         }
 
+        public void SetReturnToHubInteractable(bool interactable)
+        {
+            if (returnToHubButton != null)
+                returnToHubButton.interactable = interactable;
+        }
+
         private void AddButtonListeners()
         {
             continueCollectingButton?.onClick.AddListener(HandleCollapseRequested);
@@ -65,6 +73,7 @@ namespace Titanhold.UI.Run
             collapsedCompleteButton?.onClick.AddListener(HandleCompletionRequested);
             cancelCompletionButton?.onClick.AddListener(HandleCompletionCancelled);
             confirmCompletionButton?.onClick.AddListener(HandleCompletionConfirmed);
+            returnToHubButton?.onClick.AddListener(HandleReturnToHubRequested);
         }
 
         private void RemoveButtonListeners()
@@ -74,6 +83,7 @@ namespace Titanhold.UI.Run
             collapsedCompleteButton?.onClick.RemoveListener(HandleCompletionRequested);
             cancelCompletionButton?.onClick.RemoveListener(HandleCompletionCancelled);
             confirmCompletionButton?.onClick.RemoveListener(HandleCompletionConfirmed);
+            returnToHubButton?.onClick.RemoveListener(HandleReturnToHubRequested);
         }
 
         private void HandleCollapseRequested()
@@ -94,6 +104,11 @@ namespace Titanhold.UI.Run
         private void HandleCompletionConfirmed()
         {
             CompletionConfirmed?.Invoke();
+        }
+
+        private void HandleReturnToHubRequested()
+        {
+            ReturnToHubRequested?.Invoke();
         }
 
         private static void SetActive(GameObject target, bool active)

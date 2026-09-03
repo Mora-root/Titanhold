@@ -160,7 +160,7 @@ namespace Titanhold.Run.Editor
                 GameObject completedPanel = CreateModalPanel(
                     root.transform,
                     "CompletedPanel",
-                    new Vector2(570f, 240f));
+                    new Vector2(570f, 300f));
                 Transform completedCard = completedPanel.transform.Find("Card");
                 CreateText(
                     completedCard,
@@ -168,7 +168,7 @@ namespace Titanhold.Run.Editor
                     "ЗАБЕГ ЗАВЕРШЁН",
                     34f,
                     FontStyles.Bold,
-                    new Vector2(0f, 48f),
+                    new Vector2(0f, 70f),
                     new Vector2(490f, 58f));
                 CreateText(
                     completedCard,
@@ -176,8 +176,15 @@ namespace Titanhold.Run.Editor
                     "Финальный босс повержен. Забег успешно завершён.",
                     21f,
                     FontStyles.Normal,
-                    new Vector2(0f, -28f),
+                    new Vector2(0f, -5f),
                     new Vector2(480f, 70f));
+                Button returnToHubButton = CreateButton(
+                    completedCard,
+                    "ReturnToHubButton",
+                    "Вернуться в Hub",
+                    PrimaryColor,
+                    new Vector2(0f, -95f),
+                    new Vector2(250f, 58f));
 
                 ConfigureView(
                     view,
@@ -189,7 +196,8 @@ namespace Titanhold.Run.Editor
                     victoryCompleteButton,
                     collapsedCompleteButton,
                     cancelButton,
-                    confirmButton);
+                    confirmButton,
+                    returnToHubButton);
                 SerializedObject serializedController = new(controller);
                 serializedController.FindProperty("view").objectReferenceValue = view;
                 serializedController.ApplyModifiedPropertiesWithoutUndo();
@@ -314,7 +322,8 @@ namespace Titanhold.Run.Editor
                 "victoryCompleteButton",
                 "collapsedCompleteButton",
                 "cancelCompletionButton",
-                "confirmCompletionButton"
+                "confirmCompletionButton",
+                "returnToHubButton"
             };
             for (int i = 0; i < viewReferences.Length; i++)
             {
@@ -346,7 +355,8 @@ namespace Titanhold.Run.Editor
             Button victoryCompleteButton,
             Button collapsedCompleteButton,
             Button cancelButton,
-            Button confirmButton)
+            Button confirmButton,
+            Button returnToHubButton)
         {
             SerializedObject serializedView = new(view);
             serializedView.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
@@ -358,6 +368,7 @@ namespace Titanhold.Run.Editor
             serializedView.FindProperty("collapsedCompleteButton").objectReferenceValue = collapsedCompleteButton;
             serializedView.FindProperty("cancelCompletionButton").objectReferenceValue = cancelButton;
             serializedView.FindProperty("confirmCompletionButton").objectReferenceValue = confirmButton;
+            serializedView.FindProperty("returnToHubButton").objectReferenceValue = returnToHubButton;
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
 

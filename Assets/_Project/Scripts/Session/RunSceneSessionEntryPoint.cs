@@ -49,8 +49,9 @@ namespace Titanhold.Session
                 return;
             }
 
-            if (!TryResolveBindings(
+            if (!RunSceneParticipantBindingResolver.TryResolve(
                     descriptor,
+                    Participants,
                     out RunSceneParticipantBinding[] resolved,
                     out string resolutionError))
             {
@@ -112,70 +113,6 @@ namespace Titanhold.Session
                     descriptor,
                     $"Could not activate run: {activation.Error}.");
             }
-        }
-
-        private bool TryResolveBindings(
-            RunSessionDescriptor descriptor,
-            out RunSceneParticipantBinding[] resolved,
-            out string error)
-        {
-            resolved = null;
-            error = string.Empty;
-            if (participants == null || participants.Length == 0)
-            {
-                error = "Run scene has no participant bindings.";
-                return false;
-            }
-
-            HashSet<RunSceneParticipantBinding> used = new();
-            resolved = new RunSceneParticipantBinding[
-                descriptor.Participants.Count];
-            for (int participantIndex = 0;
-                 participantIndex < descriptor.Participants.Count;
-                 participantIndex++)
-            {
-                RunParticipantSelection participant =
-                    descriptor.Participants[participantIndex];
-                RunSceneParticipantBinding match = null;
-                for (int bindingIndex = 0;
-                     bindingIndex < participants.Length;
-                     bindingIndex++)
-                {
-                    RunSceneParticipantBinding candidate =
-                        participants[bindingIndex];
-                    if (candidate == null || !candidate.IsValid ||
-                        !candidate.Matches(participant))
-                    {
-                        continue;
-                    }
-
-                    if (match != null)
-                    {
-                        error =
-                            $"Participant '{participant.PlayerId}' has duplicate scene bindings.";
-                        return false;
-                    }
-
-                    match = candidate;
-                }
-
-                if (match == null)
-                {
-                    error =
-                        $"Participant '{participant.PlayerId}' has no valid scene binding.";
-                    return false;
-                }
-
-                if (!used.Add(match))
-                {
-                    error = "One scene binding was assigned to multiple participants.";
-                    return false;
-                }
-
-                resolved[participantIndex] = match;
-            }
-
-            return true;
         }
 
         private void RejectEntry(

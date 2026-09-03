@@ -7,10 +7,12 @@ namespace Titanhold.Session.Editor
 {
     public static class ItemDefinitionCatalogAssetUtility
     {
-        public const string ItemDefinitionsFolder =
+        public const string ItemDefinitionsRoot =
+            "Assets/_Project/ScriptableObjects";
+        public const string CatalogFolder =
             "Assets/_Project/ScriptableObjects/Items";
         public const string CatalogAssetPath =
-            ItemDefinitionsFolder + "/ItemDefinitionCatalog.asset";
+            CatalogFolder + "/ItemDefinitionCatalog.asset";
 
         [MenuItem("Tools/Titanhold/Build Runtime Item Definition Catalog")]
         public static void BuildCatalog()
@@ -114,7 +116,7 @@ namespace Titanhold.Session.Editor
         {
             string[] guids = AssetDatabase.FindAssets(
                 "t:ItemDefinition",
-                new[] { ItemDefinitionsFolder });
+                new[] { ItemDefinitionsRoot });
             List<ItemDefinition> definitions = new(guids.Length);
             for (int i = 0; i < guids.Length; i++)
             {

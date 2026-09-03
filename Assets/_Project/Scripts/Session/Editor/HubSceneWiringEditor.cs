@@ -59,7 +59,8 @@ namespace Titanhold.Session.Editor
                     NewSceneMode.Single);
                 GameSessionRuntimeHost sessionHost = CreateSessionRoot(catalog);
                 CreateHubCamera();
-                CreateHubUi(sessionHost);
+                HubRunPreparationView view = CreateHubUi(sessionHost);
+                CreateHubSessionEntryPoint(view);
                 CreateEventSystem();
 
                 if (!EditorSceneManager.SaveScene(scene, HubScenePath))
@@ -156,7 +157,8 @@ namespace Titanhold.Session.Editor
             return host;
         }
 
-        private static void CreateHubUi(GameSessionRuntimeHost sessionHost)
+        private static HubRunPreparationView CreateHubUi(
+            GameSessionRuntimeHost sessionHost)
         {
             GameObject canvasObject = new(
                 "HubCanvas",
@@ -344,6 +346,18 @@ namespace Titanhold.Session.Editor
                 "difficulty:prototype",
                 "SampleScene");
             EditorUtility.SetDirty(launchController);
+            return view;
+        }
+
+        private static void CreateHubSessionEntryPoint(
+            HubRunPreparationView view)
+        {
+            GameObject entryObject = new("HubSessionEntryPoint");
+            HubSceneSessionEntryPoint entry =
+                entryObject.AddComponent<HubSceneSessionEntryPoint>();
+            entry.ConfigureForEditor(view);
+            EditorUtility.SetDirty(entry);
+            EditorSceneManager.MarkSceneDirty(entryObject.scene);
         }
 
         private static void CreateHubCamera()
@@ -569,6 +583,9 @@ namespace Titanhold.Session.Editor
             HubRunLaunchController launchController =
                 UnityEngine.Object.FindAnyObjectByType<HubRunLaunchController>(
                     FindObjectsInactive.Include);
+            HubSceneSessionEntryPoint sessionEntryPoint =
+                UnityEngine.Object.FindAnyObjectByType<HubSceneSessionEntryPoint>(
+                    FindObjectsInactive.Include);
             EventSystem eventSystem =
                 UnityEngine.Object.FindAnyObjectByType<EventSystem>(
                     FindObjectsInactive.Include);
@@ -578,11 +595,19 @@ namespace Titanhold.Session.Editor
                 camera.cullingMask != 0 ||
                 camera.GetComponent<AudioListener>() == null ||
                 canvas == null || view == null || launchController == null ||
+                sessionEntryPoint == null ||
                 eventSystem == null ||
                 eventSystem.GetComponent<InputSystemUIInputModule>() == null)
             {
                 throw new InvalidOperationException(
                     "Hub camera, Canvas, view, or Input System EventSystem is missing.");
+            }
+
+            if (sessionEntryPoint.transform.parent != null ||
+                sessionEntryPoint.View != view)
+            {
+                throw new InvalidOperationException(
+                    "Hub session entry point wiring is invalid.");
             }
 
             if (!launchController.HasRequiredReferences ||

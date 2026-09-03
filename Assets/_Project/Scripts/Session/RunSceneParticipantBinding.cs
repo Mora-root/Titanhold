@@ -41,7 +41,10 @@ namespace Titanhold.Session
             inventory != null &&
             equipment != null &&
             experience != null &&
-            gold != null;
+            gold != null &&
+            equipment.gameObject == inventory.gameObject &&
+            experience.gameObject == inventory.gameObject &&
+            gold.gameObject == inventory.gameObject;
 
         public bool Matches(RunParticipantSelection participant)
         {

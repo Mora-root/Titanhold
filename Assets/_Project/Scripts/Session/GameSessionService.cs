@@ -119,6 +119,25 @@ namespace Titanhold.Session
                 runSessionId);
         }
 
+        public GameSessionCommandResult TryCancelHubTransition(
+            string runSessionId)
+        {
+            if (State.Phase != GameSessionPhase.TransitionToHub)
+                return Fail(GameSessionError.InvalidPhase, runSessionId);
+
+            GameSessionError idError = ValidateActiveRunId(runSessionId);
+            if (idError != GameSessionError.None)
+                return Fail(idError, runSessionId);
+
+            GameSessionPhase previousPhase = State.Phase;
+            State.CancelHubTransition();
+            NotifyStateChanged();
+            return GameSessionCommandResult.Succeeded(
+                previousPhase,
+                State.Phase,
+                runSessionId);
+        }
+
         private GameSessionError ValidateLaunch(RunLaunchCommand command)
         {
             if (command == null || string.IsNullOrWhiteSpace(command.DifficultyId))

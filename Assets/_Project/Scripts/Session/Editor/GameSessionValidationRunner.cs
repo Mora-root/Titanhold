@@ -57,6 +57,18 @@ namespace Titanhold.Session.Editor
                    ReferenceEquals(service.State.LastRunResult, result),
                 "Valid run result did not begin the Hub transition.");
 
+            GameSessionCommandResult cancelHubTransition =
+                service.TryCancelHubTransition(runId);
+            Assert(cancelHubTransition.Success &&
+                   service.State.Phase == GameSessionPhase.Run &&
+                   service.State.ActiveRun != null,
+                "Failed Hub loading could not restore the active run phase.");
+
+            conclude = service.TryConcludeRun(result);
+            Assert(conclude.Success &&
+                   service.State.Phase == GameSessionPhase.TransitionToHub,
+                "Run could not retry its Hub transition.");
+
             GameSessionCommandResult enterHub = service.TryEnterHub(runId);
             Assert(enterHub.Success &&
                    service.State.Phase == GameSessionPhase.Hub &&
@@ -65,7 +77,7 @@ namespace Titanhold.Session.Editor
                    service.State.LastRun.RunSessionId == runId &&
                    service.State.LastRun.DifficultyId == "difficulty:prototype" &&
                    ReferenceEquals(service.State.LastRunResult, result) &&
-                   stateChangeCount == 4,
+                   stateChangeCount == 6,
                 "Hub entry did not close the active run cleanly.");
         }
 

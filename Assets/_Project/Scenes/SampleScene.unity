@@ -7205,6 +7205,7 @@ GameObject:
   m_Component:
   - component: {fileID: 407419261}
   - component: {fileID: 407419260}
+  - component: {fileID: 407419262}
   m_Layer: 0
   m_Name: RunSessionEntryPoint
   m_TagString: Untagged
@@ -7246,6 +7247,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &407419262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 407419259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13997cf32b451234384a130c6173a7e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Session.RunSessionExitController
+  runFlowRuntime: {fileID: 1489734142}
+  completionView: {fileID: 735195833}
+  sessionEntryPoint: {fileID: 407419260}
+  hubSceneName: HubScene
 --- !u!1 &407768161
 GameObject:
   m_ObjectHideFlags: 0
@@ -11641,6 +11658,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5443103175419126631, guid: dbfd043b4b4f01c4c91e61380fbc85ba, type: 3}
   m_PrefabInstance: {fileID: 735195831}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &735195833 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8933339855924513364, guid: dbfd043b4b4f01c4c91e61380fbc85ba, type: 3}
+  m_PrefabInstance: {fileID: 735195831}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4daf87ce575d71843aeb6475261197d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Run.RunCompletionView
 --- !u!1 &735744716
 GameObject:
   m_ObjectHideFlags: 0

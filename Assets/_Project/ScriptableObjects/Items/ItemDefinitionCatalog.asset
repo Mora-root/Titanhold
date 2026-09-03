@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: ItemDefinitionCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Session.ItemDefinitionCatalog
   definitions:
+  - {fileID: 11400000, guid: 67c73ffa4d1b5994e8030c1cf117527f, type: 2}
+  - {fileID: 11400000, guid: 5e88c6e9c548f644d80792b3e416148e, type: 2}
   - {fileID: 11400000, guid: 586b403631859be4f849b2dcb820926d, type: 2}
   - {fileID: 11400000, guid: 7289840bddf42c54595372703a69dcad, type: 2}
   - {fileID: 11400000, guid: 1160ad875b691a847a1217b2056abef9, type: 2}

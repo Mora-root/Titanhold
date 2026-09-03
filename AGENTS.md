@@ -32,7 +32,9 @@ Current assault rules:
   and telegraphs are later stages;
 - boss victory opens a non-pausing completion UI. The player can collapse it to
   collect remaining drops; completing the run requires confirmation and moves
-  the run to `Completed`. Camp transition is a later stage.
+  the run to `Completed`. A separate return command then captures every session
+  participant, records the victory result, and loads the Hub. It must remain
+  retryable if Hub loading cannot begin.
 
 Current round scaling:
 
@@ -57,8 +59,9 @@ the inner `RunFlowService`. `CharacterSnapshotService` captures and atomically
 restores inventory slots, equipment instances/modifiers, level, experience, and
 gold by stable item-definition ids. The item-definition catalog and persistent
 session owner are connected in `HubScene`; Hub-to-run scene loading and
-participant restoration are wired. Run-result handoff and return to the Hub are
-later stages.
+participant restoration are wired. A completed victory returns through the
+session layer to the Hub, where the last result is shown and another run can be
+started. Defeat and abandoned-run exits are later stages.
 
 ## Search and Project Map
 
@@ -130,7 +133,9 @@ per-enemy physics scans as authoritative targeting.
 
 `ItemDefinitionCatalog` is the runtime resolver for persisted item ids. Treat an
 invalid catalog (null entries, empty ids, or duplicate ids) as wholly unusable;
-do not resolve a partially valid subset.
+do not resolve a partially valid subset. Its build utility must include every
+project-owned `ItemDefinition` under `Assets/_Project/ScriptableObjects`,
+including definitions used only by loot tables outside the `Items` folder.
 
 `GameSessionRuntime` owns the cross-scene session service and character
 snapshots. `GameSessionRuntimeHost` is its persistent Unity adapter; keep it on

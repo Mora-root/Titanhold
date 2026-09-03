@@ -128,6 +128,11 @@ namespace Titanhold.Session
             Phase = GameSessionPhase.TransitionToHub;
         }
 
+        internal void CancelHubTransition()
+        {
+            Phase = GameSessionPhase.Run;
+        }
+
         internal void EnterHub()
         {
             ActiveRun = null;
