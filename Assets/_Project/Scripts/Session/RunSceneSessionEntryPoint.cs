@@ -25,6 +25,7 @@ namespace Titanhold.Session
         private void Start()
         {
             TryActivateSessionRun();
+            RestoreParticipantVitals();
         }
 
         private void TryActivateSessionRun()
@@ -129,6 +130,23 @@ namespace Titanhold.Session
                 Debug.LogError(
                     $"Could not cancel rejected run entry: {cancel.Error}.",
                     this);
+            }
+        }
+
+        private void RestoreParticipantVitals()
+        {
+            if (participants == null)
+                return;
+
+            for (int i = 0; i < participants.Length; i++)
+            {
+                PlayerInventory inventory = participants[i]?.Inventory;
+                if (inventory == null)
+                    continue;
+
+                GameObject participant = inventory.gameObject;
+                participant.GetComponent<Health>()?.RestoreFull();
+                participant.GetComponent<PlayerResource>()?.RestoreFull();
             }
         }
     }

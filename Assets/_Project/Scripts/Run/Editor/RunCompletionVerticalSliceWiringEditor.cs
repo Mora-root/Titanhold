@@ -186,18 +186,49 @@ namespace Titanhold.Run.Editor
                     new Vector2(0f, -95f),
                     new Vector2(250f, 58f));
 
+                GameObject defeatPanel = CreateModalPanel(
+                    root.transform,
+                    "DefeatPanel",
+                    new Vector2(570f, 300f));
+                Transform defeatCard = defeatPanel.transform.Find("Card");
+                CreateText(
+                    defeatCard,
+                    "Title",
+                    "ПОРАЖЕНИЕ",
+                    34f,
+                    FontStyles.Bold,
+                    new Vector2(0f, 70f),
+                    new Vector2(490f, 58f));
+                CreateText(
+                    defeatCard,
+                    "Description",
+                    "Награда рассчитана по полностью завершённым раундам.",
+                    21f,
+                    FontStyles.Normal,
+                    new Vector2(0f, -5f),
+                    new Vector2(480f, 70f));
+                Button defeatReturnToHubButton = CreateButton(
+                    defeatCard,
+                    "ReturnToHubButton",
+                    "Вернуться в Hub",
+                    PrimaryColor,
+                    new Vector2(0f, -95f),
+                    new Vector2(250f, 58f));
+
                 ConfigureView(
                     view,
                     victoryPanel,
                     collapsedPanel,
                     confirmationPanel,
                     completedPanel,
+                    defeatPanel,
                     continueButton,
                     victoryCompleteButton,
                     collapsedCompleteButton,
                     cancelButton,
                     confirmButton,
-                    returnToHubButton);
+                    returnToHubButton,
+                    defeatReturnToHubButton);
                 SerializedObject serializedController = new(controller);
                 serializedController.FindProperty("view").objectReferenceValue = view;
                 serializedController.ApplyModifiedPropertiesWithoutUndo();
@@ -206,6 +237,7 @@ namespace Titanhold.Run.Editor
                 collapsedPanel.SetActive(false);
                 confirmationPanel.SetActive(false);
                 completedPanel.SetActive(false);
+                defeatPanel.SetActive(false);
 
                 GameObject saved = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 if (saved == null)
@@ -318,12 +350,14 @@ namespace Titanhold.Run.Editor
                 "collapsedPanel",
                 "confirmationPanel",
                 "completedPanel",
+                "defeatPanel",
                 "continueCollectingButton",
                 "victoryCompleteButton",
                 "collapsedCompleteButton",
                 "cancelCompletionButton",
                 "confirmCompletionButton",
-                "returnToHubButton"
+                "returnToHubButton",
+                "defeatReturnToHubButton"
             };
             for (int i = 0; i < viewReferences.Length; i++)
             {
@@ -351,24 +385,28 @@ namespace Titanhold.Run.Editor
             GameObject collapsedPanel,
             GameObject confirmationPanel,
             GameObject completedPanel,
+            GameObject defeatPanel,
             Button continueButton,
             Button victoryCompleteButton,
             Button collapsedCompleteButton,
             Button cancelButton,
             Button confirmButton,
-            Button returnToHubButton)
+            Button returnToHubButton,
+            Button defeatReturnToHubButton)
         {
             SerializedObject serializedView = new(view);
             serializedView.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
             serializedView.FindProperty("collapsedPanel").objectReferenceValue = collapsedPanel;
             serializedView.FindProperty("confirmationPanel").objectReferenceValue = confirmationPanel;
             serializedView.FindProperty("completedPanel").objectReferenceValue = completedPanel;
+            serializedView.FindProperty("defeatPanel").objectReferenceValue = defeatPanel;
             serializedView.FindProperty("continueCollectingButton").objectReferenceValue = continueButton;
             serializedView.FindProperty("victoryCompleteButton").objectReferenceValue = victoryCompleteButton;
             serializedView.FindProperty("collapsedCompleteButton").objectReferenceValue = collapsedCompleteButton;
             serializedView.FindProperty("cancelCompletionButton").objectReferenceValue = cancelButton;
             serializedView.FindProperty("confirmCompletionButton").objectReferenceValue = confirmButton;
             serializedView.FindProperty("returnToHubButton").objectReferenceValue = returnToHubButton;
+            serializedView.FindProperty("defeatReturnToHubButton").objectReferenceValue = defeatReturnToHubButton;
             serializedView.ApplyModifiedPropertiesWithoutUndo();
         }
 

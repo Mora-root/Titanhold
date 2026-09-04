@@ -65,6 +65,12 @@ namespace Titanhold.UI.Run
                 return;
             }
 
+            if (state.Phase == RunPhase.Failed)
+            {
+                view.Show(RunCompletionViewMode.Defeat);
+                return;
+            }
+
             bool isFinalIntermission =
                 state.Phase == RunPhase.Intermission &&
                 state.CurrentEncounterKind == RunEncounterKind.Boss;
@@ -74,7 +80,9 @@ namespace Titanhold.UI.Run
                 return;
             }
 
-            if (!view.IsVisible || view.Mode == RunCompletionViewMode.Completed)
+            if (!view.IsVisible ||
+                view.Mode == RunCompletionViewMode.Completed ||
+                view.Mode == RunCompletionViewMode.Defeat)
                 view.Show(RunCompletionViewMode.Victory);
         }
 

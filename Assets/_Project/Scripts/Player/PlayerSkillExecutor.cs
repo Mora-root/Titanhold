@@ -138,6 +138,16 @@ public class PlayerSkillExecutor : MonoBehaviour
 
     public void FinishCurrentSkill()
     {
+        ClearCurrentSkill();
+    }
+
+    public void CancelCurrentSkill()
+    {
+        ClearCurrentSkill();
+    }
+
+    private void ClearCurrentSkill()
+    {
         IsUsingSkill = false;
         currentSkill = null;
         currentExecutionId = default;

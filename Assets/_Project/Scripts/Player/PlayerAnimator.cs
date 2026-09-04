@@ -10,8 +10,8 @@ public class PlayerAnimator : MonoBehaviour
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
-    private static readonly int HitHash = Animator.StringToHash("Hit");
-    private static readonly int DeathHash = Animator.StringToHash("Death");
+    private static readonly int HitHash = Animator.StringToHash("TakeDamage");
+    private static readonly int DeathHash = Animator.StringToHash("Die");
 
     private void Awake()
     {

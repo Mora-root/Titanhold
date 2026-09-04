@@ -5,7 +5,7 @@ namespace Titanhold.Session
 {
     public sealed class RunSessionConclusionApplicationService
     {
-        public RunSessionConclusionResult TryConcludeVictory(
+        public RunSessionConclusionResult TryConclude(
             GameSessionRuntime runtime,
             RunFlowState runState,
             IReadOnlyList<RunSceneParticipantBinding> bindings)
@@ -30,10 +30,13 @@ namespace Titanhold.Session
                     RunSessionConclusionError.MissingActiveRun);
             }
 
-            if (runState == null || runState.Phase != RunPhase.Completed)
+            if (!TryCreateResultSummary(
+                    descriptor,
+                    runState,
+                    out RunResultSummary summary))
             {
                 return RunSessionConclusionResult.Failed(
-                    RunSessionConclusionError.RunNotCompleted,
+                    RunSessionConclusionError.RunNotTerminal,
                     runState?.Phase.ToString(),
                     descriptor.RunSessionId);
             }
@@ -82,10 +85,6 @@ namespace Titanhold.Session
                     descriptor.RunSessionId);
             }
 
-            RunResultSummary summary = new(
-                descriptor.RunSessionId,
-                RunOutcome.Victory,
-                runState.RoundNumber);
             GameSessionCommandResult conclusion =
                 runtime.GameSession.TryConcludeRun(summary);
             if (!conclusion.Success)
@@ -98,6 +97,39 @@ namespace Titanhold.Session
 
             return RunSessionConclusionResult.Succeeded(
                 descriptor.RunSessionId);
+        }
+
+        private static bool TryCreateResultSummary(
+            RunSessionDescriptor descriptor,
+            RunFlowState runState,
+            out RunResultSummary summary)
+        {
+            summary = null;
+            if (runState == null)
+                return false;
+
+            switch (runState.Phase)
+            {
+                case RunPhase.Completed:
+                    summary = new RunResultSummary(
+                        descriptor.RunSessionId,
+                        RunOutcome.Victory,
+                        runState.RoundNumber);
+                    return true;
+
+                case RunPhase.Failed:
+                    int completedRounds = runState.RoundNumber > 1
+                        ? runState.RoundNumber - 1
+                        : 0;
+                    summary = new RunResultSummary(
+                        descriptor.RunSessionId,
+                        RunOutcome.Defeat,
+                        completedRounds);
+                    return true;
+
+                default:
+                    return false;
+            }
         }
     }
 }

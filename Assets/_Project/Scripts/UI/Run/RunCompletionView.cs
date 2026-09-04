@@ -10,7 +10,8 @@ namespace Titanhold.UI.Run
         Victory,
         Collapsed,
         Confirmation,
-        Completed
+        Completed,
+        Defeat
     }
 
     [DisallowMultipleComponent]
@@ -20,12 +21,14 @@ namespace Titanhold.UI.Run
         [SerializeField] private GameObject collapsedPanel;
         [SerializeField] private GameObject confirmationPanel;
         [SerializeField] private GameObject completedPanel;
+        [SerializeField] private GameObject defeatPanel;
         [SerializeField] private Button continueCollectingButton;
         [SerializeField] private Button victoryCompleteButton;
         [SerializeField] private Button collapsedCompleteButton;
         [SerializeField] private Button cancelCompletionButton;
         [SerializeField] private Button confirmCompletionButton;
         [SerializeField] private Button returnToHubButton;
+        [SerializeField] private Button defeatReturnToHubButton;
 
         public event Action CollapseRequested;
         public event Action CompletionRequested;
@@ -58,12 +61,16 @@ namespace Titanhold.UI.Run
             SetActive(collapsedPanel, mode == RunCompletionViewMode.Collapsed);
             SetActive(confirmationPanel, mode == RunCompletionViewMode.Confirmation);
             SetActive(completedPanel, mode == RunCompletionViewMode.Completed);
+            SetActive(defeatPanel, mode == RunCompletionViewMode.Defeat);
         }
 
         public void SetReturnToHubInteractable(bool interactable)
         {
             if (returnToHubButton != null)
                 returnToHubButton.interactable = interactable;
+
+            if (defeatReturnToHubButton != null)
+                defeatReturnToHubButton.interactable = interactable;
         }
 
         private void AddButtonListeners()
@@ -74,6 +81,8 @@ namespace Titanhold.UI.Run
             cancelCompletionButton?.onClick.AddListener(HandleCompletionCancelled);
             confirmCompletionButton?.onClick.AddListener(HandleCompletionConfirmed);
             returnToHubButton?.onClick.AddListener(HandleReturnToHubRequested);
+            defeatReturnToHubButton?.onClick.AddListener(
+                HandleReturnToHubRequested);
         }
 
         private void RemoveButtonListeners()
@@ -84,6 +93,8 @@ namespace Titanhold.UI.Run
             cancelCompletionButton?.onClick.RemoveListener(HandleCompletionCancelled);
             confirmCompletionButton?.onClick.RemoveListener(HandleCompletionConfirmed);
             returnToHubButton?.onClick.RemoveListener(HandleReturnToHubRequested);
+            defeatReturnToHubButton?.onClick.RemoveListener(
+                HandleReturnToHubRequested);
         }
 
         private void HandleCollapseRequested()

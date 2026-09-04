@@ -10,6 +10,8 @@ public class PlayerMovement : MonoBehaviour
     private CharacterStats stats;
     private float fallbackMoveSpeed;
 
+    public bool IsStopped => agent == null || agent.isStopped;
+
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -53,8 +55,9 @@ public class PlayerMovement : MonoBehaviour
 
     public void Stop()
     {
-        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
         agent.ResetPath();
+        agent.isStopped = true;
     }
 
     public void RotateTowards(Vector3 targetPos)

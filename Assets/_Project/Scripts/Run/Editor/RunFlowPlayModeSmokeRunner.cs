@@ -1,5 +1,6 @@
 using System;
 using Titanhold.Combat;
+using Titanhold.Session;
 using Titanhold.UI.Run;
 using UnityEditor;
 using UnityEngine;
@@ -324,6 +325,43 @@ namespace Titanhold.Run.Editor
 
                 completionSmokeRoot = ValidateRunCompletionUi();
 
+                RunParticipantDefeatController defeatController =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        RunParticipantDefeatController>();
+                RunSessionExitController sessionExit =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        RunSessionExitController>();
+                Assert(defeatController != null &&
+                       defeatController.HasRequiredReferences &&
+                       sessionExit != null &&
+                       sessionExit.HasRequiredReferences,
+                    "Run defeat session wiring was not found in Play Mode.");
+                Health participantHealth =
+                    defeatController.ParticipantHealth[0];
+                PlayerBrain participantBrain =
+                    participantHealth.GetComponent<PlayerBrain>();
+                Assert(participantBrain != null,
+                    "Run participant PlayerBrain was not found.");
+                participantHealth.TakeDamage(float.MaxValue);
+                Assert(!participantHealth.IsAlive &&
+                       runtime.State.Phase == RunPhase.Failed &&
+                       sessionExit.CompletionView.Mode ==
+                           RunCompletionViewMode.Defeat,
+                    "Last participant death did not show the defeat state.");
+                Assert(participantBrain.IsDead &&
+                       participantBrain.StateMachine.CurrentState == null &&
+                       participantBrain.Movement.IsStopped &&
+                       !participantBrain.Combat.IsAttacking &&
+                       !participantBrain.Skills.IsUsingSkill &&
+                       !participantBrain.HasQueuedSkillCommand,
+                    "Dead participant retained an active gameplay command: " +
+                    $"dead={participantBrain.IsDead}, " +
+                    $"state={participantBrain.StateMachine.CurrentState?.GetType().Name ?? "null"}, " +
+                    $"movementStopped={participantBrain.Movement.IsStopped}, " +
+                    $"attacking={participantBrain.Combat.IsAttacking}, " +
+                    $"usingSkill={participantBrain.Skills.IsUsingSkill}, " +
+                    $"queuedSkill={participantBrain.HasQueuedSkillCommand}.");
+
                 Debug.Log("Run Flow Play Mode smoke test passed.");
             }
             catch (Exception exception)
@@ -380,24 +418,28 @@ namespace Titanhold.Run.Editor
             GameObject collapsedPanel = CreateSmokePanel(uiObject.transform, "CollapsedPanel");
             GameObject confirmationPanel = CreateSmokePanel(uiObject.transform, "ConfirmationPanel");
             GameObject completedPanel = CreateSmokePanel(uiObject.transform, "CompletedPanel");
+            GameObject defeatPanel = CreateSmokePanel(uiObject.transform, "DefeatPanel");
             Button continueButton = CreateSmokeButton(uiObject.transform, "Continue");
             Button victoryCompleteButton = CreateSmokeButton(uiObject.transform, "VictoryComplete");
             Button collapsedCompleteButton = CreateSmokeButton(uiObject.transform, "CollapsedComplete");
             Button cancelButton = CreateSmokeButton(uiObject.transform, "Cancel");
             Button confirmButton = CreateSmokeButton(uiObject.transform, "Confirm");
             Button returnToHubButton = CreateSmokeButton(uiObject.transform, "ReturnToHub");
+            Button defeatReturnToHubButton = CreateSmokeButton(uiObject.transform, "DefeatReturnToHub");
 
             SerializedObject serializedView = new SerializedObject(view);
             serializedView.FindProperty("victoryPanel").objectReferenceValue = victoryPanel;
             serializedView.FindProperty("collapsedPanel").objectReferenceValue = collapsedPanel;
             serializedView.FindProperty("confirmationPanel").objectReferenceValue = confirmationPanel;
             serializedView.FindProperty("completedPanel").objectReferenceValue = completedPanel;
+            serializedView.FindProperty("defeatPanel").objectReferenceValue = defeatPanel;
             serializedView.FindProperty("continueCollectingButton").objectReferenceValue = continueButton;
             serializedView.FindProperty("victoryCompleteButton").objectReferenceValue = victoryCompleteButton;
             serializedView.FindProperty("collapsedCompleteButton").objectReferenceValue = collapsedCompleteButton;
             serializedView.FindProperty("cancelCompletionButton").objectReferenceValue = cancelButton;
             serializedView.FindProperty("confirmCompletionButton").objectReferenceValue = confirmButton;
             serializedView.FindProperty("returnToHubButton").objectReferenceValue = returnToHubButton;
+            serializedView.FindProperty("defeatReturnToHubButton").objectReferenceValue = defeatReturnToHubButton;
             serializedView.ApplyModifiedPropertiesWithoutUndo();
 
             SerializedObject serializedController = new SerializedObject(controller);

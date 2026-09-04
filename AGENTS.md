@@ -35,6 +35,14 @@ Current assault rules:
   the run to `Completed`. A separate return command then captures every session
   participant, records the victory result, and loads the Hub. It must remain
   retryable if Hub loading cannot begin.
+- participant health is registered explicitly for the run scene. The run enters
+  `Failed` only when no registered participant remains alive; solo currently has
+  one participant, while the rule must remain suitable for a future co-op roster.
+  Defeat records only fully completed rounds and returns through the same
+  snapshot/session boundary as victory.
+- player death clears the state machine and queued action, cancels unreleased
+  attacks/abilities, stops NavMesh movement, and enters the non-looping death
+  animation before the defeat UI is shown.
 
 Current round scaling:
 
@@ -61,7 +69,11 @@ gold by stable item-definition ids. The item-definition catalog and persistent
 session owner are connected in `HubScene`; Hub-to-run scene loading and
 participant restoration are wired. A completed victory returns through the
 session layer to the Hub, where the last result is shown and another run can be
-started. Defeat and abandoned-run exits are later stages.
+started. Defeat uses the same result and return path. Abandoned-run exit is a
+later stage.
+
+Run participants enter exploration with full health and class resource after
+their snapshot, equipment modifiers, and derived stats have been applied.
 
 ## Search and Project Map
 

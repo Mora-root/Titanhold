@@ -6,7 +6,7 @@ namespace Titanhold.Session
         MissingRuntime,
         InvalidSessionPhase,
         MissingActiveRun,
-        RunNotCompleted,
+        RunNotTerminal,
         InvalidParticipantBinding,
         CharacterCaptureFailed,
         SnapshotStoreFailed,

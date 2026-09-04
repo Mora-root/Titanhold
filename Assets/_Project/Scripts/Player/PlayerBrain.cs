@@ -34,9 +34,13 @@ public class PlayerBrain : MonoBehaviour
     public IState LootState { get; private set; }
 
     private readonly PlayerSkillCommandBuffer skillCommandBuffer = new();
+    private Health health;
+    private PlayerAnimator playerAnimator;
+    private bool isDead;
 
     public bool HasQueuedSkillCommand =>
         skillCommandBuffer.HasPendingCommand;
+    public bool IsDead => isDead;
 
     private void Awake()
     {
@@ -46,6 +50,8 @@ public class PlayerBrain : MonoBehaviour
         Combat = GetComponent<PlayerCombat>();
         Skills = GetComponent<PlayerSkillExecutor>();
         TargetSelection = GetComponent<TargetSelection>();
+        health = GetComponent<Health>();
+        playerAnimator = GetComponentInChildren<PlayerAnimator>();
 
         StateMachine = new StateMachine();
 
@@ -58,18 +64,56 @@ public class PlayerBrain : MonoBehaviour
         LootState = new LootState(this);
     }
 
+    private void OnEnable()
+    {
+        if (health != null)
+            health.OnDeath += HandleDeath;
+    }
+
+    private void OnDisable()
+    {
+        if (health != null)
+            health.OnDeath -= HandleDeath;
+    }
+
     private void Start()
     {
+        if (health != null && !health.IsAlive)
+        {
+            HandleDeath();
+            return;
+        }
+
         StateMachine.ChangeState(IdleState);
     }
 
     private void Update()
     {
+        if (isDead)
+            return;
+
         HandleInput();
 
         StateMachine.Update();
         // Debug.Log(StateMachine.CurrentState.GetType().Name);
         Movement.Tick();
+    }
+
+    private void HandleDeath()
+    {
+        if (isDead)
+            return;
+
+        isDead = true;
+        StateMachine.ChangeState(null);
+        skillCommandBuffer.Clear();
+        Input?.ClearAll();
+        ClearAllSelections();
+        Combat?.CancelAttack();
+        Skills?.CancelCurrentSkill();
+        Movement?.Stop();
+        playerAnimator?.SetSpeed(0f);
+        playerAnimator?.PlayDeath();
     }
 
     private void HandleInput()

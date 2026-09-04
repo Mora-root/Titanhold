@@ -129,6 +129,13 @@ namespace Titanhold.Session.Editor
                 throw new InvalidOperationException(
                     "Participant snapshot components must belong to one Player object.");
             }
+
+            if (player.GetComponent<Health>() == null ||
+                player.GetComponent<PlayerResource>() == null)
+            {
+                throw new InvalidOperationException(
+                    "Run participant requires Health and PlayerResource components.");
+            }
         }
 
         private static GameObject FindRootObject(Scene scene, string objectName)

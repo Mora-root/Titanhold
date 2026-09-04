@@ -78,7 +78,7 @@ namespace Titanhold.Session
                 return;
             }
 
-            RunSessionConclusionResult result = conclusion.TryConcludeVictory(
+            RunSessionConclusionResult result = conclusion.TryConclude(
                 sessionHost.Runtime,
                 runFlowRuntime.State,
                 sessionEntryPoint.Participants);
