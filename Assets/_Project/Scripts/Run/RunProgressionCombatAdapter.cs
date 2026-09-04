@@ -13,6 +13,8 @@ namespace Titanhold.Run
         [SerializeField] private RunProgressionDefinition progressionDefinition;
 
         private readonly HashSet<CombatExecutionId> rewardedExecutions = new();
+        private readonly List<RunProgressionParticipantGateway> participantGateways =
+            new();
         private readonly List<CombatSubscription> subscriptions = new();
 
         public RunProgressionService Progression { get; private set; }
@@ -287,6 +289,21 @@ namespace Titanhold.Run
                     return false;
                 }
 
+                RunProgressionParticipantGateway gateway =
+                    participant.GetComponent<RunProgressionParticipantGateway>();
+                gateway ??=
+                    participant.AddComponent<RunProgressionParticipantGateway>();
+                if (!gateway.TryBind(Progression, binding.PlayerId))
+                {
+                    Debug.LogError(
+                        $"Could not bind run progression gateway for participant '{binding.PlayerId}'.",
+                        participant);
+                    ClearBindings();
+                    return false;
+                }
+
+                participantGateways.Add(gateway);
+
                 if (combat != null)
                     AddSubscription(binding.PlayerId, combat.ActorReference, combat);
 
@@ -338,6 +355,15 @@ namespace Titanhold.Run
             }
 
             subscriptions.Clear();
+            for (int i = 0; i < participantGateways.Count; i++)
+            {
+                RunProgressionParticipantGateway gateway =
+                    participantGateways[i];
+                if (gateway != null)
+                    gateway.Unbind(Progression);
+            }
+
+            participantGateways.Clear();
         }
 
         private readonly struct CombatSubscription

@@ -36,6 +36,8 @@ namespace Titanhold.Run.Editor
             GameObject firstEnemy = null;
             GameObject secondEnemy = null;
             GameObject rejectedEnemy = null;
+            GameObject goldPickup = null;
+            GameObject pickerProxy = null;
             try
             {
                 player = new GameObject("RunProgressionValidation_Player");
@@ -142,9 +144,27 @@ namespace Titanhold.Run.Editor
                        award.State.Level == 2 &&
                        award.State.Experience == 5,
                     "Combat experience accepted a mismatched combat actor.");
+
+                pickerProxy = new GameObject(
+                    "RunProgressionValidation_PickerProxy");
+                pickerProxy.transform.SetParent(player.transform);
+                goldPickup = new GameObject(
+                    "RunProgressionValidation_GoldPickup");
+                GoldLootReward goldReward =
+                    goldPickup.AddComponent<GoldLootReward>();
+                goldReward.SetAmount(17);
+                Assert(goldReward.Collect(pickerProxy) &&
+                       progression.TryGetParticipant(
+                           binding.PlayerId,
+                           out RunParticipantProgressionState goldState) &&
+                       goldState.Gold == 17 &&
+                       gold.Amount == 0,
+                    "Gold pickup did not route to temporary run gold.");
             }
             finally
             {
+                UnityEngine.Object.DestroyImmediate(goldPickup);
+                UnityEngine.Object.DestroyImmediate(pickerProxy);
                 UnityEngine.Object.DestroyImmediate(adapterObject);
                 UnityEngine.Object.DestroyImmediate(player);
                 UnityEngine.Object.DestroyImmediate(firstEnemy);

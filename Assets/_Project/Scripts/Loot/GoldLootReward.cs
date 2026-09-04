@@ -1,3 +1,4 @@
+using Titanhold.Run;
 using UnityEngine;
 
 public sealed class GoldLootReward : MonoBehaviour, ILootReward, IAmountLootReward
@@ -14,6 +15,12 @@ public sealed class GoldLootReward : MonoBehaviour, ILootReward, IAmountLootRewa
     {
         if (amount <= 0)
             return false;
+
+        RunProgressionParticipantGateway runProgression = picker != null
+            ? picker.GetComponentInParent<RunProgressionParticipantGateway>()
+            : null;
+        if (runProgression != null)
+            return runProgression.TryAddGold(amount, out _);
 
         PlayerGold wallet = playerGold;
 
