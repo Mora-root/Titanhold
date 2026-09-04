@@ -86,6 +86,10 @@ regular crafting reagents remain stackable inventory items. Conclusion rewards
 are deterministic from completed rounds, difficulty, and the victory bonus.
 Current `PlayerGold` and direct enemy-to-`PlayerExperience` rewards are
 transitional prototype paths and must not define the durable save format.
+`GameSessionRuntime` owns the active per-participant run-progression roster and
+the account crystal wallet. It creates the roster from the validated launch
+participants, retains it through run/Hub transitions, and clears it only after
+the session enters Hub or a launch transition is cancelled.
 
 ## Search and Project Map
 

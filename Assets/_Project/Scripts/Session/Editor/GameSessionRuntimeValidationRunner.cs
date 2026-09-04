@@ -1,4 +1,5 @@
 using System;
+using Titanhold.Run;
 using UnityEditor;
 using UnityEngine;
 
@@ -31,10 +32,15 @@ namespace Titanhold.Session.Editor
                 source.GetComponent<PlayerExperience>().AddExperience(125);
                 source.GetComponent<PlayerGold>().Add(17);
 
-                GameSessionRuntime runtime = new(catalog);
+                GameSessionRuntime runtime = new(
+                    catalog,
+                    runExperienceCurve:
+                        new RunExperienceCurve(new[] { 10, 20 }));
                 int snapshotChangeCount = 0;
                 runtime.CharacterSnapshotChanged += (_, _) =>
                     snapshotChangeCount++;
+                Assert(runtime.AccountCrystals.TryAdd(25).Success,
+                    "Could not prepare account crystals.");
 
                 CharacterSnapshotCaptureResult capture =
                     runtime.TryCaptureCharacter(
@@ -104,6 +110,84 @@ namespace Titanhold.Session.Editor
                            out preservedSnapshot) &&
                        ReferenceEquals(originalSnapshot, preservedSnapshot),
                     "Run transition did not preserve runtime character state.");
+
+                Assert(runtime.TryGetActiveRunProgression(
+                           begin.RunSessionId,
+                           out RunProgressionService progression) &&
+                       progression.ParticipantCount == 1 &&
+                       progression.TryGrantExperience(
+                           "player:local",
+                           15).Success &&
+                       progression.TryGetParticipant(
+                           "player:local",
+                           out RunParticipantProgressionState runState) &&
+                       runState.Level == 2 &&
+                       runState.Experience == 5,
+                    "Run transition did not create participant progression.");
+
+                GameSessionCommandResult cancel =
+                    runtime.GameSession.TryCancelRunTransition(
+                        begin.RunSessionId);
+                Assert(cancel.Success &&
+                       !runtime.TryGetActiveRunProgression(
+                           begin.RunSessionId,
+                           out _) &&
+                       runtime.AccountCrystals.Amount == 25,
+                    "Cancelled run retained run progression or cleared account currency.");
+
+                GameSessionCommandResult secondBegin =
+                    runtime.GameSession.TryBeginRun(
+                        new RunLaunchCommand(
+                            "difficulty:prototype",
+                            456,
+                            new[]
+                            {
+                                new RunParticipantSelection(
+                                    "player:local",
+                                    "character:warrior")
+                            }));
+                RunProgressionService retainedProgression = null;
+                Assert(secondBegin.Success &&
+                       runtime.TryGetActiveRunProgression(
+                           secondBegin.RunSessionId,
+                           out retainedProgression),
+                    "Second run did not create fresh progression.");
+                Assert(runtime.GameSession.TryActivateRun(
+                           secondBegin.RunSessionId).Success &&
+                       retainedProgression.TryAddGold(
+                           "player:local",
+                           40).Success,
+                    "Second run progression setup failed.");
+
+                RunResultSummary result = new(
+                    secondBegin.RunSessionId,
+                    RunOutcome.Defeat,
+                    completedRoundCount: 1);
+                Assert(runtime.GameSession.TryConcludeRun(result).Success &&
+                       runtime.TryGetActiveRunProgression(
+                           secondBegin.RunSessionId,
+                           out RunProgressionService transitionProgression) &&
+                       ReferenceEquals(
+                           retainedProgression,
+                           transitionProgression),
+                    "Hub transition cleared run progression before rewards could settle.");
+                Assert(runtime.GameSession.TryCancelHubTransition(
+                           secondBegin.RunSessionId).Success &&
+                       runtime.TryGetActiveRunProgression(
+                           secondBegin.RunSessionId,
+                           out RunProgressionService retriedProgression) &&
+                       ReferenceEquals(
+                           retainedProgression,
+                           retriedProgression),
+                    "Failed Hub loading lost retryable run progression.");
+                Assert(runtime.GameSession.TryConcludeRun(result).Success &&
+                       runtime.GameSession.TryEnterHub(
+                           secondBegin.RunSessionId).Success &&
+                       !runtime.TryGetActiveRunProgression(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       runtime.AccountCrystals.Amount == 25,
+                    "Hub entry did not clear only the temporary run progression.");
 
                 Debug.Log("Persistent Game Session Runtime validation passed.");
             }

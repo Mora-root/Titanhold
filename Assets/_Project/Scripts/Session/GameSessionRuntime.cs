@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Titanhold.Progression;
+using Titanhold.Run;
 
 namespace Titanhold.Session
 {
@@ -7,24 +9,57 @@ namespace Titanhold.Session
     {
         private readonly Dictionary<string, CharacterSnapshot>
             characterSnapshots = new(StringComparer.Ordinal);
+        private readonly RunExperienceCurve runExperienceCurve;
+        private readonly int maximumParticipantCount;
+        private string activeProgressionRunSessionId = string.Empty;
 
         public GameSessionRuntime(
             IItemDefinitionResolver itemDefinitions,
             int maximumParticipantCount =
-                GameSessionService.DefaultMaximumParticipantCount)
+                GameSessionService.DefaultMaximumParticipantCount,
+            RunExperienceCurve runExperienceCurve = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
+            this.maximumParticipantCount = maximumParticipantCount;
+            this.runExperienceCurve = runExperienceCurve ??
+                new RunExperienceCurve(Array.Empty<int>());
             GameSession = new GameSessionService(maximumParticipantCount);
             CharacterSnapshots = new CharacterSnapshotService();
+            AccountCrystals = new AccountCrystalWallet();
+            GameSession.StateChanged += HandleGameSessionStateChanged;
         }
 
         public GameSessionService GameSession { get; }
         public CharacterSnapshotService CharacterSnapshots { get; }
+        public AccountCrystalWallet AccountCrystals { get; }
         public IItemDefinitionResolver ItemDefinitions { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
+        public RunProgressionService ActiveRunProgression { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
+        public event Action<string, RunProgressionService>
+            ActiveRunProgressionChanged;
+
+        public bool TryGetActiveRunProgression(
+            string runSessionId,
+            out RunProgressionService progression)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunProgression == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeProgressionRunSessionId,
+                    StringComparison.Ordinal))
+            {
+                progression = null;
+                return false;
+            }
+
+            progression = ActiveRunProgression;
+            return true;
+        }
 
         public bool TryGetCharacterSnapshot(
             string characterId,
@@ -140,6 +175,70 @@ namespace Titanhold.Session
             }
 
             return true;
+        }
+
+        private void HandleGameSessionStateChanged(GameSessionState state)
+        {
+            if (state == null)
+                return;
+
+            if (state.Phase == GameSessionPhase.TransitionToRun)
+            {
+                CreateRunProgression(state.ActiveRun);
+                return;
+            }
+
+            if (state.Phase == GameSessionPhase.Hub)
+                ClearRunProgression();
+        }
+
+        private void CreateRunProgression(RunSessionDescriptor descriptor)
+        {
+            if (descriptor == null ||
+                string.IsNullOrWhiteSpace(descriptor.RunSessionId))
+            {
+                ClearRunProgression();
+                return;
+            }
+
+            RunProgressionService progression = new(
+                runExperienceCurve,
+                maximumParticipantCount);
+            for (int i = 0; i < descriptor.Participants.Count; i++)
+            {
+                RunParticipantSelection participant =
+                    descriptor.Participants[i];
+                RunProgressionResult registration =
+                    progression.TryRegisterParticipant(
+                        new RunParticipantIdentity(
+                            participant.PlayerId,
+                            participant.CharacterId));
+                if (!registration.Success)
+                {
+                    throw new InvalidOperationException(
+                        "Validated run participant could not be registered " +
+                        $"for progression: {registration.Error}.");
+                }
+            }
+
+            activeProgressionRunSessionId = descriptor.RunSessionId;
+            ActiveRunProgression = progression;
+            ActiveRunProgressionChanged?.Invoke(
+                activeProgressionRunSessionId,
+                ActiveRunProgression);
+        }
+
+        private void ClearRunProgression()
+        {
+            if (ActiveRunProgression == null)
+                return;
+
+            string clearedRunSessionId = activeProgressionRunSessionId;
+            activeProgressionRunSessionId = string.Empty;
+            ActiveRunProgression = null;
+            ActiveRunProgressionChanged?.Invoke(
+                clearedRunSessionId,
+                null);
         }
     }
 }
