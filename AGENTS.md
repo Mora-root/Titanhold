@@ -89,6 +89,9 @@ the durable save format. `EnemyRewardSource` is data-only; player-attributed
 `CombatExecutionReport` batches award its experience through the scene's
 `RunProgressionCombatAdapter`, which explicitly maps combat sources to session
 participant ids and handles multi-target executions once.
+`SampleScene` presents the local participant's temporary run level, experience,
+and run gold through `RunProgressionHudPresenter`; the old permanent-experience
+HUD components remain present but disabled in that scene.
 `GameSessionRuntime` owns the active per-participant run-progression roster and
 the account crystal wallet. It creates the roster from the validated launch
 participants, retains it through run/Hub transitions, and clears it only after

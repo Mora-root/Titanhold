@@ -79,6 +79,19 @@ namespace Titanhold.Run
                    participants.TryGetValue(normalizedId, out state);
         }
 
+        public bool TryGetExperienceRequirement(
+            string playerId,
+            out int experienceRequired)
+        {
+            experienceRequired = 0;
+            return TryGetParticipant(
+                       playerId,
+                       out RunParticipantProgressionState state) &&
+                   experienceCurve.TryGetRequirement(
+                       state.Level,
+                       out experienceRequired);
+        }
+
         public RunProgressionResult TryGrantExperience(
             string playerId,
             int amount)

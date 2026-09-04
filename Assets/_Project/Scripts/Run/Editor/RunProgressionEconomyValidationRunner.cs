@@ -248,6 +248,11 @@ namespace Titanhold.Run.Editor
                    experience.State.Level == 3 &&
                    experience.State.Experience == 5,
                 "Run experience did not cross levels deterministically.");
+            Assert(service.TryGetExperienceRequirement(
+                       "player:one",
+                       out int nextRequirement) &&
+                   nextRequirement == 40,
+                "Run progression did not expose the next level requirement.");
 
             RunProgressionResult addGold =
                 service.TryAddGold("player:one", 100);

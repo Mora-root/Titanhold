@@ -74,9 +74,26 @@ namespace Titanhold.Run.Editor
                     UnityEngine.Object.FindAnyObjectByType<RunFlowRuntime>();
                 ExplorationCombatExecutionAdapter adapter =
                     UnityEngine.Object.FindAnyObjectByType<ExplorationCombatExecutionAdapter>();
+                RunProgressionCombatAdapter progressionAdapter =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        RunProgressionCombatAdapter>();
+                RunProgressionHudPresenter progressionPresenter =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        RunProgressionHudPresenter>();
+                RunProgressionHudView progressionView =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        RunProgressionHudView>();
 
                 Assert(runtime != null, "RunFlowRuntime was not found in Play Mode.");
                 Assert(adapter != null, "ExplorationCombatExecutionAdapter was not found in Play Mode.");
+                Assert(progressionAdapter != null &&
+                       progressionAdapter.IsInitialized &&
+                       progressionPresenter != null &&
+                       progressionView != null &&
+                       progressionView.ProgressionText != null &&
+                       progressionView.ProgressionText.text.Contains(
+                           "RUN LV 1"),
+                    "Run Progression HUD was not initialized in Play Mode.");
 
                 Assert(adapter.HasPlayerCombatSource,
                     "PlayerCombat was not bound automatically in Play Mode.");
@@ -177,15 +194,16 @@ namespace Titanhold.Run.Editor
                 temporaryEnemy = new GameObject("RunFlow_PlayModeSmokeEnemy");
                 EnemyRunContributionSource contributionSource =
                     temporaryEnemy.AddComponent<EnemyRunContributionSource>();
+                EnemyRewardSource experienceReward =
+                    temporaryEnemy.AddComponent<EnemyRewardSource>();
+                experienceReward.ConfigureForEditor(100);
                 SerializedObject serializedContribution =
                     new SerializedObject(contributionSource);
                 serializedContribution.FindProperty("threatAmount").floatValue = 100f;
                 serializedContribution.ApplyModifiedPropertiesWithoutUndo();
                 Health health = temporaryEnemy.GetComponent<Health>();
                 CombatExecutionId executionId = CombatExecutionId.New();
-                CombatActorReference player = new CombatActorReference(
-                    "player:play-mode-smoke",
-                    CombatActorKind.Player);
+                CombatActorReference player = playerCombat.ActorReference;
                 DamageRequest request = new DamageRequest(
                     executionId,
                     player,
@@ -204,6 +222,19 @@ namespace Titanhold.Run.Editor
                     executionId,
                     new DamageTargetResolution(health, damageResult));
 
+                Assert(progressionAdapter.TryApplyReport(
+                           progressionPresenter.PlayerId,
+                           player,
+                           report,
+                           out RunProgressionResult experienceResult) &&
+                       experienceResult.Success &&
+                       experienceResult.LevelsGained == 1 &&
+                       progressionView.ProgressionText.text.Contains(
+                           "RUN LV 2") &&
+                       progressionView.ProgressionText.text.Contains(
+                           "XP 0 / 150") &&
+                       progressionView.LevelUpRoot.activeSelf,
+                    "Play Mode combat reward did not update the Run Progression HUD.");
                 Assert(adapter.TryApplyReport(report, out ExplorationKillApplicationResult result),
                     "Play Mode adapter did not find the temporary eligible kill.");
                 Assert(result.Success, $"Play Mode kill batch failed: {result.Error}.");
