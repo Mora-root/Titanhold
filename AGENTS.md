@@ -78,6 +78,15 @@ shared simulation.
 Run participants enter exploration with full health and class resource after
 their snapshot, equipment modifiers, and derived stats have been applied.
 
+Progression and economy lifetimes are intentionally separate. Run experience,
+run level, run gold, selected run abilities, temporary upgrades, and relics
+belong to one participant in one active run. Character experience is awarded
+only from the concluded run result. Crystals are permanent account currency;
+regular crafting reagents remain stackable inventory items. Conclusion rewards
+are deterministic from completed rounds, difficulty, and the victory bonus.
+Current `PlayerGold` and direct enemy-to-`PlayerExperience` rewards are
+transitional prototype paths and must not define the durable save format.
+
 ## Search and Project Map
 
 - Start in the smallest relevant project-owned folder and use exact names with
