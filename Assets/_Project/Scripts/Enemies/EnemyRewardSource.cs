@@ -1,42 +1,18 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [DisallowMultipleComponent]
-[RequireComponent(typeof(EnemyDeathNotifier))]
 public sealed class EnemyRewardSource : MonoBehaviour
 {
-    [SerializeField] private EnemyDeathNotifier deathNotifier;
-    [SerializeField] private PlayerExperience playerExperience;
-    [SerializeField] private int experienceAmount = 10;
+    [FormerlySerializedAs("experienceAmount")]
+    [SerializeField, Min(0)] private int runExperienceAmount = 10;
 
-    private void Awake()
+    public int RunExperienceAmount => runExperienceAmount;
+
+#if UNITY_EDITOR
+    public void ConfigureForEditor(int configuredRunExperienceAmount)
     {
-        deathNotifier ??= GetComponent<EnemyDeathNotifier>();
-        playerExperience ??= FindAnyObjectByType<PlayerExperience>();
+        runExperienceAmount = Mathf.Max(0, configuredRunExperienceAmount);
     }
-
-    private void OnEnable()
-    {
-        if (deathNotifier != null)
-        {
-            deathNotifier.Died += HandleEnemyDied;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (deathNotifier != null)
-        {
-            deathNotifier.Died -= HandleEnemyDied;
-        }
-    }
-
-    private void HandleEnemyDied(EnemyDeathNotifier notifier)
-    {
-        // MVP: any death of an enemy with this component grants XP.
-        // Future: require player-attributed DeathContext before granting XP.
-        if (playerExperience == null)
-            return;
-
-        playerExperience.AddExperience(experienceAmount);
-    }
+#endif
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using Titanhold.UI.Hub;
+using Titanhold.Run;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -20,6 +21,8 @@ namespace Titanhold.Session.Editor
             "Assets/_Project/Scenes/SampleScene.unity";
         private const string CatalogPath =
             "Assets/_Project/ScriptableObjects/Items/ItemDefinitionCatalog.asset";
+        private const string RunProgressionPath =
+            "Assets/_Project/ScriptableObjects/Run/RunProgression_Prototype.asset";
 
         private static readonly Color BackgroundColor =
             new(0.018f, 0.025f, 0.038f, 1f);
@@ -54,10 +57,21 @@ namespace Titanhold.Session.Editor
                         "A valid runtime Item Definition Catalog is required.");
                 }
 
+                RunProgressionDefinition runProgression =
+                    AssetDatabase.LoadAssetAtPath<RunProgressionDefinition>(
+                        RunProgressionPath);
+                if (runProgression == null || !runProgression.IsValid)
+                {
+                    throw new InvalidOperationException(
+                        "A valid Run Progression Definition is required.");
+                }
+
                 Scene scene = EditorSceneManager.NewScene(
                     NewSceneSetup.EmptyScene,
                     NewSceneMode.Single);
-                GameSessionRuntimeHost sessionHost = CreateSessionRoot(catalog);
+                GameSessionRuntimeHost sessionHost = CreateSessionRoot(
+                    catalog,
+                    runProgression);
                 CreateHubCamera();
                 HubRunPreparationView view = CreateHubUi(sessionHost);
                 CreateHubSessionEntryPoint(view);
@@ -146,12 +160,13 @@ namespace Titanhold.Session.Editor
         }
 
         private static GameSessionRuntimeHost CreateSessionRoot(
-            ItemDefinitionCatalog catalog)
+            ItemDefinitionCatalog catalog,
+            RunProgressionDefinition runProgression)
         {
             GameObject root = new("GameSessionRoot");
             GameSessionRuntimeHost host =
                 root.AddComponent<GameSessionRuntimeHost>();
-            host.ConfigureForEditor(catalog);
+            host.ConfigureForEditor(catalog, runProgression);
             EditorUtility.SetDirty(host);
             EditorSceneManager.MarkSceneDirty(root.scene);
             return host;
@@ -571,6 +586,13 @@ namespace Titanhold.Session.Editor
             {
                 throw new InvalidOperationException(
                     "Session root has no item catalog reference.");
+            }
+
+            if (host.RunProgression == null ||
+                !host.RunProgression.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Session root has no valid run progression reference.");
             }
 
             Canvas canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>(

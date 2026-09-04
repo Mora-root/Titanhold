@@ -19,6 +19,14 @@ public class PlayerSkillExecutor : MonoBehaviour
     private bool effectReleased;
 
     public bool IsUsingSkill { get; private set; }
+    public CombatActorReference ActorReference
+    {
+        get
+        {
+            EnsureActorReference();
+            return combatActor;
+        }
+    }
 
     public event Action<CombatExecutionReport> ExecutionResolved;
 
@@ -27,7 +35,7 @@ public class PlayerSkillExecutor : MonoBehaviour
         stats = GetComponent<CharacterStats>();
         resource = GetComponent<PlayerResource>();
         animator = GetComponentInChildren<PlayerAnimator>();
-        combatActor = new CombatActorReference($"player:{gameObject.GetEntityId()}", CombatActorKind.Player);
+        EnsureActorReference();
     }
 
     public bool TryUseSkill1()
@@ -152,6 +160,16 @@ public class PlayerSkillExecutor : MonoBehaviour
         currentSkill = null;
         currentExecutionId = default;
         effectReleased = true;
+    }
+
+    private void EnsureActorReference()
+    {
+        if (combatActor.IsValid)
+            return;
+
+        combatActor = new CombatActorReference(
+            $"player:{gameObject.GetEntityId()}",
+            CombatActorKind.Player);
     }
 
     private void OnDrawGizmosSelected()

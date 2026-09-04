@@ -7173,6 +7173,52 @@ MonoBehaviour:
   tooltipRoot: {fileID: 1635611789}
   rootCanvas: {fileID: 540920802}
   padding: 8
+--- !u!1 &401141989
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 401141991}
+  - component: {fileID: 401141990}
+  m_Layer: 0
+  m_Name: RunProgressionRuntime
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &401141990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401141989}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c13059694ac9faf478d7083465590ca1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunProgressionCombatAdapter
+  sessionEntryPoint: {fileID: 407419260}
+  progressionDefinition: {fileID: 11400000, guid: b84a95e48e538494f8d6f1fc8515f704, type: 2}
+--- !u!4 &401141991
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 401141989}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &401387013
 Material:
   serializedVersion: 8
@@ -29203,3 +29249,4 @@ SceneRoots:
   - {fileID: 1489734143}
   - {fileID: 1678903486}
   - {fileID: 407419261}
+  - {fileID: 401141991}

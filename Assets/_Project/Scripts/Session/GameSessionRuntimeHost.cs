@@ -1,4 +1,5 @@
 using UnityEngine;
+using Titanhold.Run;
 
 namespace Titanhold.Session
 {
@@ -6,17 +7,22 @@ namespace Titanhold.Session
     public sealed class GameSessionRuntimeHost : MonoBehaviour
     {
         [SerializeField] private ItemDefinitionCatalog itemDefinitions;
+        [SerializeField] private RunProgressionDefinition runProgression;
 
         private static GameSessionRuntimeHost activeHost;
 
         public GameSessionRuntime Runtime { get; private set; }
         public bool IsInitialized => Runtime != null;
         public ItemDefinitionCatalog ItemDefinitions => itemDefinitions;
+        public RunProgressionDefinition RunProgression => runProgression;
 
 #if UNITY_EDITOR
-        public void ConfigureForEditor(ItemDefinitionCatalog definitions)
+        public void ConfigureForEditor(
+            ItemDefinitionCatalog definitions,
+            RunProgressionDefinition progression)
         {
             itemDefinitions = definitions;
+            runProgression = progression;
         }
 #endif
 
@@ -62,7 +68,18 @@ namespace Titanhold.Session
                 return;
             }
 
-            Runtime = new GameSessionRuntime(itemDefinitions);
+            if (runProgression == null || !runProgression.IsValid)
+            {
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} requires a valid run progression definition.",
+                    this);
+                enabled = false;
+                return;
+            }
+
+            Runtime = new GameSessionRuntime(
+                itemDefinitions,
+                runExperienceCurve: runProgression.BuildCurve());
             activeHost = this;
             DontDestroyOnLoad(gameObject);
         }

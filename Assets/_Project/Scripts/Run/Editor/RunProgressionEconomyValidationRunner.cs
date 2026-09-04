@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Titanhold.Combat;
 using Titanhold.Progression;
 using Titanhold.Session;
 using UnityEditor;
@@ -14,6 +16,8 @@ namespace Titanhold.Run.Editor
             try
             {
                 ValidateRunProgression();
+                ValidateProgressionDefinition();
+                ValidateCombatExperienceRouting();
                 ValidateAccountCrystals();
                 ValidateConclusionRewards();
                 Debug.Log("Run Progression Economy validation passed.");
@@ -22,6 +26,199 @@ namespace Titanhold.Run.Editor
             {
                 Debug.LogError(
                     $"Run Progression Economy validation failed: {exception}");
+            }
+        }
+
+        private static void ValidateCombatExperienceRouting()
+        {
+            GameObject player = null;
+            GameObject adapterObject = null;
+            GameObject firstEnemy = null;
+            GameObject secondEnemy = null;
+            GameObject rejectedEnemy = null;
+            try
+            {
+                player = new GameObject("RunProgressionValidation_Player");
+                PlayerInventory inventory =
+                    player.AddComponent<PlayerInventory>();
+                PlayerEquipmentRuntime equipment =
+                    player.AddComponent<PlayerEquipmentRuntime>();
+                PlayerExperience experience =
+                    player.AddComponent<PlayerExperience>();
+                PlayerGold gold = player.AddComponent<PlayerGold>();
+                PlayerCombat combat = player.AddComponent<PlayerCombat>();
+                inventory.EnsureInitialized();
+                equipment.SetPlayerInventory(inventory);
+
+                RunSceneParticipantBinding binding = new(
+                    "player:validation",
+                    "character:validation",
+                    inventory,
+                    equipment,
+                    experience,
+                    gold);
+                RunProgressionService progression = new(
+                    new RunExperienceCurve(new[] { 20, 50 }));
+                Assert(progression.TryRegisterParticipant(
+                           new RunParticipantIdentity(
+                               binding.PlayerId,
+                               binding.CharacterId)).Success,
+                    "Could not prepare combat experience participant.");
+
+                adapterObject = new GameObject(
+                    "RunProgressionValidation_Adapter");
+                RunProgressionCombatAdapter adapter =
+                    adapterObject.AddComponent<RunProgressionCombatAdapter>();
+                Assert(adapter.TryInitialize(
+                           progression,
+                           new[] { binding },
+                           sessionBacked: false),
+                    "Could not initialize combat experience adapter.");
+
+                firstEnemy = CreateRewardTarget(
+                    "RunProgressionValidation_EnemyOne",
+                    10,
+                    out RunProgressionValidationDamageable firstTarget);
+                secondEnemy = CreateRewardTarget(
+                    "RunProgressionValidation_EnemyTwo",
+                    15,
+                    out RunProgressionValidationDamageable secondTarget);
+
+                CombatActorReference playerActor = combat.ActorReference;
+                CombatExecutionId executionId = CombatExecutionId.New();
+                CombatExecutionReport report = new(
+                    executionId,
+                    new List<DamageTargetResolution>
+                    {
+                        CreateKilledResolution(
+                            firstTarget,
+                            executionId,
+                            playerActor),
+                        CreateKilledResolution(
+                            secondTarget,
+                            executionId,
+                            playerActor)
+                    });
+                Assert(adapter.TryApplyReport(
+                           binding.PlayerId,
+                           playerActor,
+                           report,
+                           out RunProgressionResult award) &&
+                       award.Success &&
+                       award.ExperienceApplied == 25 &&
+                       award.LevelsGained == 1 &&
+                       award.State.Level == 2 &&
+                       award.State.Experience == 5,
+                    "Combat report did not award summed run experience.");
+                Assert(!adapter.TryApplyReport(
+                           binding.PlayerId,
+                           playerActor,
+                           report,
+                           out _),
+                    "Combat report awarded experience more than once.");
+
+                rejectedEnemy = CreateRewardTarget(
+                    "RunProgressionValidation_RejectedEnemy",
+                    30,
+                    out RunProgressionValidationDamageable rejectedTarget);
+                CombatActorReference otherActor = new(
+                    "player:other-combat-actor",
+                    CombatActorKind.Player);
+                CombatExecutionId rejectedExecution = CombatExecutionId.New();
+                CombatExecutionReport rejectedReport = new(
+                    rejectedExecution,
+                    new[]
+                    {
+                        CreateKilledResolution(
+                            rejectedTarget,
+                            rejectedExecution,
+                            otherActor)
+                    });
+                Assert(!adapter.TryApplyReport(
+                           binding.PlayerId,
+                           playerActor,
+                           rejectedReport,
+                           out _) &&
+                       award.State.Level == 2 &&
+                       award.State.Experience == 5,
+                    "Combat experience accepted a mismatched combat actor.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(adapterObject);
+                UnityEngine.Object.DestroyImmediate(player);
+                UnityEngine.Object.DestroyImmediate(firstEnemy);
+                UnityEngine.Object.DestroyImmediate(secondEnemy);
+                UnityEngine.Object.DestroyImmediate(rejectedEnemy);
+            }
+        }
+
+        private static GameObject CreateRewardTarget(
+            string objectName,
+            int experienceAmount,
+            out RunProgressionValidationDamageable damageable)
+        {
+            GameObject target = new(objectName);
+            EnemyRewardSource reward =
+                target.AddComponent<EnemyRewardSource>();
+            reward.ConfigureForEditor(experienceAmount);
+            damageable =
+                target.AddComponent<RunProgressionValidationDamageable>();
+            return target;
+        }
+
+        private static DamageTargetResolution CreateKilledResolution(
+            RunProgressionValidationDamageable target,
+            CombatExecutionId executionId,
+            CombatActorReference source)
+        {
+            DamageRequest request = new(
+                executionId,
+                source,
+                rawDamage: 10f,
+                DamageCause.BasicAttack);
+            DeathContext death = new(request, appliedDamage: 10f);
+            DamageResult result = DamageResult.Applied(
+                request,
+                healthBefore: 10f,
+                healthAfter: 0f,
+                appliedDamage: 10f,
+                killed: true,
+                death);
+            return new DamageTargetResolution(target, result);
+        }
+
+        private static void ValidateProgressionDefinition()
+        {
+            RunProgressionDefinition definition =
+                ScriptableObject.CreateInstance<RunProgressionDefinition>();
+            try
+            {
+                definition.ConfigureForEditor(
+                    configuredMaximumLevel: 4,
+                    configuredBaseExperience: 100,
+                    configuredExperienceIncrease: 50);
+                Assert(definition.TryBuildCurve(
+                           out RunExperienceCurve curve,
+                           out string error) &&
+                       string.IsNullOrEmpty(error) &&
+                       curve.MaximumLevel == 4 &&
+                       curve.TryGetRequirement(1, out int first) &&
+                       first == 100 &&
+                       curve.TryGetRequirement(3, out int third) &&
+                       third == 200,
+                    "Run progression definition did not build its configured curve.");
+
+                definition.ConfigureForEditor(
+                    configuredMaximumLevel: 1,
+                    configuredBaseExperience: 100,
+                    configuredExperienceIncrease: 50);
+                Assert(!definition.TryBuildCurve(out _, out _),
+                    "Run progression definition accepted an invalid maximum level.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(definition);
             }
         }
 
@@ -144,6 +341,15 @@ namespace Titanhold.Run.Editor
         {
             if (!condition)
                 throw new InvalidOperationException(message);
+        }
+    }
+
+    public sealed class RunProgressionValidationDamageable :
+        MonoBehaviour,
+        global::IDamageable
+    {
+        public void TakeDamage(float damage)
+        {
         }
     }
 }
