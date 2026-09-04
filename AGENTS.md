@@ -69,8 +69,11 @@ gold by stable item-definition ids. The item-definition catalog and persistent
 session owner are connected in `HubScene`; Hub-to-run scene loading and
 participant restoration are wired. A completed victory returns through the
 session layer to the Hub, where the last result is shown and another run can be
-started. Defeat uses the same result and return path. Abandoned-run exit is a
-later stage.
+started. Defeat uses the same result and return path. The local pause menu can
+mark a run `Abandoned`; it records only fully completed rounds and returns over
+the same retryable session boundary. Solo pause stops world time, while local
+input suppression remains separate so a future co-op pause need not stop the
+shared simulation.
 
 Run participants enter exploration with full health and class resource after
 their snapshot, equipment modifiers, and derived stats have been applied.
@@ -114,6 +117,8 @@ Current run assets:
 - `Prefabs/Run/AssaultReturnPortal.prefab` — intermission return portal;
 - `Prefabs/UI/RunCompletionUI.prefab` — final victory, confirmation, and
   completed-state UI;
+- `Prefabs/UI/RunPauseUI.prefab` — solo pause, resume, and confirmed
+  abandoned-run exit UI;
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
 - `ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset` — prototype boss encounter;
 - `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
@@ -190,6 +195,8 @@ Vertical Slice Wiring validation when encounter rewards change. Use Boss
 Encounter Wiring validation when the final-round prefab, definition, or scene
 reference changes. Use Run Completion UI Wiring validation and the Run Flow Play
 Mode smoke test when final-intermission UI or completion commands change.
+Use Run Pause Wiring validation and the Run Flow Play Mode smoke test when pause
+or voluntary run-exit behavior changes.
 
 Report concisely: changed files/behavior, validation results, remaining
 warnings/errors, unrelated dirty files, intentionally untouched systems/assets,

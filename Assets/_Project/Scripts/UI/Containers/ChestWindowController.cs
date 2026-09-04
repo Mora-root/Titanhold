@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 namespace Titanhold.UI.Containers
 {
-    public sealed class ChestWindowController : MonoBehaviour
+    public sealed class ChestWindowController : MonoBehaviour,
+        IEscapePriorityWindow
     {
         [SerializeField] private ItemContainerWindow chestWindow;
         [SerializeField] private GameObject chestWindowRoot;

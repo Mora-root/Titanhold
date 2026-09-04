@@ -15,6 +15,7 @@ public class PlayerInput : MonoBehaviour
     public bool IsHolding { get; private set; }
     public bool Skill1Pressed { get; private set; }
     public PlayerInputIntent CurrentIntent { get; private set; }
+    public bool GameplayInputEnabled { get; private set; } = true;
 
     private Camera cam;
     private float holdTimer;
@@ -41,6 +42,13 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
+        if (!GameplayInputEnabled)
+        {
+            ClearFrameInput();
+            CurrentIntent = PlayerInputIntent.Empty;
+            return;
+        }
+
         if (itemDragContext != null && itemDragContext.IsDragging)
         {
             ClearFrameInput();
@@ -152,6 +160,16 @@ public class PlayerInput : MonoBehaviour
     {
         HasPosition = false;
         RefreshCurrentIntent();
+    }
+
+    public void SetGameplayInputEnabled(bool enabled)
+    {
+        GameplayInputEnabled = enabled;
+        if (enabled)
+            return;
+
+        ClearFrameInput();
+        CurrentIntent = PlayerInputIntent.Empty;
     }
 
     private void ClearFrameInput()

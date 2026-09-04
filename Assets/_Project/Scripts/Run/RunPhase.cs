@@ -9,6 +9,7 @@ namespace Titanhold.Run
         Intermission,
         ReturningToExploration,
         Completed,
-        Failed
+        Failed,
+        Abandoned
     }
 }

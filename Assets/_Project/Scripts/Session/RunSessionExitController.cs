@@ -21,6 +21,8 @@ namespace Titanhold.Session
         private GameSessionRuntimeHost sessionHost;
         private bool transitionInProgress;
 
+        public event Action<bool> TransitionInProgressChanged;
+
         public bool HasRequiredReferences =>
             runFlowRuntime != null &&
             completionView != null &&
@@ -29,6 +31,22 @@ namespace Titanhold.Session
         public RunCompletionView CompletionView => completionView;
         public RunSceneSessionEntryPoint SessionEntryPoint => sessionEntryPoint;
         public string HubSceneName => hubSceneName;
+        public bool IsTransitionInProgress => transitionInProgress;
+        public bool CanConcludeActiveRun
+        {
+            get
+            {
+                if (transitionInProgress || !HasRequiredReferences ||
+                    !TryResolveSessionHost())
+                {
+                    return false;
+                }
+
+                GameSessionState state = sessionHost.Runtime.GameSession.State;
+                return state.Phase == GameSessionPhase.Run &&
+                       state.ActiveRun != null;
+            }
+        }
 
 #if UNITY_EDITOR
         public void ConfigureForEditor(
@@ -69,13 +87,18 @@ namespace Titanhold.Session
 
         private void HandleReturnToHubRequested()
         {
+            TryReturnToHub();
+        }
+
+        public bool TryReturnToHub()
+        {
             if (transitionInProgress || !HasRequiredReferences)
-                return;
+                return false;
 
             if (!TryResolveSessionHost())
             {
                 Debug.LogError("Persistent session host is unavailable.", this);
-                return;
+                return false;
             }
 
             RunSessionConclusionResult result = conclusion.TryConclude(
@@ -87,12 +110,14 @@ namespace Titanhold.Session
                 Debug.LogError(
                     $"Could not conclude run: {result.Error}. {result.Detail}",
                     this);
-                return;
+                return false;
             }
 
             transitionInProgress = true;
+            TransitionInProgressChanged?.Invoke(true);
             completionView.SetReturnToHubInteractable(false);
             StartCoroutine(LoadHubScene(result.RunSessionId));
+            return true;
         }
 
         private IEnumerator LoadHubScene(string runSessionId)
@@ -126,6 +151,7 @@ namespace Titanhold.Session
             }
 
             transitionInProgress = false;
+            TransitionInProgressChanged?.Invoke(false);
             completionView.SetReturnToHubInteractable(true);
         }
 

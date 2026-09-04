@@ -1,10 +1,12 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Titanhold.UI.SectionInventory
 {
-    public sealed class InventoryWindowController : MonoBehaviour
+    public sealed class InventoryWindowController : MonoBehaviour,
+        IEscapePriorityWindow
     {
         [SerializeField] private PlayerInventoryWindow inventoryWindow;
         [SerializeField] private GameObject inventoryWindowRoot;

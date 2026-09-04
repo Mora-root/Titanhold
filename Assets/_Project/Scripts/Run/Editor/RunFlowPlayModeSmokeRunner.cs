@@ -325,6 +325,26 @@ namespace Titanhold.Run.Editor
 
                 completionSmokeRoot = ValidateRunCompletionUi();
 
+                RunPauseController pauseController =
+                    UnityEngine.Object.FindAnyObjectByType<RunPauseController>();
+                PlayerInput participantInput =
+                    playerCombat.GetComponent<PlayerInput>();
+                Assert(pauseController != null &&
+                       pauseController.HasRequiredReferences &&
+                       participantInput != null,
+                    "Run Pause wiring was not found in Play Mode.");
+                float timeScaleBeforePause = Time.timeScale;
+                Assert(pauseController.TryOpenPauseMenu() &&
+                       pauseController.View.Mode == RunPauseViewMode.Paused &&
+                       Math.Abs(Time.timeScale) <= 0.0001f &&
+                       !participantInput.GameplayInputEnabled,
+                    "Run Pause did not suspend the solo run and local input.");
+                pauseController.ResumePauseMenu();
+                Assert(!pauseController.IsPaused &&
+                       Math.Abs(Time.timeScale - timeScaleBeforePause) <= 0.0001f &&
+                       participantInput.GameplayInputEnabled,
+                    "Run Pause did not restore the run and local input.");
+
                 RunParticipantDefeatController defeatController =
                     UnityEngine.Object.FindAnyObjectByType<
                         RunParticipantDefeatController>();

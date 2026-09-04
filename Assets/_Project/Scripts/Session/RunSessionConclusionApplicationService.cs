@@ -118,18 +118,30 @@ namespace Titanhold.Session
                     return true;
 
                 case RunPhase.Failed:
-                    int completedRounds = runState.RoundNumber > 1
-                        ? runState.RoundNumber - 1
-                        : 0;
                     summary = new RunResultSummary(
                         descriptor.RunSessionId,
                         RunOutcome.Defeat,
-                        completedRounds);
+                        GetFullyCompletedRoundCount(runState));
+                    return true;
+
+                case RunPhase.Abandoned:
+                    summary = new RunResultSummary(
+                        descriptor.RunSessionId,
+                        RunOutcome.Abandoned,
+                        GetFullyCompletedRoundCount(runState));
                     return true;
 
                 default:
                     return false;
             }
+        }
+
+        private static int GetFullyCompletedRoundCount(
+            RunFlowState runState)
+        {
+            return runState.RoundNumber > 1
+                ? runState.RoundNumber - 1
+                : 0;
         }
     }
 }

@@ -85,6 +85,7 @@ namespace Titanhold.Session.Editor
                     "Rejected conclusion partially changed session state.");
 
                 ValidateDefeatConclusion(service, player);
+                ValidateAbandonedConclusion(service, player);
 
                 Debug.Log("Run Session conclusion validation passed.");
             }
@@ -170,6 +171,55 @@ namespace Titanhold.Session.Editor
                        RunOutcome.Defeat &&
                    runtime.GameSession.State.LastRunResult.CompletedRoundCount == 2,
                 $"Defeat conclusion failed: {result.Error} {result.Detail}");
+        }
+
+        private static void ValidateAbandonedConclusion(
+            RunSessionConclusionApplicationService service,
+            GameObject player)
+        {
+            GameSessionRuntime runtime = new(new EmptyResolver());
+            GameSessionCommandResult begin =
+                runtime.GameSession.TryBeginRun(
+                    new RunLaunchCommand(
+                        "difficulty:prototype",
+                        20,
+                        new[]
+                        {
+                            new RunParticipantSelection(
+                                "player:local",
+                                "character:warrior")
+                        }));
+            runtime.GameSession.TryActivateRun(begin.RunSessionId);
+
+            RunFlowService runFlow = new(
+                new RunFlowConfiguration(
+                    100f,
+                    10,
+                    0.20f,
+                    0.10f,
+                    0.10f,
+                    0.05f,
+                    regularRoundCount: 3,
+                    startingRound: 3));
+            Assert(runFlow.TryAbandonRun().Success,
+                "Could not abandon the validation run.");
+
+            RunSceneParticipantBinding binding = new(
+                "player:local",
+                "character:warrior",
+                player.GetComponent<PlayerInventory>(),
+                player.GetComponent<PlayerEquipmentRuntime>(),
+                player.GetComponent<PlayerExperience>(),
+                player.GetComponent<PlayerGold>());
+            RunSessionConclusionResult result = service.TryConclude(
+                runtime,
+                runFlow.State,
+                new[] { binding });
+            Assert(result.Success &&
+                   runtime.GameSession.State.LastRunResult.Outcome ==
+                       RunOutcome.Abandoned &&
+                   runtime.GameSession.State.LastRunResult.CompletedRoundCount == 2,
+                $"Abandoned conclusion failed: {result.Error} {result.Detail}");
         }
 
         private static GameObject CreatePlayerRuntime()

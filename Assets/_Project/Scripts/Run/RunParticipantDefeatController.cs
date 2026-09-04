@@ -76,9 +76,7 @@ namespace Titanhold.Run
 
         private void HandleParticipantDeath()
         {
-            if (!HasRequiredReferences ||
-                runFlowRuntime.State.Phase == RunPhase.Completed ||
-                runFlowRuntime.State.Phase == RunPhase.Failed)
+            if (!HasRequiredReferences || runFlowRuntime.State.IsTerminal)
             {
                 return;
             }

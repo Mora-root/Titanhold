@@ -1,10 +1,12 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Titanhold.UI.Equipment
 {
-    public sealed class CharacterWindowController : MonoBehaviour
+    public sealed class CharacterWindowController : MonoBehaviour,
+        IEscapePriorityWindow
     {
         [SerializeField] private CharacterEquipmentPanel characterPanel;
         [SerializeField] private GameObject characterWindowRoot;

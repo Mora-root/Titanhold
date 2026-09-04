@@ -25,6 +25,10 @@ namespace Titanhold.Run
         public float CurrentThreat { get; private set; }
         public float MaxThreat { get; }
         public int FinalRoundNumber { get; }
+        public bool IsTerminal =>
+            Phase == RunPhase.Completed ||
+            Phase == RunPhase.Failed ||
+            Phase == RunPhase.Abandoned;
         public bool IsThreatFull => CurrentThreat >= MaxThreat;
         public RunEncounterKind CurrentEncounterKind =>
             RoundNumber == FinalRoundNumber

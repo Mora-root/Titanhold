@@ -231,6 +231,17 @@ namespace Titanhold.Run.Editor
                 new ExplorationKillContribution(10f, 1));
             Assert(!terminalKill.Success && terminalKill.Error == RunFlowError.InvalidPhase,
                 "Terminal run accepted an exploration kill.");
+
+            RunFlowService abandonedService = CreateService();
+            RunFlowTransitionResult abandoned =
+                abandonedService.TryAbandonRun();
+            Assert(abandoned.Success &&
+                   abandonedService.State.Phase == RunPhase.Abandoned &&
+                   abandonedService.State.IsTerminal,
+                "Run abandonment transition was rejected.");
+            Assert(!abandonedService.TryAbandonRun().Success &&
+                   !abandonedService.TryFailRun().Success,
+                "Abandoned run accepted another terminal transition.");
         }
 
         private static void ValidateFinalEncounterLifecycle()

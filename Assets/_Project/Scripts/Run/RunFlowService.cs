@@ -133,10 +133,20 @@ namespace Titanhold.Run
 
         public RunFlowTransitionResult TryFailRun()
         {
-            if (State.Phase == RunPhase.Completed || State.Phase == RunPhase.Failed)
+            if (State.IsTerminal)
                 return RunFlowTransitionResult.Failed(RunFlowError.TerminalState, State.Phase);
 
             return TransitionTo(RunPhase.Failed);
+        }
+
+        public RunFlowTransitionResult TryAbandonRun()
+        {
+            if (State.IsTerminal)
+                return RunFlowTransitionResult.Failed(
+                    RunFlowError.TerminalState,
+                    State.Phase);
+
+            return TransitionTo(RunPhase.Abandoned);
         }
 
         private ExplorationKillBatchResult ApplyKillContributionTotals(float threatTotal, int instabilityTotal)

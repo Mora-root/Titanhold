@@ -1,10 +1,12 @@
 using System;
+using Titanhold.UI.Common;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Titanhold.UI.Containers
 {
-    public sealed class ItemContainerWindowController : MonoBehaviour
+    public sealed class ItemContainerWindowController : MonoBehaviour,
+        IEscapePriorityWindow
     {
         [SerializeField] private ItemContainerWindow window;
         [SerializeField] private GameObject windowRoot;
