@@ -212,7 +212,7 @@ namespace Titanhold.Run.Editor
 
                 GameObject participant = binding.Inventory.gameObject;
                 if (participant.GetComponent<PlayerCombat>() == null &&
-                    participant.GetComponent<PlayerSkillExecutor>() == null)
+                    PlayerSkillCommands.Resolve(participant) == null)
                 {
                     throw new InvalidOperationException(
                         $"Run participant '{binding.PlayerId}' has no combat execution source.");

@@ -107,9 +107,16 @@ the session enters Hub or a launch transition is cancelled.
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
 simulation time, and execution-id-checked release, finish, and cancellation.
 Resource gateways must reject spends without mutation and defer notifications
-until the enclosing command returns. The foundation is not wired to gameplay yet;
-`PlayerSkillExecutor` and `SkillData` remain the current prototype path. Ability
-effects, authored definitions, and migration of the existing skill are later stages.
+until the enclosing command returns. `AreaDamageAbilityDefinition` creates an
+immutable offensive/query snapshot, and `PlayerAbilityExecutor` releases its
+single area effect using scaled simulation time. `PlayerBrain` and combat reward
+adapters share the explicitly selected `IPlayerSkillCommands` executor.
+`SpinAbility.asset` is wired through `Player.prefab` with stable id `ability:spin`:
+20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius, and the existing
+animation's release/recovery timing. The old `PlayerSkillExecutor` component is
+disabled but retained with its `SkillData` reference. Legacy animation events do
+not authorize effects on the replacement path. Other ability forms and run-level
+ability selection remain later stages.
 
 ## Search and Project Map
 
@@ -221,6 +228,12 @@ where it provides real value.
 
 After code changes, recompile and run the narrowest relevant Unity validation.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
+Use Area Damage Ability validation for offensive snapshots, deferred resource
+notifications, area damage batching, and player executor selection.
+Use Spin Ability Wiring validation and the Spin Ability Play Mode smoke test for
+the installed Spin definition/player binding. Run the latter from saved
+`SampleScene`; it checks resource cost, pause, offensive snapshot damage, one
+multi-target report, attributed run experience, cooldown, and death cancellation.
 Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
 Mode smoke test. Use Round Enemy Scaling and its wiring validation for round

@@ -12,11 +12,12 @@ namespace Titanhold.Run
         [SerializeField] private RunFlowRuntime runFlowRuntime;
         [SerializeField] private PlayerCombat playerCombat;
         [SerializeField] private PlayerSkillExecutor playerSkillExecutor;
+        private IPlayerSkillCommands skills;
 
         public bool HasLastApplicationResult { get; private set; }
         public ExplorationKillApplicationResult LastApplicationResult { get; private set; }
         public bool HasPlayerCombatSource => playerCombat != null;
-        public bool HasPlayerSkillSource => playerSkillExecutor != null;
+        public bool HasPlayerSkillSource => skills != null;
 
         public event Action<ExplorationKillApplicationResult> KillBatchProcessed;
 
@@ -84,7 +85,7 @@ namespace Titanhold.Run
             if (killRecords.Count == 0)
                 return false;
 
-            ResolveReferences();
+            runFlowRuntime ??= GetComponent<RunFlowRuntime>();
             result = runFlowRuntime.KillApplication.TryApplyBatch(killRecords);
             LastApplicationResult = result;
             HasLastApplicationResult = true;
@@ -102,8 +103,8 @@ namespace Titanhold.Run
             if (playerCombat != null)
                 playerCombat.ExecutionResolved += HandleExecutionResolved;
 
-            if (playerSkillExecutor != null)
-                playerSkillExecutor.ExecutionResolved += HandleExecutionResolved;
+            if (skills != null)
+                skills.ExecutionResolved += HandleExecutionResolved;
         }
 
         private void Unsubscribe()
@@ -111,8 +112,8 @@ namespace Titanhold.Run
             if (playerCombat != null)
                 playerCombat.ExecutionResolved -= HandleExecutionResolved;
 
-            if (playerSkillExecutor != null)
-                playerSkillExecutor.ExecutionResolved -= HandleExecutionResolved;
+            if (skills != null)
+                skills.ExecutionResolved -= HandleExecutionResolved;
         }
 
         private void ResolveReferences()
@@ -120,6 +121,10 @@ namespace Titanhold.Run
             runFlowRuntime ??= GetComponent<RunFlowRuntime>();
             playerCombat ??= FindAnyObjectByType<PlayerCombat>();
             playerSkillExecutor ??= FindAnyObjectByType<PlayerSkillExecutor>();
+            GameObject participant = playerSkillExecutor != null
+                ? playerSkillExecutor.gameObject
+                : playerCombat != null ? playerCombat.gameObject : null;
+            skills = PlayerSkillCommands.Resolve(participant);
         }
     }
 }

@@ -28,6 +28,17 @@ public class PlayerResource : MonoBehaviour
 
     public event Action<float, float> OnResourceChanged;
 
+    private int notificationDeferralDepth;
+    private bool notificationPending;
+
+    // Enclose the entire gameplay commit so observers see both the new balance
+    // and committed ability state. Existing callers retain immediate notifications.
+    public IDisposable DeferNotifications()
+    {
+        notificationDeferralDepth++;
+        return new NotificationScope(this);
+    }
+
     private void Awake()
     {
         ResolveReferences();
@@ -127,7 +138,35 @@ public class PlayerResource : MonoBehaviour
 
     private void NotifyResourceChanged()
     {
+        if (notificationDeferralDepth > 0)
+        {
+            notificationPending = true;
+            return;
+        }
+
         OnResourceChanged?.Invoke(CurrentResource, MaxResource);
+    }
+
+    private sealed class NotificationScope : IDisposable
+    {
+        private PlayerResource owner;
+
+        public NotificationScope(PlayerResource owner) => this.owner = owner;
+
+        public void Dispose()
+        {
+            PlayerResource resource = owner;
+            owner = null;
+            if (resource == null)
+                return;
+
+            resource.notificationDeferralDepth--;
+            if (resource.notificationDeferralDepth == 0 && resource.notificationPending)
+            {
+                resource.notificationPending = false;
+                resource.NotifyResourceChanged();
+            }
+        }
     }
 
     private float GetRegenerationPerSecond()

@@ -61,14 +61,29 @@ public class PlayerAnimator : MonoBehaviour
         animator.SetTrigger(triggerName);
     }
 
+    public bool CanPlaySkill(string triggerName)
+    {
+        if (animator == null || !animator.isActiveAndEnabled ||
+            animator.runtimeAnimatorController == null || string.IsNullOrWhiteSpace(triggerName))
+            return false;
+
+        int triggerHash = Animator.StringToHash(triggerName);
+        foreach (AnimatorControllerParameter parameter in animator.parameters)
+            if (parameter.nameHash == triggerHash && parameter.type == AnimatorControllerParameterType.Trigger)
+                return true;
+        return false;
+    }
+
     public void OnSkillHit()
     {
-        skillExecutor.ApplyCurrentSkill();
+        if (skillExecutor != null && skillExecutor.isActiveAndEnabled)
+            skillExecutor.ApplyCurrentSkill();
     }
 
     public void OnSkillFinished()
     {
-        skillExecutor.FinishCurrentSkill();
+        if (skillExecutor != null && skillExecutor.isActiveAndEnabled)
+            skillExecutor.FinishCurrentSkill();
     }
 
     // Get damage

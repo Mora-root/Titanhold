@@ -9,7 +9,9 @@ public class PlayerBrain : MonoBehaviour
     public PlayerTargeting Targeting { get; private set; }
     public PlayerCombat Combat { get; private set; }
     public TargetSelection TargetSelection { get; private set; }
-    public PlayerSkillExecutor Skills { get; private set; }
+    [SerializeField] private MonoBehaviour skillExecutorOverride;
+    private IPlayerSkillCommands skills;
+    public IPlayerSkillCommands Skills => skills ??= ResolveSkillExecutor();
 
     public StateMachine StateMachine { get; private set; }
 
@@ -48,7 +50,7 @@ public class PlayerBrain : MonoBehaviour
         Movement = GetComponent<PlayerMovement>();
         Targeting = GetComponent<PlayerTargeting>();
         Combat = GetComponent<PlayerCombat>();
-        Skills = GetComponent<PlayerSkillExecutor>();
+        skills = ResolveSkillExecutor();
         TargetSelection = GetComponent<TargetSelection>();
         health = GetComponent<Health>();
         playerAnimator = GetComponentInChildren<PlayerAnimator>();
@@ -124,7 +126,7 @@ public class PlayerBrain : MonoBehaviour
         {
             PlayerSkillCommand command =
                 new PlayerSkillCommand(Skill1SlotIndex);
-            if (Combat.IsAttacking || Skills.IsUsingSkill)
+            if (Combat.IsAttacking || Skills?.IsUsingSkill == true)
             {
                 skillCommandBuffer.TryBuffer(command);
                 return;
@@ -135,7 +137,7 @@ public class PlayerBrain : MonoBehaviour
                 return;
         }
 
-        if (Skills.IsUsingSkill)
+        if (Skills?.IsUsingSkill == true)
             return;
 
         if (!Combat.IsAttacking &&
@@ -242,7 +244,7 @@ public class PlayerBrain : MonoBehaviour
 
     private bool TryExecuteSkill(PlayerSkillCommand command)
     {
-        if (!command.IsValid ||
+        if (!command.IsValid || Skills == null ||
             !Skills.TryUseSkillSlot(command.SlotIndex))
         {
             return false;
@@ -251,5 +253,16 @@ public class PlayerBrain : MonoBehaviour
         Stop();
         ChangeToSkill();
         return true;
+    }
+
+    private IPlayerSkillCommands ResolveSkillExecutor()
+    {
+        // An assigned but invalid replacement must not silently activate legacy skills.
+        if (skillExecutorOverride != null)
+            return skillExecutorOverride.gameObject == gameObject
+                ? skillExecutorOverride as IPlayerSkillCommands
+                : null;
+
+        return GetComponent<PlayerSkillExecutor>();
     }
 }

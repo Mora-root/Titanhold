@@ -278,8 +278,7 @@ namespace Titanhold.Run
 
                 GameObject participant = binding.Inventory.gameObject;
                 PlayerCombat combat = participant.GetComponent<PlayerCombat>();
-                PlayerSkillExecutor skills =
-                    participant.GetComponent<PlayerSkillExecutor>();
+                IPlayerSkillCommands skills = PlayerSkillCommands.Resolve(participant);
                 if (combat == null && skills == null)
                 {
                     Debug.LogError(
@@ -328,7 +327,7 @@ namespace Titanhold.Run
         private void AddSubscription(
             string playerId,
             CombatActorReference actor,
-            PlayerSkillExecutor skills)
+            IPlayerSkillCommands skills)
         {
             Action<CombatExecutionReport> handler = report =>
                 TryApplyReport(playerId, actor, report, out _);
@@ -370,7 +369,7 @@ namespace Titanhold.Run
         {
             public CombatSubscription(
                 PlayerCombat combat,
-                PlayerSkillExecutor skills,
+                IPlayerSkillCommands skills,
                 Action<CombatExecutionReport> handler)
             {
                 Combat = combat;
@@ -379,7 +378,7 @@ namespace Titanhold.Run
             }
 
             public PlayerCombat Combat { get; }
-            public PlayerSkillExecutor Skills { get; }
+            public IPlayerSkillCommands Skills { get; }
             public Action<CombatExecutionReport> Handler { get; }
         }
     }

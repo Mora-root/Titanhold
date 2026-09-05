@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Titanhold.Combat;
 using UnityEngine;
 
-public class PlayerSkillExecutor : MonoBehaviour
+public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
 {
     [SerializeField] private SkillData skill1;
 

@@ -16,7 +16,7 @@ public class SkillState : IState
     {
         brain.Stop();
 
-        if (!brain.Skills.IsUsingSkill)
+        if (brain.Skills?.IsUsingSkill != true)
         {
             brain.ChangeToIdle();
         }

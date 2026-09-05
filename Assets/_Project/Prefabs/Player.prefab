@@ -448,6 +448,7 @@ GameObject:
   - component: {fileID: 517744829750717205}
   - component: {fileID: 793951062184299724}
   - component: {fileID: 3091728011547008757}
+  - component: {fileID: 4637905816498117188}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -581,6 +582,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 052bdb53a38e9154e919aaaddca9a4d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBrain
+  skillExecutorOverride: {fileID: 4637905816498117188}
 --- !u!114 &6055275511963352752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -594,8 +596,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
   attackCooldown: 1
+  baseAttackAnimationDuration: 1
   attackRange: 1.4
   damage: 10
+  equipmentRuntime: {fileID: 0}
 --- !u!114 &256250069679702714
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -611,7 +615,10 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 512
+  itemDragContext: {fileID: 0}
   dragThreshold: 0.25
+  rightClickHoldThreshold: 0.3
+  rightClickDragThresholdPixels: 8
 --- !u!114 &4157807626426789497
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -638,6 +645,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 1000
+  characterStats: {fileID: 0}
+  playerExperience: {fileID: 0}
 --- !u!114 &641616322222190009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -682,6 +691,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInfo
   playerName: Player
   level: 1
+  playerExperience: {fileID: 0}
 --- !u!114 &6549624970450725680
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -697,6 +707,8 @@ MonoBehaviour:
   maxResource: 100
   startResource: 100
   regenerationPerSecond: 5
+  characterStats: {fileID: 0}
+  playerExperience: {fileID: 0}
 --- !u!114 &3415626515812812996
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -730,7 +742,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1245050983247841845}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6dd3261f114bf6f47b96c31703a79d8a, type: 3}
   m_Name: 
@@ -777,6 +789,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e475f755ec46fda478193ac10cc5a72b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  ownerId: Player
   equipmentCapacity: 24
   consumableCapacity: 24
   trophyCapacity: 24
@@ -810,6 +823,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EquipmentStatsBinder
   equipmentRuntime: {fileID: 793951062184299724}
   characterStats: {fileID: 1468254328002215119}
+--- !u!114 &4637905816498117188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7be7c3d65cd26fc4d8ae395c7704deb0, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerAbilityExecutor
+  skill1: {fileID: 11400000, guid: 29500030244fb3641a43e9aaf7fddb5c, type: 2}
 --- !u!1 &1324046130192809902
 GameObject:
   m_ObjectHideFlags: 0
