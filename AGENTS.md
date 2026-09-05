@@ -103,6 +103,14 @@ the account crystal wallet. It creates the roster from the validated launch
 participants, retains it through run/Hub transitions, and clears it only after
 the session enters Hub or a launch transition is cancelled.
 
+`Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
+abilities, with actor-local cooldowns, immutable execution snapshots, explicit
+simulation time, and execution-id-checked release, finish, and cancellation.
+Resource gateways must reject spends without mutation and defer notifications
+until the enclosing command returns. The foundation is not wired to gameplay yet;
+`PlayerSkillExecutor` and `SkillData` remain the current prototype path. Ability
+effects, authored definitions, and migration of the existing skill are later stages.
+
 ## Search and Project Map
 
 - Start in the smallest relevant project-owned folder and use exact names with
@@ -212,6 +220,7 @@ where it provides real value.
 ## Validation and Handoff
 
 After code changes, recompile and run the narrowest relevant Unity validation.
+Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use the Console/MCP and `Tools/Titanhold/...` validators. Current relevant tools
 include assault arena wiring, assault target selection, and the Run Flow Play
 Mode smoke test. Use Round Enemy Scaling and its wiring validation for round
