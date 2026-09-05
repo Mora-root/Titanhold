@@ -41,6 +41,47 @@ namespace Titanhold.Session
                     descriptor.RunSessionId);
             }
 
+            if (runtime.TryGetSettledRunResult(
+                    descriptor.RunSessionId,
+                    out RunResultSummary settledResult))
+            {
+                if (settledResult.Outcome != summary.Outcome ||
+                    settledResult.CompletedRoundCount !=
+                        summary.CompletedRoundCount)
+                {
+                    return RunSessionConclusionResult.Failed(
+                        RunSessionConclusionError.RewardSettlementFailed,
+                        "The settled result does not match the current terminal run state.",
+                        descriptor.RunSessionId);
+                }
+
+                GameSessionCommandResult retryConclusion =
+                    runtime.GameSession.TryConcludeRun(settledResult);
+                if (!retryConclusion.Success)
+                {
+                    return RunSessionConclusionResult.Failed(
+                        RunSessionConclusionError.SessionConclusionFailed,
+                        retryConclusion.Error.ToString(),
+                        descriptor.RunSessionId);
+                }
+
+                return RunSessionConclusionResult.Succeeded(
+                    descriptor.RunSessionId,
+                    settledResult);
+            }
+
+            RunConclusionRewardResult rewards =
+                runtime.ConclusionRewards.Calculate(
+                    summary,
+                    descriptor.DifficultyId);
+            if (!rewards.Success)
+            {
+                return RunSessionConclusionResult.Failed(
+                    RunSessionConclusionError.RewardCalculationFailed,
+                    rewards.Error.ToString(),
+                    descriptor.RunSessionId);
+            }
+
             if (!RunSceneParticipantBindingResolver.TryResolve(
                     descriptor,
                     bindings,
@@ -72,7 +113,30 @@ namespace Titanhold.Session
                         descriptor.RunSessionId);
                 }
 
-                stagedSnapshots.Add(capture.Snapshot);
+                if (!binding.Experience.TryCalculateStateAfterGain(
+                        rewards.CharacterExperience,
+                        out int rewardedLevel,
+                        out int rewardedExperience))
+                {
+                    return RunSessionConclusionResult.Failed(
+                        RunSessionConclusionError.CharacterRewardFailed,
+                        binding.CharacterId,
+                        descriptor.RunSessionId);
+                }
+
+                stagedSnapshots.Add(
+                    capture.Snapshot.WithProgression(
+                        rewardedLevel,
+                        rewardedExperience));
+            }
+
+            if (rewards.Crystals > 0 &&
+                !runtime.AccountCrystals.CanAdd(rewards.Crystals))
+            {
+                return RunSessionConclusionResult.Failed(
+                    RunSessionConclusionError.CrystalRewardFailed,
+                    "The account crystal balance would overflow.",
+                    descriptor.RunSessionId);
             }
 
             if (!runtime.TryStoreCharacterSnapshots(
@@ -85,8 +149,29 @@ namespace Titanhold.Session
                     descriptor.RunSessionId);
             }
 
+            if (rewards.Crystals > 0 &&
+                !runtime.AccountCrystals.TryAdd(rewards.Crystals).Success)
+            {
+                return RunSessionConclusionResult.Failed(
+                    RunSessionConclusionError.CrystalRewardFailed,
+                    runSessionId: descriptor.RunSessionId);
+            }
+
+            RunResultSummary rewardedSummary = new(
+                summary.RunSessionId,
+                summary.Outcome,
+                summary.CompletedRoundCount,
+                rewards.CharacterExperience,
+                rewards.Crystals);
+            if (!runtime.TryRecordSettledRunResult(rewardedSummary))
+            {
+                return RunSessionConclusionResult.Failed(
+                    RunSessionConclusionError.RewardSettlementFailed,
+                    runSessionId: descriptor.RunSessionId);
+            }
+
             GameSessionCommandResult conclusion =
-                runtime.GameSession.TryConcludeRun(summary);
+                runtime.GameSession.TryConcludeRun(rewardedSummary);
             if (!conclusion.Success)
             {
                 return RunSessionConclusionResult.Failed(
@@ -96,7 +181,8 @@ namespace Titanhold.Session
             }
 
             return RunSessionConclusionResult.Succeeded(
-                descriptor.RunSessionId);
+                descriptor.RunSessionId,
+                rewardedSummary);
         }
 
         private static bool TryCreateResultSummary(

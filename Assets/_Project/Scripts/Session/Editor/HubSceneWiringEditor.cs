@@ -23,6 +23,8 @@ namespace Titanhold.Session.Editor
             "Assets/_Project/ScriptableObjects/Items/ItemDefinitionCatalog.asset";
         private const string RunProgressionPath =
             "Assets/_Project/ScriptableObjects/Run/RunProgression_Prototype.asset";
+        private const string ConclusionRewardsPath =
+            "Assets/_Project/ScriptableObjects/Run/RunConclusionRewards_Prototype.asset";
 
         private static readonly Color BackgroundColor =
             new(0.018f, 0.025f, 0.038f, 1f);
@@ -66,12 +68,22 @@ namespace Titanhold.Session.Editor
                         "A valid Run Progression Definition is required.");
                 }
 
+                RunConclusionRewardDefinition conclusionRewards =
+                    AssetDatabase.LoadAssetAtPath<
+                        RunConclusionRewardDefinition>(ConclusionRewardsPath);
+                if (conclusionRewards == null || !conclusionRewards.IsValid)
+                {
+                    throw new InvalidOperationException(
+                        "A valid Run Conclusion Reward Definition is required.");
+                }
+
                 Scene scene = EditorSceneManager.NewScene(
                     NewSceneSetup.EmptyScene,
                     NewSceneMode.Single);
                 GameSessionRuntimeHost sessionHost = CreateSessionRoot(
                     catalog,
-                    runProgression);
+                    runProgression,
+                    conclusionRewards);
                 CreateHubCamera();
                 HubRunPreparationView view = CreateHubUi(sessionHost);
                 CreateHubSessionEntryPoint(view);
@@ -143,6 +155,48 @@ namespace Titanhold.Session.Editor
             }
         }
 
+        [MenuItem("Tools/Titanhold/Install Run Conclusion Reward Wiring")]
+        public static void InstallConclusionRewardWiring()
+        {
+            try
+            {
+                RequireEditMode("conclusion reward wiring installation");
+                RequireCleanOpenScene();
+                RunConclusionRewardDefinition rewards =
+                    CreateOrUpdateConclusionRewardDefinition();
+                Scene scene = EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+                GameSessionRuntimeHost host =
+                    UnityEngine.Object.FindAnyObjectByType<
+                        GameSessionRuntimeHost>(FindObjectsInactive.Include);
+                if (host == null || host.ItemDefinitions == null ||
+                    host.RunProgression == null)
+                {
+                    throw new InvalidOperationException(
+                        "Hub session host wiring is incomplete.");
+                }
+
+                host.ConfigureForEditor(
+                    host.ItemDefinitions,
+                    host.RunProgression,
+                    rewards);
+                EditorUtility.SetDirty(host);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene))
+                    throw new InvalidOperationException("Could not save Hub scene.");
+
+                AssetDatabase.SaveAssets();
+                ValidateInternal();
+                Debug.Log("Run conclusion reward wiring installed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    $"Run conclusion reward wiring installation failed: {exception}");
+            }
+        }
+
         [MenuItem("Tools/Titanhold/Validate Run Preparation Hub Scene")]
         public static void Validate()
         {
@@ -161,15 +215,53 @@ namespace Titanhold.Session.Editor
 
         private static GameSessionRuntimeHost CreateSessionRoot(
             ItemDefinitionCatalog catalog,
-            RunProgressionDefinition runProgression)
+            RunProgressionDefinition runProgression,
+            RunConclusionRewardDefinition conclusionRewards)
         {
             GameObject root = new("GameSessionRoot");
             GameSessionRuntimeHost host =
                 root.AddComponent<GameSessionRuntimeHost>();
-            host.ConfigureForEditor(catalog, runProgression);
+            host.ConfigureForEditor(
+                catalog,
+                runProgression,
+                conclusionRewards);
             EditorUtility.SetDirty(host);
             EditorSceneManager.MarkSceneDirty(root.scene);
             return host;
+        }
+
+        private static RunConclusionRewardDefinition
+            CreateOrUpdateConclusionRewardDefinition()
+        {
+            RunConclusionRewardDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    RunConclusionRewardDefinition>(ConclusionRewardsPath);
+            if (definition == null)
+            {
+                definition = ScriptableObject.CreateInstance<
+                    RunConclusionRewardDefinition>();
+                AssetDatabase.CreateAsset(definition, ConclusionRewardsPath);
+            }
+
+            definition.ConfigureForEditor(
+                experiencePerRound: 100,
+                crystalsPerRound: 5,
+                victoryExperienceBonus: 200,
+                configuredVictoryCrystalBonus: 10,
+                difficulties: new[]
+                {
+                    new RunDifficultyRewardDefinition(
+                        "difficulty:prototype",
+                        100)
+                });
+            EditorUtility.SetDirty(definition);
+            if (!definition.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Prototype conclusion reward definition is invalid.");
+            }
+
+            return definition;
         }
 
         private static HubRunPreparationView CreateHubUi(
@@ -593,6 +685,13 @@ namespace Titanhold.Session.Editor
             {
                 throw new InvalidOperationException(
                     "Session root has no valid run progression reference.");
+            }
+
+            if (host.ConclusionRewards == null ||
+                !host.ConclusionRewards.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Session root has no valid conclusion reward reference.");
             }
 
             Canvas canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>(

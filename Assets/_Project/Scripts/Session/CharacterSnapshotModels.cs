@@ -137,6 +137,20 @@ namespace Titanhold.Session
         public IReadOnlyList<EquipmentSlotSnapshot> EquipmentSlots =>
             Array.AsReadOnly(equipmentSlots ?? Array.Empty<EquipmentSlotSnapshot>());
 
+        public CharacterSnapshot WithProgression(
+            int updatedLevel,
+            int updatedExperience)
+        {
+            return new CharacterSnapshot(
+                characterId,
+                updatedLevel,
+                updatedExperience,
+                gold,
+                InventorySlots,
+                EquipmentSlots,
+                schemaVersion);
+        }
+
         private static T[] Copy<T>(IReadOnlyList<T> source)
         {
             int count = source?.Count ?? 0;

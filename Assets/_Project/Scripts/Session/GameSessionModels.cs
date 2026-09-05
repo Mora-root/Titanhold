@@ -76,19 +76,27 @@ namespace Titanhold.Session
         public RunResultSummary(
             string runSessionId,
             RunOutcome outcome,
-            int completedRoundCount)
+            int completedRoundCount,
+            int characterExperienceAwarded = 0,
+            int crystalsAwarded = 0)
         {
             RunSessionId = runSessionId?.Trim() ?? string.Empty;
             Outcome = outcome;
             CompletedRoundCount = completedRoundCount;
+            CharacterExperienceAwarded = characterExperienceAwarded;
+            CrystalsAwarded = crystalsAwarded;
         }
 
         public string RunSessionId { get; }
         public RunOutcome Outcome { get; }
         public int CompletedRoundCount { get; }
+        public int CharacterExperienceAwarded { get; }
+        public int CrystalsAwarded { get; }
         public bool IsValid =>
             !string.IsNullOrWhiteSpace(RunSessionId) &&
             CompletedRoundCount >= 0 &&
+            CharacterExperienceAwarded >= 0 &&
+            CrystalsAwarded >= 0 &&
             Enum.IsDefined(typeof(RunOutcome), Outcome);
     }
 

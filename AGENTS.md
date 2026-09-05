@@ -84,6 +84,9 @@ belong to one participant in one active run. Character experience is awarded
 only from the concluded run result. Crystals are permanent account currency;
 regular crafting reagents remain stackable inventory items. Conclusion rewards
 are deterministic from completed rounds, difficulty, and the victory bonus.
+The first successful conclusion attempt applies character experience to every
+participant snapshot and crystals once to the account wallet. Its settled result
+survives a failed Hub load so retrying the transition cannot award twice.
 Current `PlayerGold` remains a transitional prototype path and must not define
 the durable save format. `EnemyRewardSource` is data-only; player-attributed
 `CombatExecutionReport` batches award its experience through the scene's
@@ -144,6 +147,8 @@ Current run assets:
 - `ScriptableObjects/Run/AssaultWave_Prototype.asset` — prototype wave;
 - `ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset` — prototype boss encounter;
 - `ScriptableObjects/Run/AssaultReward_Prototype.asset` — prototype chest loot;
+- `ScriptableObjects/Run/RunConclusionRewards_Prototype.asset` — deterministic
+  character-experience and account-crystal rewards by outcome and difficulty;
 - `ScriptableObjects/Items/ItemDefinitionCatalog.asset` — runtime lookup for
   persisted item-definition ids;
 - `Prefabs/Old/` — legacy only.

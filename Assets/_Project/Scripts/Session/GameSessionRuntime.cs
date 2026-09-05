@@ -10,17 +10,21 @@ namespace Titanhold.Session
         private readonly Dictionary<string, CharacterSnapshot>
             characterSnapshots = new(StringComparer.Ordinal);
         private readonly RunExperienceCurve runExperienceCurve;
+        private RunResultSummary settledRunResult;
         private readonly int maximumParticipantCount;
         private string activeProgressionRunSessionId = string.Empty;
 
         public GameSessionRuntime(
             IItemDefinitionResolver itemDefinitions,
+            RunConclusionRewardPolicy conclusionRewards,
             int maximumParticipantCount =
                 GameSessionService.DefaultMaximumParticipantCount,
             RunExperienceCurve runExperienceCurve = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
+            ConclusionRewards = conclusionRewards ??
+                throw new ArgumentNullException(nameof(conclusionRewards));
             this.maximumParticipantCount = maximumParticipantCount;
             this.runExperienceCurve = runExperienceCurve ??
                 new RunExperienceCurve(Array.Empty<int>());
@@ -33,6 +37,7 @@ namespace Titanhold.Session
         public GameSessionService GameSession { get; }
         public CharacterSnapshotService CharacterSnapshots { get; }
         public AccountCrystalWallet AccountCrystals { get; }
+        public RunConclusionRewardPolicy ConclusionRewards { get; }
         public IItemDefinitionResolver ItemDefinitions { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
@@ -177,6 +182,50 @@ namespace Titanhold.Session
             return true;
         }
 
+        internal bool TryGetSettledRunResult(
+            string runSessionId,
+            out RunResultSummary result)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            result = settledRunResult;
+            return result != null &&
+                   string.Equals(
+                       result.RunSessionId,
+                       normalizedId,
+                       StringComparison.Ordinal);
+        }
+
+        internal bool TryRecordSettledRunResult(RunResultSummary result)
+        {
+            if (result == null || !result.IsValid ||
+                GameSession.State.ActiveRun == null ||
+                !string.Equals(
+                    result.RunSessionId,
+                    GameSession.State.ActiveRun.RunSessionId,
+                    StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (settledRunResult != null)
+            {
+                return string.Equals(
+                           settledRunResult.RunSessionId,
+                           result.RunSessionId,
+                           StringComparison.Ordinal) &&
+                       settledRunResult.Outcome == result.Outcome &&
+                       settledRunResult.CompletedRoundCount ==
+                           result.CompletedRoundCount &&
+                       settledRunResult.CharacterExperienceAwarded ==
+                           result.CharacterExperienceAwarded &&
+                       settledRunResult.CrystalsAwarded ==
+                           result.CrystalsAwarded;
+            }
+
+            settledRunResult = result;
+            return true;
+        }
+
         private void HandleGameSessionStateChanged(GameSessionState state)
         {
             if (state == null)
@@ -184,6 +233,7 @@ namespace Titanhold.Session
 
             if (state.Phase == GameSessionPhase.TransitionToRun)
             {
+                settledRunResult = null;
                 CreateRunProgression(state.ActiveRun);
                 return;
             }

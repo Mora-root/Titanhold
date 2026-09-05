@@ -8,6 +8,8 @@ namespace Titanhold.Session
     {
         [SerializeField] private ItemDefinitionCatalog itemDefinitions;
         [SerializeField] private RunProgressionDefinition runProgression;
+        [SerializeField]
+        private RunConclusionRewardDefinition conclusionRewards;
 
         private static GameSessionRuntimeHost activeHost;
 
@@ -15,14 +17,18 @@ namespace Titanhold.Session
         public bool IsInitialized => Runtime != null;
         public ItemDefinitionCatalog ItemDefinitions => itemDefinitions;
         public RunProgressionDefinition RunProgression => runProgression;
+        public RunConclusionRewardDefinition ConclusionRewards =>
+            conclusionRewards;
 
 #if UNITY_EDITOR
         public void ConfigureForEditor(
             ItemDefinitionCatalog definitions,
-            RunProgressionDefinition progression)
+            RunProgressionDefinition progression,
+            RunConclusionRewardDefinition rewards)
         {
             itemDefinitions = definitions;
             runProgression = progression;
+            conclusionRewards = rewards;
         }
 #endif
 
@@ -77,8 +83,24 @@ namespace Titanhold.Session
                 return;
             }
 
+            RunConclusionRewardPolicy rewardPolicy = null;
+            string rewardError = "Definition reference is missing.";
+            if (conclusionRewards == null ||
+                !conclusionRewards.TryBuildPolicy(
+                    out rewardPolicy,
+                    out rewardError))
+            {
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} requires valid conclusion rewards: " +
+                    rewardError,
+                    this);
+                enabled = false;
+                return;
+            }
+
             Runtime = new GameSessionRuntime(
                 itemDefinitions,
+                rewardPolicy,
                 runExperienceCurve: runProgression.BuildCurve());
             activeHost = this;
             DontDestroyOnLoad(gameObject);

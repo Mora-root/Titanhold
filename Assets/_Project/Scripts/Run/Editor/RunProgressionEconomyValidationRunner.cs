@@ -324,12 +324,12 @@ namespace Titanhold.Run.Editor
 
         private static void ValidateConclusionRewards()
         {
-            RunConclusionRewardCalculator calculator = new(
-                new RunConclusionRewardConfiguration(
-                    characterExperiencePerCompletedRound: 100,
-                    crystalsPerCompletedRound: 5,
-                    victoryCharacterExperienceBonus: 200,
-                    victoryCrystalBonus: 10));
+            RunConclusionRewardConfiguration configuration = new(
+                characterExperiencePerCompletedRound: 100,
+                crystalsPerCompletedRound: 5,
+                victoryCharacterExperienceBonus: 200,
+                victoryCrystalBonus: 10);
+            RunConclusionRewardCalculator calculator = new(configuration);
 
             RunConclusionRewardResult defeat = calculator.Calculate(
                 new RunResultSummary(
@@ -360,6 +360,23 @@ namespace Titanhold.Run.Editor
                    invalid.Error ==
                        RunConclusionRewardError.InvalidRunResult,
                 "Conclusion reward calculator accepted an invalid result.");
+
+            RunConclusionRewardPolicy policy = new(
+                configuration,
+                new Dictionary<string, int>
+                {
+                    { "difficulty:prototype", 100 }
+                });
+            RunConclusionRewardResult unknownDifficulty = policy.Calculate(
+                new RunResultSummary(
+                    "run:unknown-difficulty",
+                    RunOutcome.Defeat,
+                    completedRoundCount: 1),
+                "difficulty:unknown");
+            Assert(!unknownDifficulty.Success &&
+                   unknownDifficulty.Error ==
+                       RunConclusionRewardError.InvalidDifficulty,
+                "Conclusion reward policy accepted an unknown difficulty.");
         }
 
         private static void Assert(bool condition, string message)

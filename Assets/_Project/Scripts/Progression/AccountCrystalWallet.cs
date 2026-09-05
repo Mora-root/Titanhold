@@ -58,6 +58,11 @@ namespace Titanhold.Progression
 
         public event Action<int> AmountChanged;
 
+        public bool CanAdd(int amount)
+        {
+            return amount > 0 && (long)Amount + amount <= int.MaxValue;
+        }
+
         public CrystalWalletResult TryAdd(int amount)
         {
             if (amount <= 0)
@@ -68,7 +73,7 @@ namespace Titanhold.Progression
             }
 
             long updated = (long)Amount + amount;
-            if (updated > int.MaxValue)
+            if (!CanAdd(amount))
             {
                 return CrystalWalletResult.Failed(
                     CrystalWalletError.BalanceOverflow,

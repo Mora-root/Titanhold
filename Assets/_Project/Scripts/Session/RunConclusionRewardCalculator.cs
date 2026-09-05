@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Titanhold.Session
 {
@@ -52,6 +53,7 @@ namespace Titanhold.Session
     {
         None,
         InvalidRunResult,
+        InvalidDifficulty,
         InvalidDifficultyMultiplier,
         RewardOverflow
     }
@@ -164,6 +166,57 @@ namespace Titanhold.Session
                 return long.MaxValue;
 
             return value * multiplierPercent / 100L;
+        }
+    }
+
+    public sealed class RunConclusionRewardPolicy
+    {
+        private readonly RunConclusionRewardCalculator calculator;
+        private readonly Dictionary<string, int> difficultyMultipliers;
+
+        public RunConclusionRewardPolicy(
+            RunConclusionRewardConfiguration configuration,
+            IReadOnlyDictionary<string, int> configuredDifficultyMultipliers)
+        {
+            calculator = new RunConclusionRewardCalculator(configuration);
+            if (configuredDifficultyMultipliers == null ||
+                configuredDifficultyMultipliers.Count == 0)
+            {
+                throw new ArgumentException(
+                    "At least one difficulty multiplier is required.",
+                    nameof(configuredDifficultyMultipliers));
+            }
+
+            difficultyMultipliers = new Dictionary<string, int>(
+                StringComparer.Ordinal);
+            foreach (KeyValuePair<string, int> entry in
+                     configuredDifficultyMultipliers)
+            {
+                string difficultyId = entry.Key?.Trim() ?? string.Empty;
+                if (difficultyId.Length == 0 || entry.Value <= 0 ||
+                    !difficultyMultipliers.TryAdd(difficultyId, entry.Value))
+                {
+                    throw new ArgumentException(
+                        "Difficulty reward multipliers are invalid.",
+                        nameof(configuredDifficultyMultipliers));
+                }
+            }
+        }
+
+        public RunConclusionRewardResult Calculate(
+            RunResultSummary summary,
+            string difficultyId)
+        {
+            string normalizedId = difficultyId?.Trim() ?? string.Empty;
+            if (!difficultyMultipliers.TryGetValue(
+                    normalizedId,
+                    out int multiplierPercent))
+            {
+                return RunConclusionRewardResult.Failed(
+                    RunConclusionRewardError.InvalidDifficulty);
+            }
+
+            return calculator.Calculate(summary, multiplierPercent);
         }
     }
 }

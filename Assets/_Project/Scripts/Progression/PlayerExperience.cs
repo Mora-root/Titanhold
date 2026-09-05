@@ -56,6 +56,36 @@ public sealed class PlayerExperience : MonoBehaviour
             OnExperienceChanged?.Invoke(currentExperience);
     }
 
+    internal bool TryCalculateStateAfterGain(
+        int amount,
+        out int resultingLevel,
+        out int resultingExperience)
+    {
+        resultingLevel = currentLevel;
+        resultingExperience = currentExperience;
+        if (amount < 0)
+            return false;
+
+        long experience = (long)currentExperience + amount;
+        int level = currentLevel;
+        while (true)
+        {
+            int required = GetExperienceToNextLevel(level);
+            if (experience < required)
+                break;
+
+            experience -= required;
+            if (level == int.MaxValue)
+                return false;
+
+            level++;
+        }
+
+        resultingLevel = level;
+        resultingExperience = (int)experience;
+        return true;
+    }
+
     private int GetExperienceToNextLevel()
     {
         return GetExperienceToNextLevel(currentLevel);

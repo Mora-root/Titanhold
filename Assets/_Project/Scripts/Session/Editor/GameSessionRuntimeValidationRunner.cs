@@ -34,6 +34,7 @@ namespace Titanhold.Session.Editor
 
                 GameSessionRuntime runtime = new(
                     catalog,
+                    CreateRewardPolicy(),
                     runExperienceCurve:
                         new RunExperienceCurve(new[] { 10, 20 }));
                 int snapshotChangeCount = 0;
@@ -264,6 +265,16 @@ namespace Titanhold.Session.Editor
                 (int)ConsumableSubtype.Potion;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return definition;
+        }
+
+        private static RunConclusionRewardPolicy CreateRewardPolicy()
+        {
+            return new RunConclusionRewardPolicy(
+                new RunConclusionRewardConfiguration(100, 5, 200, 10),
+                new System.Collections.Generic.Dictionary<string, int>
+                {
+                    { "difficulty:prototype", 100 }
+                });
         }
 
         private static void Destroy(UnityEngine.Object instance)

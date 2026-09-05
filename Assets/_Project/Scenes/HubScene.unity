@@ -3854,6 +3854,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Session.GameSessionRuntimeHost
   itemDefinitions: {fileID: 11400000, guid: 2549c8288c647bb4aaef741a36c94a80, type: 2}
   runProgression: {fileID: 11400000, guid: b84a95e48e538494f8d6f1fc8515f704, type: 2}
+  conclusionRewards: {fileID: 11400000, guid: d17864b6e8dd0e44d976291f38dfb30a, type: 2}
 --- !u!4 &2101906913
 Transform:
   m_ObjectHideFlags: 0

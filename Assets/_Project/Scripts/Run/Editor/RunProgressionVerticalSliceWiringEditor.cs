@@ -105,7 +105,10 @@ namespace Titanhold.Run.Editor
                     "Hub scene session host or item definition catalog is missing.");
             }
 
-            host.ConfigureForEditor(host.ItemDefinitions, definition);
+            host.ConfigureForEditor(
+                host.ItemDefinitions,
+                definition,
+                host.ConclusionRewards);
             EditorUtility.SetDirty(host);
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))

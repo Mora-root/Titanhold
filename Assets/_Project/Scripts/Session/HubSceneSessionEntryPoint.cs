@@ -63,7 +63,9 @@ namespace Titanhold.Session
             {
                 view?.SetStatus(
                     $"{result.Outcome.ToString().ToUpperInvariant()} • " +
-                    $"ROUNDS: {result.CompletedRoundCount}");
+                    $"ROUNDS: {result.CompletedRoundCount} • " +
+                    $"XP +{result.CharacterExperienceAwarded} • " +
+                    $"CRYSTALS +{result.CrystalsAwarded}");
             }
         }
 
