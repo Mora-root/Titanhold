@@ -10,14 +10,30 @@ namespace Titanhold.Session
             string playerId,
             string characterId,
             string startingAbilityId = "")
+            : this(
+                playerId,
+                characterId,
+                string.Empty,
+                startingAbilityId)
+        {
+        }
+
+        public RunParticipantSelection(
+            string playerId,
+            string characterId,
+            string characterArchetypeId,
+            string startingAbilityId)
         {
             PlayerId = playerId?.Trim() ?? string.Empty;
             CharacterId = characterId?.Trim() ?? string.Empty;
+            CharacterArchetypeId =
+                characterArchetypeId?.Trim() ?? string.Empty;
             StartingAbilityId = startingAbilityId?.Trim() ?? string.Empty;
         }
 
         public string PlayerId { get; }
         public string CharacterId { get; }
+        public string CharacterArchetypeId { get; }
         public string StartingAbilityId { get; }
         public bool IsValid =>
             !string.IsNullOrWhiteSpace(PlayerId) &&

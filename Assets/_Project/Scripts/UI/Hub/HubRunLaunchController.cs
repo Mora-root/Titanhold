@@ -14,6 +14,8 @@ namespace Titanhold.UI.Hub
         [SerializeField] private GameSessionRuntimeHost sessionHost;
         [SerializeField] private string playerId = "player:local";
         [SerializeField] private string characterId = "character:warrior";
+        [SerializeField]
+        private string characterArchetypeId = "archetype:warrior";
         [SerializeField] private string startingAbilityId = "ability:spin";
         [SerializeField] private string difficultyId = "difficulty:prototype";
         [SerializeField] private string runSceneName = "SampleScene";
@@ -25,6 +27,7 @@ namespace Titanhold.UI.Hub
         public GameSessionRuntimeHost SessionHost => sessionHost;
         public string PlayerId => playerId;
         public string CharacterId => characterId;
+        public string CharacterArchetypeId => characterArchetypeId;
         public string StartingAbilityId => startingAbilityId;
         public string DifficultyId => difficultyId;
         public string RunSceneName => runSceneName;
@@ -35,6 +38,7 @@ namespace Titanhold.UI.Hub
             GameSessionRuntimeHost configuredSessionHost,
             string configuredPlayerId,
             string configuredCharacterId,
+            string configuredCharacterArchetypeId,
             string configuredStartingAbilityId,
             string configuredDifficultyId,
             string configuredRunSceneName)
@@ -43,6 +47,7 @@ namespace Titanhold.UI.Hub
             sessionHost = configuredSessionHost;
             playerId = configuredPlayerId;
             characterId = configuredCharacterId;
+            characterArchetypeId = configuredCharacterArchetypeId;
             startingAbilityId = configuredStartingAbilityId;
             difficultyId = configuredDifficultyId;
             runSceneName = configuredRunSceneName;
@@ -94,6 +99,7 @@ namespace Titanhold.UI.Hub
                     new RunParticipantSelection(
                         playerId,
                         characterId,
+                        characterArchetypeId,
                         startingAbilityId)
                 });
             GameSessionCommandResult result =

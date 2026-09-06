@@ -69,6 +69,7 @@ namespace Titanhold.Session.Editor
                     host,
                     "player:local",
                     "character:warrior",
+                    "archetype:warrior",
                     SpinAbilityId,
                     "difficulty:prototype",
                     "SampleScene");
@@ -183,6 +184,7 @@ namespace Titanhold.Session.Editor
             }
 
             if (launch == null || launch.SessionHost != host ||
+                launch.CharacterArchetypeId != "archetype:warrior" ||
                 launch.StartingAbilityId != SpinAbilityId)
             {
                 throw new InvalidOperationException(

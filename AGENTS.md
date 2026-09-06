@@ -144,6 +144,14 @@ and their Hub/run-scene wiring are later stages. Inspector authoring is provided
 by `RunStartingAbilityPoolDefinition` and `RunStartingAbilityPoolCatalog`; the
 catalog cross-validates every referenced ability against the main
 `AbilityDefinitionCatalog` and never exposes a partially valid pool set.
+`RunParticipantSelection` carries an optional stable character-archetype id in
+addition to player and character-instance ids. When a participant enters a new
+session without a seeded ability but with an archetype, `GameSessionRuntime`
+resolves that archetype and creates the deterministic `choice:starting` offer;
+the UI must only present the resulting pending choice. The current Hub still
+sends both `archetype:warrior` and the transitional Spin seed, so it produces no
+pending choice and existing gameplay remains unchanged. The persistent host is
+not wired to a concrete starting-pool catalog yet.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit

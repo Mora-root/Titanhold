@@ -22,7 +22,8 @@ namespace Titanhold.Session
                 GameSessionService.DefaultMaximumParticipantCount,
             RunExperienceCurve runExperienceCurve = null,
             int runAbilitySlotCount =
-                RunAbilityLoadoutService.DefaultAbilitySlotCount)
+                RunAbilityLoadoutService.DefaultAbilitySlotCount,
+            IRunStartingAbilityPoolResolver startingAbilityPools = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
@@ -38,6 +39,7 @@ namespace Titanhold.Session
             GameSession = new GameSessionService(maximumParticipantCount);
             CharacterSnapshots = new CharacterSnapshotService();
             AccountCrystals = new AccountCrystalWallet();
+            StartingAbilityPools = startingAbilityPools;
             GameSession.StateChanged += HandleGameSessionStateChanged;
         }
 
@@ -46,6 +48,7 @@ namespace Titanhold.Session
         public AccountCrystalWallet AccountCrystals { get; }
         public RunConclusionRewardPolicy ConclusionRewards { get; }
         public IItemDefinitionResolver ItemDefinitions { get; }
+        public IRunStartingAbilityPoolResolver StartingAbilityPools { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
@@ -432,16 +435,43 @@ namespace Titanhold.Session
                     "Complete starting ability readiness could not be sealed.");
             }
 
+            RunAbilityChoiceService abilityChoices = new(abilityLoadout);
+            RunStartingAbilitySelectionService startingAbilitySelection = new(
+                abilityChoices,
+                startReadiness);
+            for (int i = 0; i < descriptor.Participants.Count; i++)
+            {
+                RunParticipantSelection participant =
+                    descriptor.Participants[i];
+                if (participant.StartingAbilityId.Length > 0 ||
+                    participant.CharacterArchetypeId.Length == 0)
+                {
+                    continue;
+                }
+
+                RunStartingAbilitySelectionResult offer =
+                    startingAbilitySelection.TryOfferStartingChoice(
+                        participant.PlayerId,
+                        RunStartingAbilitySelectionService.StartingChoiceId,
+                        participant.CharacterArchetypeId,
+                        StartingAbilityPools,
+                        CreateStartingChoiceSeed(descriptor.Seed, i));
+                if (!offer.Success)
+                {
+                    startReadiness.Dispose();
+                    throw new InvalidOperationException(
+                        $"Starting ability choice for participant " +
+                        $"'{participant.PlayerId}' could not be offered: " +
+                        $"{offer.Error}.");
+                }
+            }
+
             activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
             ActiveRunAbilityLoadout = abilityLoadout;
-            ActiveRunAbilityChoices = new RunAbilityChoiceService(
-                abilityLoadout);
+            ActiveRunAbilityChoices = abilityChoices;
             ActiveRunStartReadiness = startReadiness;
-            ActiveRunStartingAbilitySelection =
-                new RunStartingAbilitySelectionService(
-                    ActiveRunAbilityChoices,
-                    ActiveRunStartReadiness);
+            ActiveRunStartingAbilitySelection = startingAbilitySelection;
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -457,6 +487,13 @@ namespace Titanhold.Session
             ActiveRunStartingAbilitySelectionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunStartingAbilitySelection);
+        }
+
+        private static int CreateStartingChoiceSeed(
+            int runSeed,
+            int participantIndex)
+        {
+            return unchecked((runSeed * 397) ^ participantIndex);
         }
 
         private void ClearRunState()

@@ -5,6 +5,7 @@ namespace Titanhold.Run
 {
     public sealed class RunStartingAbilitySelectionService
     {
+        public const string StartingChoiceId = "choice:starting";
         public const int StartingAbilityOptionCount = 3;
 
         private readonly RunAbilityChoiceService choices;

@@ -1,4 +1,5 @@
 using System;
+using Titanhold.Combat.Abilities;
 using Titanhold.Run;
 using UnityEditor;
 using UnityEngine;
@@ -32,11 +33,14 @@ namespace Titanhold.Session.Editor
                 source.GetComponent<PlayerExperience>().AddExperience(125);
                 source.GetComponent<PlayerGold>().Add(17);
 
+                IRunStartingAbilityPoolResolver startingPools =
+                    CreateStartingPools();
                 GameSessionRuntime runtime = new(
                     catalog,
                     CreateRewardPolicy(),
                     runExperienceCurve:
-                        new RunExperienceCurve(new[] { 10, 20 }));
+                        new RunExperienceCurve(new[] { 10, 20 }),
+                    startingAbilityPools: startingPools);
                 int snapshotChangeCount = 0;
                 runtime.CharacterSnapshotChanged += (_, _) =>
                     snapshotChangeCount++;
@@ -102,6 +106,7 @@ namespace Titanhold.Session.Editor
                             new RunParticipantSelection(
                                 "player:local",
                                 "character:warrior",
+                                "archetype:warrior",
                                 "ability:spin")
                         }));
                 Assert(begin.Success &&
@@ -207,6 +212,7 @@ namespace Titanhold.Session.Editor
                                 new RunParticipantSelection(
                                     "player:local",
                                     "character:warrior",
+                                    "archetype:warrior",
                                     "ability:spin")
                             }));
                 RunProgressionService retainedProgression = null;
@@ -348,10 +354,14 @@ namespace Titanhold.Session.Editor
                             {
                                 new RunParticipantSelection(
                                     "player:local",
-                                    "character:warrior")
+                                    "character:warrior",
+                                    "archetype:warrior",
+                                    string.Empty)
                             }));
                 RunAbilityLoadoutService unseededLoadout = null;
                 RunParticipantAbilityState unseededAbilityState = null;
+                RunAbilityChoiceService unseededChoices = null;
+                RunAbilityChoiceState pendingStartingChoice = null;
                 RunStartReadinessService unseededReadiness = null;
                 RunStartingAbilitySelectionService unseededSelection = null;
                 Assert(unseededBegin.Success &&
@@ -368,32 +378,31 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunStartReadiness(
                            unseededBegin.RunSessionId,
                            out unseededReadiness) &&
+                       runtime.TryGetActiveRunAbilityChoices(
+                           unseededBegin.RunSessionId,
+                           out unseededChoices) &&
+                       unseededChoices.TryGetPendingChoice(
+                           "player:local",
+                           out pendingStartingChoice) &&
+                       pendingStartingChoice.ChoiceId ==
+                           RunStartingAbilitySelectionService.StartingChoiceId &&
+                       pendingStartingChoice.TargetSlotIndex ==
+                           RunStartReadinessService.StartingAbilitySlotIndex &&
+                       pendingStartingChoice.OfferedAbilityIds.Count == 3 &&
                        runtime.TryGetActiveRunStartingAbilitySelection(
                            unseededBegin.RunSessionId,
                            out unseededSelection) &&
                        !unseededReadiness.AllParticipantsConfirmed &&
                        !unseededReadiness.IsSealed,
                     "A run without a seeded starter did not wait for a choice.");
-                RunStartingAbilitySelectionResult runtimeOffer =
-                    unseededSelection.TryOfferStartingChoice(
-                        new RunStartingAbilityChoiceRequest(
-                            "player:local",
-                            "choice:starter:runtime",
-                            new[]
-                            {
-                                "ability:strike",
-                                "ability:slash",
-                                "ability:bash"
-                            },
-                            20));
                 string runtimeStarterId =
-                    runtimeOffer.Choice?.OfferedAbilityIds[0] ?? string.Empty;
+                    pendingStartingChoice.OfferedAbilityIds[0];
                 RunStartingAbilitySelectionResult runtimeSelection =
                     unseededSelection.TrySelectStartingAbility(
                         "player:local",
-                        "choice:starter:runtime",
+                        RunStartingAbilitySelectionService.StartingChoiceId,
                         runtimeStarterId);
-                Assert(runtimeOffer.Success && runtimeSelection.Success &&
+                Assert(runtimeSelection.Success &&
                        runtimeSelection.RosterSealed &&
                        unseededReadiness.IsSealed &&
                        unseededAbilityState.TryGetAbilitySlot(
@@ -498,6 +507,39 @@ namespace Titanhold.Session.Editor
                 });
         }
 
+        private static IRunStartingAbilityPoolResolver CreateStartingPools()
+        {
+            IAbilityDefinition[] definitions =
+            {
+                new TestAbilityDefinition("ability:strike"),
+                new TestAbilityDefinition("ability:slash"),
+                new TestAbilityDefinition("ability:bash")
+            };
+            Assert(AbilityDefinitionRegistry.TryCreate(
+                       definitions,
+                       out AbilityDefinitionRegistry abilityRegistry,
+                       out string abilityError),
+                $"Could not prepare starting abilities: {abilityError}");
+            Assert(RunStartingAbilityPoolRegistry.TryCreate(
+                       new[]
+                       {
+                           new RunStartingAbilityPool(
+                               "starting-pool:warrior",
+                               "archetype:warrior",
+                               new[]
+                               {
+                                   "ability:strike",
+                                   "ability:slash",
+                                   "ability:bash"
+                               })
+                       },
+                       abilityRegistry,
+                       out RunStartingAbilityPoolRegistry pools,
+                       out string poolError),
+                $"Could not prepare starting pools: {poolError}");
+            return pools;
+        }
+
         private static void Destroy(UnityEngine.Object instance)
         {
             if (instance != null)
@@ -508,6 +550,16 @@ namespace Titanhold.Session.Editor
         {
             if (!condition)
                 throw new InvalidOperationException(message);
+        }
+
+        private sealed class TestAbilityDefinition : IAbilityDefinition
+        {
+            public TestAbilityDefinition(string abilityId)
+            {
+                AbilityId = abilityId;
+            }
+
+            public string AbilityId { get; }
         }
     }
 }

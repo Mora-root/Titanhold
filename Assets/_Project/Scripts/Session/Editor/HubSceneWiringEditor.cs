@@ -151,6 +151,7 @@ namespace Titanhold.Session.Editor
                     host,
                     "player:local",
                     "character:warrior",
+                    "archetype:warrior",
                     "ability:spin",
                     "difficulty:prototype",
                     "SampleScene");
@@ -467,6 +468,7 @@ namespace Titanhold.Session.Editor
                 sessionHost,
                 "player:local",
                 "character:warrior",
+                "archetype:warrior",
                 "ability:spin",
                 "difficulty:prototype",
                 "SampleScene");
@@ -762,6 +764,8 @@ namespace Titanhold.Session.Editor
                 launchController.SessionHost != host ||
                 launchController.PlayerId != "player:local" ||
                 launchController.CharacterId != "character:warrior" ||
+                launchController.CharacterArchetypeId !=
+                    "archetype:warrior" ||
                 launchController.StartingAbilityId != "ability:spin" ||
                 launchController.DifficultyId != "difficulty:prototype" ||
                 launchController.RunSceneName != "SampleScene")
