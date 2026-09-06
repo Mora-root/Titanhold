@@ -12,20 +12,27 @@ namespace Titanhold.Session
         private readonly RunExperienceCurve runExperienceCurve;
         private RunResultSummary settledRunResult;
         private readonly int maximumParticipantCount;
-        private string activeProgressionRunSessionId = string.Empty;
+        private readonly int runAbilitySlotCount;
+        private string activeRunStateSessionId = string.Empty;
 
         public GameSessionRuntime(
             IItemDefinitionResolver itemDefinitions,
             RunConclusionRewardPolicy conclusionRewards,
             int maximumParticipantCount =
                 GameSessionService.DefaultMaximumParticipantCount,
-            RunExperienceCurve runExperienceCurve = null)
+            RunExperienceCurve runExperienceCurve = null,
+            int runAbilitySlotCount =
+                RunAbilityLoadoutService.DefaultAbilitySlotCount)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
             ConclusionRewards = conclusionRewards ??
                 throw new ArgumentNullException(nameof(conclusionRewards));
+            if (runAbilitySlotCount <= 0)
+                throw new ArgumentOutOfRangeException(nameof(runAbilitySlotCount));
+
             this.maximumParticipantCount = maximumParticipantCount;
+            this.runAbilitySlotCount = runAbilitySlotCount;
             this.runExperienceCurve = runExperienceCurve ??
                 new RunExperienceCurve(Array.Empty<int>());
             GameSession = new GameSessionService(maximumParticipantCount);
@@ -41,10 +48,13 @@ namespace Titanhold.Session
         public IItemDefinitionResolver ItemDefinitions { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
+        public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
             ActiveRunProgressionChanged;
+        public event Action<string, RunAbilityLoadoutService>
+            ActiveRunAbilityLoadoutChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -55,7 +65,7 @@ namespace Titanhold.Session
                 ActiveRunProgression == null ||
                 !string.Equals(
                     normalizedId,
-                    activeProgressionRunSessionId,
+                    activeRunStateSessionId,
                     StringComparison.Ordinal))
             {
                 progression = null;
@@ -63,6 +73,26 @@ namespace Titanhold.Session
             }
 
             progression = ActiveRunProgression;
+            return true;
+        }
+
+        public bool TryGetActiveRunAbilityLoadout(
+            string runSessionId,
+            out RunAbilityLoadoutService loadout)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunAbilityLoadout == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                loadout = null;
+                return false;
+            }
+
+            loadout = ActiveRunAbilityLoadout;
             return true;
         }
 
@@ -234,61 +264,90 @@ namespace Titanhold.Session
             if (state.Phase == GameSessionPhase.TransitionToRun)
             {
                 settledRunResult = null;
-                CreateRunProgression(state.ActiveRun);
+                CreateRunState(state.ActiveRun);
                 return;
             }
 
             if (state.Phase == GameSessionPhase.Hub)
-                ClearRunProgression();
+                ClearRunState();
         }
 
-        private void CreateRunProgression(RunSessionDescriptor descriptor)
+        private void CreateRunState(RunSessionDescriptor descriptor)
         {
             if (descriptor == null ||
                 string.IsNullOrWhiteSpace(descriptor.RunSessionId))
             {
-                ClearRunProgression();
+                ClearRunState();
                 return;
             }
 
             RunProgressionService progression = new(
                 runExperienceCurve,
                 maximumParticipantCount);
+            RunAbilityLoadoutService abilityLoadout = new(
+                runAbilitySlotCount,
+                maximumParticipantCount);
             for (int i = 0; i < descriptor.Participants.Count; i++)
             {
                 RunParticipantSelection participant =
                     descriptor.Participants[i];
+                RunParticipantIdentity identity = new(
+                    participant.PlayerId,
+                    participant.CharacterId);
                 RunProgressionResult registration =
-                    progression.TryRegisterParticipant(
-                        new RunParticipantIdentity(
-                            participant.PlayerId,
-                            participant.CharacterId));
+                    progression.TryRegisterParticipant(identity);
                 if (!registration.Success)
                 {
                     throw new InvalidOperationException(
                         "Validated run participant could not be registered " +
                         $"for progression: {registration.Error}.");
                 }
+
+                RunAbilityLoadoutResult abilityRegistration =
+                    abilityLoadout.TryRegisterParticipant(identity);
+                if (!abilityRegistration.Success)
+                {
+                    throw new InvalidOperationException(
+                        "Validated run participant could not be registered " +
+                        $"for ability loadout: {abilityRegistration.Error}.");
+                }
             }
 
-            activeProgressionRunSessionId = descriptor.RunSessionId;
+            activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
+            ActiveRunAbilityLoadout = abilityLoadout;
             ActiveRunProgressionChanged?.Invoke(
-                activeProgressionRunSessionId,
+                activeRunStateSessionId,
                 ActiveRunProgression);
+            ActiveRunAbilityLoadoutChanged?.Invoke(
+                activeRunStateSessionId,
+                ActiveRunAbilityLoadout);
         }
 
-        private void ClearRunProgression()
+        private void ClearRunState()
         {
-            if (ActiveRunProgression == null)
+            if (ActiveRunProgression == null && ActiveRunAbilityLoadout == null)
                 return;
 
-            string clearedRunSessionId = activeProgressionRunSessionId;
-            activeProgressionRunSessionId = string.Empty;
+            string clearedRunSessionId = activeRunStateSessionId;
+            activeRunStateSessionId = string.Empty;
+            bool hadProgression = ActiveRunProgression != null;
+            bool hadAbilityLoadout = ActiveRunAbilityLoadout != null;
             ActiveRunProgression = null;
-            ActiveRunProgressionChanged?.Invoke(
-                clearedRunSessionId,
-                null);
+            ActiveRunAbilityLoadout = null;
+            if (hadProgression)
+            {
+                ActiveRunProgressionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadAbilityLoadout)
+            {
+                ActiveRunAbilityLoadoutChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
         }
     }
 }

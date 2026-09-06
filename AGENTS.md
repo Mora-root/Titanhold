@@ -102,6 +102,13 @@ HUD components remain present but disabled in that scene.
 the account crystal wallet. It creates the roster from the validated launch
 participants, retains it through run/Hub transitions, and clears it only after
 the session enters Hub or a launch transition is cancelled.
+`GameSessionRuntime` also owns a separate per-run ability loadout roster with five
+slots per participant. Ability ownership and slot assignment use stable ability
+ids and explicit commands; slot replacement and movement are atomic, while an
+unassigned granted ability remains owned for the current run. The roster has the
+same retryable transition lifetime as run progression and is cleared on Hub entry
+or launch cancellation. Ability pools, level-based choices, UI, and binding the
+runtime loadout to `PlayerAbilityExecutor` are later stages.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit

@@ -125,6 +125,15 @@ namespace Titanhold.Session.Editor
                        runState.Level == 2 &&
                        runState.Experience == 5,
                     "Run transition did not create participant progression.");
+                Assert(runtime.TryGetActiveRunAbilityLoadout(
+                           begin.RunSessionId,
+                           out RunAbilityLoadoutService abilityLoadout) &&
+                       abilityLoadout.ParticipantCount == 1 &&
+                       abilityLoadout.TryGrantAndAssignAbility(
+                           "player:local",
+                           "ability:spin",
+                           0).Success,
+                    "Run transition did not create participant ability state.");
 
                 GameSessionCommandResult cancel =
                     runtime.GameSession.TryCancelRunTransition(
@@ -133,8 +142,11 @@ namespace Titanhold.Session.Editor
                        !runtime.TryGetActiveRunProgression(
                            begin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunAbilityLoadout(
+                           begin.RunSessionId,
+                           out _) &&
                        runtime.AccountCrystals.Amount == 25,
-                    "Cancelled run retained run progression or cleared account currency.");
+                    "Cancelled run retained temporary state or cleared account currency.");
 
                 GameSessionCommandResult secondBegin =
                     runtime.GameSession.TryBeginRun(
@@ -148,17 +160,25 @@ namespace Titanhold.Session.Editor
                                     "character:warrior")
                             }));
                 RunProgressionService retainedProgression = null;
+                RunAbilityLoadoutService retainedAbilityLoadout = null;
                 Assert(secondBegin.Success &&
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
-                           out retainedProgression),
-                    "Second run did not create fresh progression.");
+                           out retainedProgression) &&
+                       runtime.TryGetActiveRunAbilityLoadout(
+                           secondBegin.RunSessionId,
+                           out retainedAbilityLoadout),
+                    "Second run did not create fresh participant run state.");
                 Assert(runtime.GameSession.TryActivateRun(
                            secondBegin.RunSessionId).Success &&
                        retainedProgression.TryAddGold(
                            "player:local",
-                           40).Success,
-                    "Second run progression setup failed.");
+                           40).Success &&
+                       retainedAbilityLoadout.TryGrantAndAssignAbility(
+                           "player:local",
+                           "ability:spin",
+                           0).Success,
+                    "Second run participant state setup failed.");
 
                 RunResultSummary result = new(
                     secondBegin.RunSessionId,
@@ -170,8 +190,14 @@ namespace Titanhold.Session.Editor
                            out RunProgressionService transitionProgression) &&
                        ReferenceEquals(
                            retainedProgression,
-                           transitionProgression),
-                    "Hub transition cleared run progression before rewards could settle.");
+                           transitionProgression) &&
+                       runtime.TryGetActiveRunAbilityLoadout(
+                           secondBegin.RunSessionId,
+                           out RunAbilityLoadoutService transitionAbilityLoadout) &&
+                       ReferenceEquals(
+                           retainedAbilityLoadout,
+                           transitionAbilityLoadout),
+                    "Hub transition cleared temporary run state before rewards could settle.");
                 Assert(runtime.GameSession.TryCancelHubTransition(
                            secondBegin.RunSessionId).Success &&
                        runtime.TryGetActiveRunProgression(
@@ -179,16 +205,25 @@ namespace Titanhold.Session.Editor
                            out RunProgressionService retriedProgression) &&
                        ReferenceEquals(
                            retainedProgression,
-                           retriedProgression),
-                    "Failed Hub loading lost retryable run progression.");
+                           retriedProgression) &&
+                       runtime.TryGetActiveRunAbilityLoadout(
+                           secondBegin.RunSessionId,
+                           out RunAbilityLoadoutService retriedAbilityLoadout) &&
+                       ReferenceEquals(
+                           retainedAbilityLoadout,
+                           retriedAbilityLoadout),
+                    "Failed Hub loading lost retryable temporary run state.");
                 Assert(runtime.GameSession.TryConcludeRun(result).Success &&
                        runtime.GameSession.TryEnterHub(
                            secondBegin.RunSessionId).Success &&
                        !runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunAbilityLoadout(
+                           secondBegin.RunSessionId,
+                           out _) &&
                        runtime.AccountCrystals.Amount == 25,
-                    "Hub entry did not clear only the temporary run progression.");
+                    "Hub entry did not clear the temporary run state.");
 
                 Debug.Log("Persistent Game Session Runtime validation passed.");
             }
