@@ -167,18 +167,16 @@ Successful selection clears its presentation state; the domain service remains
 the authority for loadout assignment and readiness sealing.
 `HubStartingAbilitySelectionView` is a passive three-option Unity view. It
 renders immutable presentation data, emits only the selected option index, and
-owns no ability ids, choice rules, or session mutations. Its scene wiring is a
-later explicit asset stage.
+owns no ability ids, choice rules, or session mutations.
 `HubRunLaunchController` creates the run session first, then loads the run scene
 only after that session's start-readiness roster is sealed. Seeded Spin keeps
 the current immediate path; an unseeded participant raises a starting-choice
 request and waits without polling. `HubStartingAbilitySelectionController`
 builds the local coordinator from that session's services, presents its pending
-choice, and submits the chosen option. Concrete scene wiring remains a later
-explicit asset stage. `Install Starting Ability Selection UI` is the targeted
-editor command for that wiring; it creates a dormant three-card overlay in
-`HubScene` and has a separate read-only validator. Do not run the installer
-without explicit approval for the scene-changing stage.
+choice, and submits the chosen option. `HubScene` contains the wired dormant
+three-card overlay; the current seeded-Spin path leaves it hidden. `Install
+Starting Ability Selection UI` is the targeted idempotent editor command for
+that wiring and has a separate read-only validator.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
