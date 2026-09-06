@@ -175,7 +175,10 @@ the current immediate path; an unseeded participant raises a starting-choice
 request and waits without polling. `HubStartingAbilitySelectionController`
 builds the local coordinator from that session's services, presents its pending
 choice, and submits the chosen option. Concrete scene wiring remains a later
-explicit asset stage.
+explicit asset stage. `Install Starting Ability Selection UI` is the targeted
+editor command for that wiring; it creates a dormant three-card overlay in
+`HubScene` and has a separate read-only validator. Do not run the installer
+without explicit approval for the scene-changing stage.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
