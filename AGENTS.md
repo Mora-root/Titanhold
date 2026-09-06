@@ -160,6 +160,11 @@ resolvable options, preserves their rolled order, and maps optional
 `IAbilityPresentationDefinition` metadata into immutable view data. Missing
 presentation metadata falls back to the stable ability id; UI code must not
 reconstruct, reroll, or mutate the choice.
+`HubStartingAbilitySelectionCoordinator` retains only the currently presented
+local choice, rejects invalid or unoffered UI submissions before mutation, and
+delegates the accepted stable id to `RunStartingAbilitySelectionService`.
+Successful selection clears its presentation state; the domain service remains
+the authority for loadout assignment and readiness sealing.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit

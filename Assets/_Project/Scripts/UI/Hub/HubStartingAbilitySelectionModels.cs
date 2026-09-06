@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Titanhold.Run;
 using UnityEngine;
 
 namespace Titanhold.UI.Hub
@@ -58,5 +59,67 @@ namespace Titanhold.UI.Hub
         WrongTargetSlot,
         InvalidOptionCount,
         AbilityNotFound
+    }
+
+    public enum HubStartingAbilityCoordinationError
+    {
+        None,
+        InvalidPlayerId,
+        PendingChoiceNotFound,
+        PresentationRejected,
+        NoActiveSelection,
+        InvalidAbilityId,
+        AbilityNotOffered,
+        SelectionRejected
+    }
+
+    public readonly struct HubStartingAbilityCoordinationResult
+    {
+        private HubStartingAbilityCoordinationResult(
+            bool success,
+            HubStartingAbilityCoordinationError error,
+            HubStartingAbilitySelectionModel model,
+            HubStartingAbilityPresentationError presentationError,
+            RunStartingAbilitySelectionResult selectionResult)
+        {
+            Success = success;
+            Error = error;
+            Model = model;
+            PresentationError = presentationError;
+            SelectionResult = selectionResult;
+        }
+
+        public bool Success { get; }
+        public HubStartingAbilityCoordinationError Error { get; }
+        public HubStartingAbilitySelectionModel Model { get; }
+        public HubStartingAbilityPresentationError PresentationError { get; }
+        public RunStartingAbilitySelectionResult SelectionResult { get; }
+
+        internal static HubStartingAbilityCoordinationResult Succeeded(
+            HubStartingAbilitySelectionModel model,
+            RunStartingAbilitySelectionResult selectionResult = default)
+        {
+            return new HubStartingAbilityCoordinationResult(
+                true,
+                HubStartingAbilityCoordinationError.None,
+                model,
+                HubStartingAbilityPresentationError.None,
+                selectionResult);
+        }
+
+        internal static HubStartingAbilityCoordinationResult Failed(
+            HubStartingAbilityCoordinationError error,
+            HubStartingAbilitySelectionModel model = null,
+            HubStartingAbilityPresentationError presentationError =
+                HubStartingAbilityPresentationError.None,
+            RunStartingAbilitySelectionResult selectionResult = default)
+        {
+            return new HubStartingAbilityCoordinationResult(
+                false,
+                error,
+                model,
+                presentationError,
+                selectionResult);
+        }
     }
 }
