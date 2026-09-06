@@ -154,6 +154,12 @@ pending choice and existing gameplay remains unchanged. The persistent host is
 ready to accept an optional starting-pool catalog, rejects a mismatched or
 invalid catalog, and passes a valid resolver into the session runtime. The Hub
 scene does not reference a concrete starting-pool catalog yet.
+`HubStartingAbilitySelectionPresenter` is the UI boundary for a pending starter
+choice. It accepts only `choice:starting` targeting slot zero with exactly three
+resolvable options, preserves their rolled order, and maps optional
+`IAbilityPresentationDefinition` metadata into immutable view data. Missing
+presentation metadata falls back to the stable ability id; UI code must not
+reconstruct, reroll, or mutate the choice.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
