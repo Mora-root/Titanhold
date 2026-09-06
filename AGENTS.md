@@ -140,7 +140,10 @@ configuration when pool/archetype ids are malformed or duplicated, a pool does
 not contain exactly three unique abilities, or an ability is absent from the
 main ability-definition resolver. Abilities may intentionally be shared between
 archetypes for universal starter options. Concrete ScriptableObject pool assets
-and their Hub/run-scene wiring are later stages.
+and their Hub/run-scene wiring are later stages. Inspector authoring is provided
+by `RunStartingAbilityPoolDefinition` and `RunStartingAbilityPoolCatalog`; the
+catalog cross-validates every referenced ability against the main
+`AbilityDefinitionCatalog` and never exposes a partially valid pool set.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit

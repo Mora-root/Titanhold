@@ -14,6 +14,7 @@ namespace Titanhold.Run.Editor
             {
                 ValidateRegistryAndSelectionIntegration();
                 ValidateInvalidRegistries();
+                ValidateScriptableObjectCatalog();
                 Debug.Log("Starting Ability Pools validation passed.");
             }
             catch (Exception exception)
@@ -194,6 +195,122 @@ namespace Titanhold.Run.Editor
                 "A duplicate starting pool id was accepted.");
         }
 
+        private static void ValidateScriptableObjectCatalog()
+        {
+            AreaDamageAbilityDefinition strike = null;
+            AreaDamageAbilityDefinition slash = null;
+            AreaDamageAbilityDefinition guard = null;
+            AreaDamageAbilityDefinition bolt = null;
+            AreaDamageAbilityDefinition frost = null;
+            AreaDamageAbilityDefinition unknown = null;
+            AbilityDefinitionCatalog abilityCatalog = null;
+            RunStartingAbilityPoolDefinition warrior = null;
+            RunStartingAbilityPoolDefinition mage = null;
+            RunStartingAbilityPoolDefinition invalid = null;
+            RunStartingAbilityPoolCatalog poolCatalog = null;
+            RunProgressionDefinition unsupported = null;
+
+            try
+            {
+                strike = CreateAbilityAsset("ability:strike");
+                slash = CreateAbilityAsset("ability:slash");
+                guard = CreateAbilityAsset("ability:universal-guard");
+                bolt = CreateAbilityAsset("ability:bolt");
+                frost = CreateAbilityAsset("ability:frost");
+                unknown = CreateAbilityAsset("ability:unknown");
+                abilityCatalog = ScriptableObject.CreateInstance<
+                    AbilityDefinitionCatalog>();
+                abilityCatalog.ConfigureForEditor(
+                    new ScriptableObject[]
+                    {
+                        strike,
+                        slash,
+                        guard,
+                        bolt,
+                        frost
+                    });
+                warrior = CreatePoolAsset(
+                    "starting-pool:warrior",
+                    "archetype:warrior",
+                    strike,
+                    slash,
+                    guard);
+                mage = CreatePoolAsset(
+                    "starting-pool:mage",
+                    "archetype:mage",
+                    bolt,
+                    frost,
+                    guard);
+                poolCatalog = ScriptableObject.CreateInstance<
+                    RunStartingAbilityPoolCatalog>();
+                poolCatalog.ConfigureForEditor(
+                    abilityCatalog,
+                    new[] { warrior, mage });
+                Assert(poolCatalog.IsValid &&
+                       poolCatalog.TryResolve(
+                           "archetype:warrior",
+                           out RunStartingAbilityPool resolved) &&
+                       resolved.PoolId == "starting-pool:warrior" &&
+                       resolved.AbilityIds.Count == 3,
+                    "Valid ScriptableObject starting pools did not resolve.");
+
+                poolCatalog.ConfigureForEditor(
+                    abilityCatalog,
+                    new[] { warrior, null });
+                Assert(!poolCatalog.IsValid &&
+                       !poolCatalog.TryResolve("archetype:warrior", out _),
+                    "A null pool left a partially usable catalog.");
+
+                unsupported = ScriptableObject.CreateInstance<
+                    RunProgressionDefinition>();
+                invalid = CreatePoolAsset(
+                    "starting-pool:unsupported",
+                    "archetype:unsupported",
+                    strike,
+                    unsupported,
+                    guard);
+                poolCatalog.ConfigureForEditor(
+                    abilityCatalog,
+                    new[] { invalid });
+                Assert(!poolCatalog.IsValid,
+                    "A non-ability asset was accepted by a starting pool.");
+
+                invalid.ConfigureForEditor(
+                    "starting-pool:unknown",
+                    "archetype:unknown",
+                    new ScriptableObject[] { strike, unknown, guard });
+                poolCatalog.ConfigureForEditor(
+                    abilityCatalog,
+                    new[] { invalid });
+                Assert(!poolCatalog.IsValid,
+                    "An ability absent from the main catalog was accepted.");
+
+                abilityCatalog.ConfigureForEditor(
+                    new ScriptableObject[] { strike, strike });
+                poolCatalog.ConfigureForEditor(
+                    abilityCatalog,
+                    new[] { warrior });
+                Assert(!poolCatalog.IsValid &&
+                       !poolCatalog.TryResolve("archetype:warrior", out _),
+                    "An invalid ability catalog left starting pools usable.");
+            }
+            finally
+            {
+                Destroy(strike);
+                Destroy(slash);
+                Destroy(guard);
+                Destroy(bolt);
+                Destroy(frost);
+                Destroy(unknown);
+                Destroy(abilityCatalog);
+                Destroy(warrior);
+                Destroy(mage);
+                Destroy(invalid);
+                Destroy(poolCatalog);
+                Destroy(unsupported);
+            }
+        }
+
         private static AbilityDefinitionRegistry CreateAbilityRegistry(
             params string[] abilityIds)
         {
@@ -219,6 +336,33 @@ namespace Titanhold.Run.Editor
                 poolId,
                 archetypeId,
                 abilityIds);
+        }
+
+        private static AreaDamageAbilityDefinition CreateAbilityAsset(
+            string abilityId)
+        {
+            AreaDamageAbilityDefinition definition =
+                ScriptableObject.CreateInstance<
+                    AreaDamageAbilityDefinition>();
+            SerializedObject serialized = new(definition);
+            serialized.FindProperty("abilityId").stringValue = abilityId;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            return definition;
+        }
+
+        private static RunStartingAbilityPoolDefinition CreatePoolAsset(
+            string poolId,
+            string archetypeId,
+            params ScriptableObject[] abilities)
+        {
+            RunStartingAbilityPoolDefinition definition =
+                ScriptableObject.CreateInstance<
+                    RunStartingAbilityPoolDefinition>();
+            definition.ConfigureForEditor(
+                poolId,
+                archetypeId,
+                abilities);
+            return definition;
         }
 
         private static bool ContainsEvery(
@@ -272,6 +416,12 @@ namespace Titanhold.Run.Editor
         {
             if (!condition)
                 throw new InvalidOperationException(message);
+        }
+
+        private static void Destroy(UnityEngine.Object instance)
+        {
+            if (instance != null)
+                UnityEngine.Object.DestroyImmediate(instance);
         }
 
         private sealed class TestAbilityDefinition : IAbilityDefinition
