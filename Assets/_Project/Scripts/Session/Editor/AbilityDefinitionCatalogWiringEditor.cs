@@ -62,6 +62,7 @@ namespace Titanhold.Session.Editor
                 host.ConfigureForEditor(
                     host.ItemDefinitions,
                     catalog,
+                    host.StartingAbilityPools,
                     host.RunProgression,
                     host.ConclusionRewards);
                 launch.ConfigureForEditor(

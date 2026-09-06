@@ -151,7 +151,9 @@ resolves that archetype and creates the deterministic `choice:starting` offer;
 the UI must only present the resulting pending choice. The current Hub still
 sends both `archetype:warrior` and the transitional Spin seed, so it produces no
 pending choice and existing gameplay remains unchanged. The persistent host is
-not wired to a concrete starting-pool catalog yet.
+ready to accept an optional starting-pool catalog, rejects a mismatched or
+invalid catalog, and passes a valid resolver into the session runtime. The Hub
+scene does not reference a concrete starting-pool catalog yet.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit

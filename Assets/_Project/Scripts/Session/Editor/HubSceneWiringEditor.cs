@@ -195,6 +195,7 @@ namespace Titanhold.Session.Editor
                 host.ConfigureForEditor(
                     host.ItemDefinitions,
                     host.AbilityDefinitions,
+                    host.StartingAbilityPools,
                     host.RunProgression,
                     rewards);
                 EditorUtility.SetDirty(host);
@@ -241,6 +242,7 @@ namespace Titanhold.Session.Editor
             host.ConfigureForEditor(
                 catalog,
                 abilityCatalog,
+                null,
                 runProgression,
                 conclusionRewards);
             EditorUtility.SetDirty(host);
@@ -706,6 +708,15 @@ namespace Titanhold.Session.Editor
             {
                 throw new InvalidOperationException(
                     "Session root has no valid ability catalog reference.");
+            }
+
+            if (host.StartingAbilityPools != null &&
+                (!host.StartingAbilityPools.IsValid ||
+                 host.StartingAbilityPools.AbilityCatalog !=
+                    host.AbilityDefinitions))
+            {
+                throw new InvalidOperationException(
+                    "Session root has invalid starting ability pool wiring.");
             }
 
             if (host.RunProgression == null ||

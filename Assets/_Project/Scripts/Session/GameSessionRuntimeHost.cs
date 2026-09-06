@@ -9,6 +9,8 @@ namespace Titanhold.Session
     {
         [SerializeField] private ItemDefinitionCatalog itemDefinitions;
         [SerializeField] private AbilityDefinitionCatalog abilityDefinitions;
+        [SerializeField]
+        private RunStartingAbilityPoolCatalog startingAbilityPools;
         [SerializeField] private RunProgressionDefinition runProgression;
         [SerializeField]
         private RunConclusionRewardDefinition conclusionRewards;
@@ -19,6 +21,8 @@ namespace Titanhold.Session
         public bool IsInitialized => Runtime != null;
         public ItemDefinitionCatalog ItemDefinitions => itemDefinitions;
         public AbilityDefinitionCatalog AbilityDefinitions => abilityDefinitions;
+        public RunStartingAbilityPoolCatalog StartingAbilityPools =>
+            startingAbilityPools;
         public RunProgressionDefinition RunProgression => runProgression;
         public RunConclusionRewardDefinition ConclusionRewards =>
             conclusionRewards;
@@ -27,11 +31,13 @@ namespace Titanhold.Session
         public void ConfigureForEditor(
             ItemDefinitionCatalog definitions,
             AbilityDefinitionCatalog abilities,
+            RunStartingAbilityPoolCatalog abilityPools,
             RunProgressionDefinition progression,
             RunConclusionRewardDefinition rewards)
         {
             itemDefinitions = definitions;
             abilityDefinitions = abilities;
+            startingAbilityPools = abilityPools;
             runProgression = progression;
             conclusionRewards = rewards;
         }
@@ -90,6 +96,22 @@ namespace Titanhold.Session
                 return;
             }
 
+            if (startingAbilityPools != null &&
+                (!startingAbilityPools.IsValid ||
+                 startingAbilityPools.AbilityCatalog != abilityDefinitions))
+            {
+                string detail = !startingAbilityPools.IsValid
+                    ? startingAbilityPools.ValidationError
+                    : "The starting ability pool catalog references a different " +
+                      "ability definition catalog.";
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} has invalid starting " +
+                    $"ability pools: {detail}",
+                    startingAbilityPools);
+                enabled = false;
+                return;
+            }
+
             if (runProgression == null || !runProgression.IsValid)
             {
                 Debug.LogError(
@@ -117,7 +139,8 @@ namespace Titanhold.Session
             Runtime = new GameSessionRuntime(
                 itemDefinitions,
                 rewardPolicy,
-                runExperienceCurve: runProgression.BuildCurve());
+                runExperienceCurve: runProgression.BuildCurve(),
+                startingAbilityPools: startingAbilityPools);
             activeHost = this;
             DontDestroyOnLoad(gameObject);
         }
