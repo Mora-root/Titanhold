@@ -121,6 +121,13 @@ and assigns one offered ability; resolved choice ids cannot be replayed. The
 service survives retryable run/Hub transitions and is cleared with the other run
 state. Milestone levels, class/universal pools, presentation, and pause behavior
 are not connected yet.
+`GameSessionRuntime` owns run-start readiness over the live ability loadout. Each
+participant must confirm an ability currently assigned to slot zero; changing
+that slot revokes the participant's confirmation until the roster is sealed.
+The current Hub-provided Spin seed auto-confirms and seals the solo roster, so
+existing play remains unchanged. A later starting-choice UI will confirm each
+participant explicitly and gate exploration on the sealed roster; run activation
+is not gated by readiness yet.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
@@ -262,6 +269,8 @@ Use Ability Definition Catalog Wiring validation when the persistent catalog,
 Hub starting ability, or run-entry executor binding changes.
 Use Run Ability Choices validation when deterministic ability offers, selection,
 or their session lifetime changes.
+Use Run Start Ability Readiness validation when starter confirmation, the
+future co-op ready barrier, or its session lifetime changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.

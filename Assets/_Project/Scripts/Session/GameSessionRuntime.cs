@@ -50,6 +50,7 @@ namespace Titanhold.Session
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
         public RunAbilityChoiceService ActiveRunAbilityChoices { get; private set; }
+        public RunStartReadinessService ActiveRunStartReadiness { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
@@ -58,6 +59,8 @@ namespace Titanhold.Session
             ActiveRunAbilityLoadoutChanged;
         public event Action<string, RunAbilityChoiceService>
             ActiveRunAbilityChoicesChanged;
+        public event Action<string, RunStartReadinessService>
+            ActiveRunStartReadinessChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -116,6 +119,26 @@ namespace Titanhold.Session
             }
 
             choices = ActiveRunAbilityChoices;
+            return true;
+        }
+
+        public bool TryGetActiveRunStartReadiness(
+            string runSessionId,
+            out RunStartReadinessService readiness)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunStartReadiness == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                readiness = null;
+                return false;
+            }
+
+            readiness = ActiveRunStartReadiness;
             return true;
         }
 
@@ -310,6 +333,8 @@ namespace Titanhold.Session
             RunAbilityLoadoutService abilityLoadout = new(
                 runAbilitySlotCount,
                 maximumParticipantCount);
+            RunParticipantIdentity[] participantRoster =
+                new RunParticipantIdentity[descriptor.Participants.Count];
             for (int i = 0; i < descriptor.Participants.Count; i++)
             {
                 RunParticipantSelection participant =
@@ -317,6 +342,7 @@ namespace Titanhold.Session
                 RunParticipantIdentity identity = new(
                     participant.PlayerId,
                     participant.CharacterId);
+                participantRoster[i] = identity;
                 RunProgressionResult registration =
                     progression.TryRegisterParticipant(identity);
                 if (!registration.Success)
@@ -351,11 +377,43 @@ namespace Titanhold.Session
                 }
             }
 
+            RunStartReadinessService startReadiness = new(
+                abilityLoadout,
+                participantRoster);
+            for (int i = 0; i < descriptor.Participants.Count; i++)
+            {
+                RunParticipantSelection participant =
+                    descriptor.Participants[i];
+                if (participant.StartingAbilityId.Length == 0)
+                    continue;
+
+                RunStartReadinessResult confirmation =
+                    startReadiness.TryConfirmStartingAbility(
+                        participant.PlayerId,
+                        participant.StartingAbilityId);
+                if (!confirmation.Success)
+                {
+                    startReadiness.Dispose();
+                    throw new InvalidOperationException(
+                        "Starting ability readiness could not be confirmed: " +
+                        $"{confirmation.Error}.");
+                }
+            }
+
+            if (startReadiness.AllParticipantsConfirmed &&
+                !startReadiness.TrySeal().Success)
+            {
+                startReadiness.Dispose();
+                throw new InvalidOperationException(
+                    "Complete starting ability readiness could not be sealed.");
+            }
+
             activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
             ActiveRunAbilityLoadout = abilityLoadout;
             ActiveRunAbilityChoices = new RunAbilityChoiceService(
                 abilityLoadout);
+            ActiveRunStartReadiness = startReadiness;
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -365,13 +423,17 @@ namespace Titanhold.Session
             ActiveRunAbilityChoicesChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunAbilityChoices);
+            ActiveRunStartReadinessChanged?.Invoke(
+                activeRunStateSessionId,
+                ActiveRunStartReadiness);
         }
 
         private void ClearRunState()
         {
             if (ActiveRunProgression == null &&
                 ActiveRunAbilityLoadout == null &&
-                ActiveRunAbilityChoices == null)
+                ActiveRunAbilityChoices == null &&
+                ActiveRunStartReadiness == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
@@ -379,9 +441,12 @@ namespace Titanhold.Session
             bool hadProgression = ActiveRunProgression != null;
             bool hadAbilityLoadout = ActiveRunAbilityLoadout != null;
             bool hadAbilityChoices = ActiveRunAbilityChoices != null;
+            bool hadStartReadiness = ActiveRunStartReadiness != null;
+            ActiveRunStartReadiness?.Dispose();
             ActiveRunProgression = null;
             ActiveRunAbilityLoadout = null;
             ActiveRunAbilityChoices = null;
+            ActiveRunStartReadiness = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -399,6 +464,13 @@ namespace Titanhold.Session
             if (hadAbilityChoices)
             {
                 ActiveRunAbilityChoicesChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadStartReadiness)
+            {
+                ActiveRunStartReadinessChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }

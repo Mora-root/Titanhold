@@ -144,6 +144,18 @@ namespace Titanhold.Session.Editor
                            out RunAbilityChoiceService abilityChoices) &&
                        abilityChoices.PendingChoiceCount == 0,
                     "Run transition did not create participant ability choices.");
+                Assert(runtime.TryGetActiveRunStartReadiness(
+                           begin.RunSessionId,
+                           out RunStartReadinessService startReadiness) &&
+                       startReadiness.ParticipantCount == 1 &&
+                       startReadiness.ConfirmedParticipantCount == 1 &&
+                       startReadiness.AllParticipantsConfirmed &&
+                       startReadiness.IsSealed &&
+                       startReadiness.TryGetParticipant(
+                           "player:local",
+                           out RunParticipantStartReadinessState readinessState) &&
+                       readinessState.StartingAbilityId == "ability:spin",
+                    "Seeded starting ability did not seal run start readiness.");
 
                 GameSessionCommandResult cancel =
                     runtime.GameSession.TryCancelRunTransition(
@@ -156,6 +168,9 @@ namespace Titanhold.Session.Editor
                            begin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunAbilityChoices(
+                           begin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunStartReadiness(
                            begin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,
@@ -176,6 +191,7 @@ namespace Titanhold.Session.Editor
                 RunProgressionService retainedProgression = null;
                 RunAbilityLoadoutService retainedAbilityLoadout = null;
                 RunAbilityChoiceService retainedAbilityChoices = null;
+                RunStartReadinessService retainedStartReadiness = null;
                 Assert(secondBegin.Success &&
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
@@ -186,6 +202,10 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunAbilityChoices(
                            secondBegin.RunSessionId,
                            out retainedAbilityChoices) &&
+                       runtime.TryGetActiveRunStartReadiness(
+                           secondBegin.RunSessionId,
+                           out retainedStartReadiness) &&
+                       retainedStartReadiness.IsSealed &&
                        retainedAbilityLoadout.TryGetParticipant(
                            "player:local",
                            out RunParticipantAbilityState secondAbilityState) &&
@@ -223,7 +243,13 @@ namespace Titanhold.Session.Editor
                            out RunAbilityChoiceService transitionAbilityChoices) &&
                        ReferenceEquals(
                            retainedAbilityChoices,
-                           transitionAbilityChoices),
+                           transitionAbilityChoices) &&
+                       runtime.TryGetActiveRunStartReadiness(
+                           secondBegin.RunSessionId,
+                           out RunStartReadinessService transitionReadiness) &&
+                       ReferenceEquals(
+                           retainedStartReadiness,
+                           transitionReadiness),
                     "Hub transition cleared temporary run state before rewards could settle.");
                 Assert(runtime.GameSession.TryCancelHubTransition(
                            secondBegin.RunSessionId).Success &&
@@ -244,7 +270,13 @@ namespace Titanhold.Session.Editor
                            out RunAbilityChoiceService retriedAbilityChoices) &&
                        ReferenceEquals(
                            retainedAbilityChoices,
-                           retriedAbilityChoices),
+                           retriedAbilityChoices) &&
+                       runtime.TryGetActiveRunStartReadiness(
+                           secondBegin.RunSessionId,
+                           out RunStartReadinessService retriedReadiness) &&
+                       ReferenceEquals(
+                           retainedStartReadiness,
+                           retriedReadiness),
                     "Failed Hub loading lost retryable temporary run state.");
                 Assert(runtime.GameSession.TryConcludeRun(result).Success &&
                        runtime.GameSession.TryEnterHub(
@@ -258,8 +290,46 @@ namespace Titanhold.Session.Editor
                        !runtime.TryGetActiveRunAbilityChoices(
                            secondBegin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunStartReadiness(
+                           secondBegin.RunSessionId,
+                           out _) &&
                        runtime.AccountCrystals.Amount == 25,
                     "Hub entry did not clear the temporary run state.");
+
+                GameSessionCommandResult unseededBegin =
+                    runtime.GameSession.TryBeginRun(
+                        new RunLaunchCommand(
+                            "difficulty:prototype",
+                            789,
+                            new[]
+                            {
+                                new RunParticipantSelection(
+                                    "player:local",
+                                    "character:warrior")
+                            }));
+                Assert(unseededBegin.Success &&
+                       runtime.TryGetActiveRunAbilityLoadout(
+                           unseededBegin.RunSessionId,
+                           out RunAbilityLoadoutService unseededLoadout) &&
+                       unseededLoadout.TryGetParticipant(
+                           "player:local",
+                           out RunParticipantAbilityState unseededAbilityState) &&
+                       unseededAbilityState.TryGetAbilitySlot(
+                           RunStartReadinessService.StartingAbilitySlotIndex,
+                           out string unseededAbilityId) &&
+                       unseededAbilityId.Length == 0 &&
+                       runtime.TryGetActiveRunStartReadiness(
+                           unseededBegin.RunSessionId,
+                           out RunStartReadinessService unseededReadiness) &&
+                       !unseededReadiness.AllParticipantsConfirmed &&
+                       !unseededReadiness.IsSealed,
+                    "A run without a seeded starter did not wait for a choice.");
+                Assert(runtime.GameSession.TryCancelRunTransition(
+                           unseededBegin.RunSessionId).Success &&
+                       !runtime.TryGetActiveRunStartReadiness(
+                           unseededBegin.RunSessionId,
+                           out _),
+                    "Cancelling an unready run retained its readiness barrier.");
 
                 Debug.Log("Persistent Game Session Runtime validation passed.");
             }
