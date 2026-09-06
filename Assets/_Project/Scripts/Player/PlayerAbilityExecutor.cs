@@ -15,8 +15,10 @@ public sealed class PlayerAbilityExecutor : MonoBehaviour, IPlayerSkillCommands
     private AbilityExecutionService execution;
     private AreaDamageAbilitySnapshot currentAbility;
     private CombatActorReference actor;
+    private AbilitySlotDefinitionResolver abilitySlots;
 
     public bool IsUsingSkill => execution?.CurrentExecution != null;
+    public bool HasAbilitySlotBinding => abilitySlots != null;
     public CombatActorReference ActorReference
     {
         get
@@ -41,9 +43,12 @@ public sealed class PlayerAbilityExecutor : MonoBehaviour, IPlayerSkillCommands
 
     public bool TryUseSkillSlot(int slotIndex)
     {
-        if (!isActiveAndEnabled || execution == null || slotIndex != 0 || skill1 == null ||
+        if (!TryResolveAbility(slotIndex, out AreaDamageAbilityDefinition abilityDefinition) ||
+            !isActiveAndEnabled || execution == null ||
             IsUsingSkill || (health != null && !health.IsAlive) || playerAnimator == null ||
-            !skill1.TryCreateSnapshot(CombatDamageCalculator.GetGlobalDamage(stats), out var ability) ||
+            !abilityDefinition.TryCreateSnapshot(
+                CombatDamageCalculator.GetGlobalDamage(stats),
+                out AreaDamageAbilitySnapshot ability) ||
             !playerAnimator.CanPlaySkill(ability.AnimatorTrigger))
             return false;
 
@@ -58,6 +63,33 @@ public sealed class PlayerAbilityExecutor : MonoBehaviour, IPlayerSkillCommands
             playerAnimator.PlaySkill(ability.AnimatorTrigger);
         }
 
+        return true;
+    }
+
+    public bool TryBindAbilitySlots(
+        IAbilitySlotSource slots,
+        IAbilityDefinitionResolver definitions)
+    {
+        if (slots == null || definitions == null || IsUsingSkill)
+            return false;
+
+        try
+        {
+            abilitySlots = new AbilitySlotDefinitionResolver(slots, definitions);
+            return true;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+    }
+
+    public bool TryClearAbilitySlotBinding()
+    {
+        if (IsUsingSkill)
+            return false;
+
+        abilitySlots = null;
         return true;
     }
 
@@ -100,6 +132,26 @@ public sealed class PlayerAbilityExecutor : MonoBehaviour, IPlayerSkillCommands
     }
 
     private void OnDisable() => CancelCurrentSkill();
+
+    private bool TryResolveAbility(
+        int slotIndex,
+        out AreaDamageAbilityDefinition definition)
+    {
+        definition = null;
+        if (abilitySlots == null)
+        {
+            if (slotIndex != 0 || skill1 == null)
+                return false;
+
+            definition = skill1;
+            return true;
+        }
+
+        return abilitySlots.TryResolve(
+                   slotIndex,
+                   out IAbilityDefinition resolved) &&
+               (definition = resolved as AreaDamageAbilityDefinition) != null;
+    }
 
     private sealed class ResourceGateway : IAbilityResourceGateway
     {

@@ -124,6 +124,13 @@ animation's release/recovery timing. The old `PlayerSkillExecutor` component is
 disabled but retained with its `SkillData` reference. Legacy animation events do
 not authorize effects on the replacement path. Other ability forms and run-level
 ability selection remain later stages.
+Ability definitions expose their stable ids through `IAbilityDefinition`.
+`AbilityDefinitionRegistry` rejects the entire definition set when any entry is
+missing, malformed, or duplicated. `AbilitySlotDefinitionResolver` joins a live
+participant slot source to that registry, so replacing a run slot is visible to
+an already-bound executor without rebuilding its state. `PlayerAbilityExecutor`
+can use this binding while retaining its current serialized Spin fallback for
+direct scene testing. A project catalog and session-entry binding are later stages.
 
 ## Search and Project Map
 
@@ -234,6 +241,8 @@ where it provides real value.
 ## Validation and Handoff
 
 After code changes, recompile and run the narrowest relevant Unity validation.
+Use Ability Definition Resolution validation when stable-id definition lookup or
+live run-slot resolution changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.

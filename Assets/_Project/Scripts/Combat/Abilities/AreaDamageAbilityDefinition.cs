@@ -4,7 +4,9 @@ using UnityEngine;
 namespace Titanhold.Combat.Abilities
 {
     [CreateAssetMenu(menuName = "Titanhold/Abilities/Area Damage Ability")]
-    public sealed class AreaDamageAbilityDefinition : ScriptableObject
+    public sealed class AreaDamageAbilityDefinition :
+        ScriptableObject,
+        IAbilityDefinition
     {
         [SerializeField] private string abilityId;
         [SerializeField, Min(0f)] private float resourceCost = 20f;
@@ -15,6 +17,8 @@ namespace Titanhold.Combat.Abilities
         [SerializeField, Min(0f)] private float radius = 2.5f;
         [SerializeField] private LayerMask targetMask;
         [SerializeField] private string animatorTrigger = "Spin";
+
+        public string AbilityId => abilityId ?? string.Empty;
 
         public bool TryCreateSnapshot(float baseDamage, out AreaDamageAbilitySnapshot snapshot)
         {

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Titanhold.Combat.Abilities;
 
 namespace Titanhold.Run
 {
-    public sealed class RunParticipantAbilityState
+    public sealed class RunParticipantAbilityState : IAbilitySlotSource
     {
         private readonly List<string> grantedAbilityIds = new();
         private readonly HashSet<string> grantedAbilities =
@@ -35,6 +36,7 @@ namespace Titanhold.Run
         public int GrantedAbilityCount => grantedAbilityIds.Count;
         public IReadOnlyList<string> GrantedAbilityIds => grantedAbilityView;
         public IReadOnlyList<string> AbilitySlotIds => abilitySlotView;
+        int IAbilitySlotSource.SlotCount => AbilitySlotCount;
 
         public bool HasAbility(string abilityId)
         {
