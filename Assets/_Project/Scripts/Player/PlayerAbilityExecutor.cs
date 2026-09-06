@@ -4,7 +4,10 @@ using Titanhold.Combat.Abilities;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class PlayerAbilityExecutor : MonoBehaviour, IPlayerSkillCommands
+public sealed class PlayerAbilityExecutor :
+    MonoBehaviour,
+    IPlayerSkillCommands,
+    IPlayerAbilitySlotBinding
 {
     [SerializeField] private AreaDamageAbilityDefinition skill1;
 

@@ -14,6 +14,7 @@ namespace Titanhold.UI.Hub
         [SerializeField] private GameSessionRuntimeHost sessionHost;
         [SerializeField] private string playerId = "player:local";
         [SerializeField] private string characterId = "character:warrior";
+        [SerializeField] private string startingAbilityId = "ability:spin";
         [SerializeField] private string difficultyId = "difficulty:prototype";
         [SerializeField] private string runSceneName = "SampleScene";
 
@@ -24,6 +25,7 @@ namespace Titanhold.UI.Hub
         public GameSessionRuntimeHost SessionHost => sessionHost;
         public string PlayerId => playerId;
         public string CharacterId => characterId;
+        public string StartingAbilityId => startingAbilityId;
         public string DifficultyId => difficultyId;
         public string RunSceneName => runSceneName;
 
@@ -33,6 +35,7 @@ namespace Titanhold.UI.Hub
             GameSessionRuntimeHost configuredSessionHost,
             string configuredPlayerId,
             string configuredCharacterId,
+            string configuredStartingAbilityId,
             string configuredDifficultyId,
             string configuredRunSceneName)
         {
@@ -40,6 +43,7 @@ namespace Titanhold.UI.Hub
             sessionHost = configuredSessionHost;
             playerId = configuredPlayerId;
             characterId = configuredCharacterId;
+            startingAbilityId = configuredStartingAbilityId;
             difficultyId = configuredDifficultyId;
             runSceneName = configuredRunSceneName;
         }
@@ -87,7 +91,10 @@ namespace Titanhold.UI.Hub
                 CreateRunSeed(),
                 new[]
                 {
-                    new RunParticipantSelection(playerId, characterId)
+                    new RunParticipantSelection(
+                        playerId,
+                        characterId,
+                        startingAbilityId)
                 });
             GameSessionCommandResult result =
                 sessionHost.Runtime.GameSession.TryBeginRun(command);

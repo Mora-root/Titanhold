@@ -14,6 +14,8 @@ public static class AbilityDefinitionResolutionValidationRunner
         AreaDamageAbilityDefinition guard = null;
         AreaDamageAbilityDefinition duplicate = null;
         AreaDamageAbilityDefinition invalid = null;
+        AbilityDefinitionCatalog catalog = null;
+        RunProgressionDefinition unsupported = null;
         try
         {
             spin = CreateDefinition("ability:spin");
@@ -45,6 +47,29 @@ public static class AbilityDefinitionResolutionValidationRunner
                        out _,
                        out _),
                 "Invalid ability catalog data produced a partial registry.");
+
+            catalog = ScriptableObject.CreateInstance<
+                AbilityDefinitionCatalog>();
+            catalog.ConfigureForEditor(
+                new ScriptableObject[] { spin, guard });
+            Assert(catalog.IsValid &&
+                   catalog.TryResolve(
+                       "ability:spin",
+                       out IAbilityDefinition catalogSpin) &&
+                   ReferenceEquals(catalogSpin, spin),
+                "Valid project ability catalog did not resolve Spin.");
+            catalog.ConfigureForEditor(
+                new ScriptableObject[] { spin, duplicate });
+            Assert(!catalog.IsValid &&
+                   !catalog.TryResolve("ability:spin", out _),
+                "Duplicate catalog data left a partially usable lookup.");
+            unsupported = ScriptableObject.CreateInstance<
+                RunProgressionDefinition>();
+            catalog.ConfigureForEditor(
+                new ScriptableObject[] { spin, unsupported });
+            Assert(!catalog.IsValid &&
+                   !catalog.TryResolve("ability:spin", out _),
+                "Unsupported catalog data left a partially usable lookup.");
 
             RunAbilityLoadoutService loadout = new();
             RunParticipantAbilityState state = null;
@@ -90,6 +115,8 @@ public static class AbilityDefinitionResolutionValidationRunner
             Object.DestroyImmediate(guard);
             Object.DestroyImmediate(duplicate);
             Object.DestroyImmediate(invalid);
+            Object.DestroyImmediate(catalog);
+            Object.DestroyImmediate(unsupported);
         }
     }
 

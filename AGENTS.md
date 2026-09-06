@@ -107,8 +107,11 @@ slots per participant. Ability ownership and slot assignment use stable ability
 ids and explicit commands; slot replacement and movement are atomic, while an
 unassigned granted ability remains owned for the current run. The roster has the
 same retryable transition lifetime as run progression and is cleared on Hub entry
-or launch cancellation. Ability pools, level-based choices, UI, and binding the
-runtime loadout to `PlayerAbilityExecutor` are later stages.
+or launch cancellation. The Hub launch currently grants `ability:spin` into slot
+zero. On session-backed run entry, the participant's live slot state is bound to
+`PlayerAbilityExecutor` through the persistent ability-definition catalog. Direct
+`SampleScene` Play Mode keeps the serialized Spin fallback. Ability pools,
+level-based choices, and selection UI are later stages.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
@@ -130,7 +133,8 @@ missing, malformed, or duplicated. `AbilitySlotDefinitionResolver` joins a live
 participant slot source to that registry, so replacing a run slot is visible to
 an already-bound executor without rebuilding its state. `PlayerAbilityExecutor`
 can use this binding while retaining its current serialized Spin fallback for
-direct scene testing. A project catalog and session-entry binding are later stages.
+direct scene testing. `AbilityDefinitionCatalog.asset` is the project resolver;
+the persistent session host validates it before a Hub launch can begin.
 
 ## Search and Project Map
 
@@ -180,6 +184,8 @@ Current run assets:
   character-experience and account-crystal rewards by outcome and difficulty;
 - `ScriptableObjects/Items/ItemDefinitionCatalog.asset` — runtime lookup for
   persisted item-definition ids;
+- `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset` — runtime lookup
+  for stable ability ids used by participant run slots;
 - `Prefabs/Old/` — legacy only.
 
 Inspect Unity assets only when wiring or balance requires it and asset changes
@@ -243,6 +249,8 @@ where it provides real value.
 After code changes, recompile and run the narrowest relevant Unity validation.
 Use Ability Definition Resolution validation when stable-id definition lookup or
 live run-slot resolution changes.
+Use Ability Definition Catalog Wiring validation when the persistent catalog,
+Hub starting ability, or run-entry executor binding changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.

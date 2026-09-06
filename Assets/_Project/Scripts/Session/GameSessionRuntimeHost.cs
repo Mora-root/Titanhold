@@ -1,4 +1,5 @@
 using UnityEngine;
+using Titanhold.Combat.Abilities;
 using Titanhold.Run;
 
 namespace Titanhold.Session
@@ -7,6 +8,7 @@ namespace Titanhold.Session
     public sealed class GameSessionRuntimeHost : MonoBehaviour
     {
         [SerializeField] private ItemDefinitionCatalog itemDefinitions;
+        [SerializeField] private AbilityDefinitionCatalog abilityDefinitions;
         [SerializeField] private RunProgressionDefinition runProgression;
         [SerializeField]
         private RunConclusionRewardDefinition conclusionRewards;
@@ -16,6 +18,7 @@ namespace Titanhold.Session
         public GameSessionRuntime Runtime { get; private set; }
         public bool IsInitialized => Runtime != null;
         public ItemDefinitionCatalog ItemDefinitions => itemDefinitions;
+        public AbilityDefinitionCatalog AbilityDefinitions => abilityDefinitions;
         public RunProgressionDefinition RunProgression => runProgression;
         public RunConclusionRewardDefinition ConclusionRewards =>
             conclusionRewards;
@@ -23,10 +26,12 @@ namespace Titanhold.Session
 #if UNITY_EDITOR
         public void ConfigureForEditor(
             ItemDefinitionCatalog definitions,
+            AbilityDefinitionCatalog abilities,
             RunProgressionDefinition progression,
             RunConclusionRewardDefinition rewards)
         {
             itemDefinitions = definitions;
+            abilityDefinitions = abilities;
             runProgression = progression;
             conclusionRewards = rewards;
         }
@@ -70,6 +75,17 @@ namespace Titanhold.Session
             if (!itemDefinitions.IsValid)
             {
                 Debug.LogError(itemDefinitions.ValidationError, itemDefinitions);
+                enabled = false;
+                return;
+            }
+
+            if (abilityDefinitions == null || !abilityDefinitions.IsValid)
+            {
+                Debug.LogError(
+                    abilityDefinitions != null
+                        ? abilityDefinitions.ValidationError
+                        : $"{nameof(GameSessionRuntimeHost)} requires an ability definition catalog.",
+                    abilityDefinitions != null ? abilityDefinitions : this);
                 enabled = false;
                 return;
             }

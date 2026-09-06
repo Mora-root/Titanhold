@@ -6,14 +6,19 @@ namespace Titanhold.Session
 {
     public readonly struct RunParticipantSelection
     {
-        public RunParticipantSelection(string playerId, string characterId)
+        public RunParticipantSelection(
+            string playerId,
+            string characterId,
+            string startingAbilityId = "")
         {
             PlayerId = playerId?.Trim() ?? string.Empty;
             CharacterId = characterId?.Trim() ?? string.Empty;
+            StartingAbilityId = startingAbilityId?.Trim() ?? string.Empty;
         }
 
         public string PlayerId { get; }
         public string CharacterId { get; }
+        public string StartingAbilityId { get; }
         public bool IsValid =>
             !string.IsNullOrWhiteSpace(PlayerId) &&
             !string.IsNullOrWhiteSpace(CharacterId);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Titanhold.Combat.Abilities;
 using Titanhold.UI.Hub;
 using Titanhold.Run;
 using UnityEditor;
@@ -21,6 +22,8 @@ namespace Titanhold.Session.Editor
             "Assets/_Project/Scenes/SampleScene.unity";
         private const string CatalogPath =
             "Assets/_Project/ScriptableObjects/Items/ItemDefinitionCatalog.asset";
+        private const string AbilityCatalogPath =
+            "Assets/_Project/ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset";
         private const string RunProgressionPath =
             "Assets/_Project/ScriptableObjects/Run/RunProgression_Prototype.asset";
         private const string ConclusionRewardsPath =
@@ -59,6 +62,15 @@ namespace Titanhold.Session.Editor
                         "A valid runtime Item Definition Catalog is required.");
                 }
 
+                AbilityDefinitionCatalog abilityCatalog =
+                    AssetDatabase.LoadAssetAtPath<AbilityDefinitionCatalog>(
+                        AbilityCatalogPath);
+                if (abilityCatalog == null || !abilityCatalog.IsValid)
+                {
+                    throw new InvalidOperationException(
+                        "A valid runtime Ability Definition Catalog is required.");
+                }
+
                 RunProgressionDefinition runProgression =
                     AssetDatabase.LoadAssetAtPath<RunProgressionDefinition>(
                         RunProgressionPath);
@@ -82,6 +94,7 @@ namespace Titanhold.Session.Editor
                     NewSceneMode.Single);
                 GameSessionRuntimeHost sessionHost = CreateSessionRoot(
                     catalog,
+                    abilityCatalog,
                     runProgression,
                     conclusionRewards);
                 CreateHubCamera();
@@ -138,6 +151,7 @@ namespace Titanhold.Session.Editor
                     host,
                     "player:local",
                     "character:warrior",
+                    "ability:spin",
                     "difficulty:prototype",
                     "SampleScene");
                 EditorUtility.SetDirty(controller);
@@ -179,6 +193,7 @@ namespace Titanhold.Session.Editor
 
                 host.ConfigureForEditor(
                     host.ItemDefinitions,
+                    host.AbilityDefinitions,
                     host.RunProgression,
                     rewards);
                 EditorUtility.SetDirty(host);
@@ -215,6 +230,7 @@ namespace Titanhold.Session.Editor
 
         private static GameSessionRuntimeHost CreateSessionRoot(
             ItemDefinitionCatalog catalog,
+            AbilityDefinitionCatalog abilityCatalog,
             RunProgressionDefinition runProgression,
             RunConclusionRewardDefinition conclusionRewards)
         {
@@ -223,6 +239,7 @@ namespace Titanhold.Session.Editor
                 root.AddComponent<GameSessionRuntimeHost>();
             host.ConfigureForEditor(
                 catalog,
+                abilityCatalog,
                 runProgression,
                 conclusionRewards);
             EditorUtility.SetDirty(host);
@@ -450,6 +467,7 @@ namespace Titanhold.Session.Editor
                 sessionHost,
                 "player:local",
                 "character:warrior",
+                "ability:spin",
                 "difficulty:prototype",
                 "SampleScene");
             EditorUtility.SetDirty(launchController);
@@ -680,6 +698,14 @@ namespace Titanhold.Session.Editor
                     "Session root has no item catalog reference.");
             }
 
+            if (host.AbilityDefinitions == null ||
+                !host.AbilityDefinitions.IsValid ||
+                !host.AbilityDefinitions.TryResolve("ability:spin", out _))
+            {
+                throw new InvalidOperationException(
+                    "Session root has no valid ability catalog reference.");
+            }
+
             if (host.RunProgression == null ||
                 !host.RunProgression.IsValid)
             {
@@ -736,6 +762,7 @@ namespace Titanhold.Session.Editor
                 launchController.SessionHost != host ||
                 launchController.PlayerId != "player:local" ||
                 launchController.CharacterId != "character:warrior" ||
+                launchController.StartingAbilityId != "ability:spin" ||
                 launchController.DifficultyId != "difficulty:prototype" ||
                 launchController.RunSceneName != "SampleScene")
             {

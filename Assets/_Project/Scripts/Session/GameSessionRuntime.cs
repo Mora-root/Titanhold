@@ -311,6 +311,21 @@ namespace Titanhold.Session
                         "Validated run participant could not be registered " +
                         $"for ability loadout: {abilityRegistration.Error}.");
                 }
+
+                if (participant.StartingAbilityId.Length > 0)
+                {
+                    RunAbilityLoadoutResult startingAbility =
+                        abilityLoadout.TryGrantAndAssignAbility(
+                            participant.PlayerId,
+                            participant.StartingAbilityId,
+                            0);
+                    if (!startingAbility.Success)
+                    {
+                        throw new InvalidOperationException(
+                            $"Starting ability '{participant.StartingAbilityId}' " +
+                            $"could not be assigned: {startingAbility.Error}.");
+                    }
+                }
             }
 
             activeRunStateSessionId = descriptor.RunSessionId;

@@ -2270,6 +2270,7 @@ MonoBehaviour:
   sessionHost: {fileID: 2101906912}
   playerId: player:local
   characterId: character:warrior
+  startingAbilityId: ability:spin
   difficultyId: difficulty:prototype
   runSceneName: SampleScene
 --- !u!1 &1286382093
@@ -3853,6 +3854,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Session.GameSessionRuntimeHost
   itemDefinitions: {fileID: 11400000, guid: 2549c8288c647bb4aaef741a36c94a80, type: 2}
+  abilityDefinitions: {fileID: 11400000, guid: 19bd33069f879e041802270e54f83a20, type: 2}
   runProgression: {fileID: 11400000, guid: b84a95e48e538494f8d6f1fc8515f704, type: 2}
   conclusionRewards: {fileID: 11400000, guid: d17864b6e8dd0e44d976291f38dfb30a, type: 2}
 --- !u!4 &2101906913

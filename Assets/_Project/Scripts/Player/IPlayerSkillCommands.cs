@@ -1,5 +1,6 @@
 using System;
 using Titanhold.Combat;
+using Titanhold.Combat.Abilities;
 using UnityEngine;
 
 // The brain and reward adapters use the same, explicitly selected executor.
@@ -10,6 +11,15 @@ public interface IPlayerSkillCommands
     event Action<CombatExecutionReport> ExecutionResolved;
     bool TryUseSkillSlot(int slotIndex);
     void CancelCurrentSkill();
+}
+
+public interface IPlayerAbilitySlotBinding
+{
+    bool HasAbilitySlotBinding { get; }
+    bool TryBindAbilitySlots(
+        IAbilitySlotSource slots,
+        IAbilityDefinitionResolver definitions);
+    bool TryClearAbilitySlotBinding();
 }
 
 public static class PlayerSkillCommands

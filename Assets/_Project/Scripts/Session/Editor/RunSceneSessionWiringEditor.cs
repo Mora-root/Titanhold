@@ -136,6 +136,13 @@ namespace Titanhold.Session.Editor
                 throw new InvalidOperationException(
                     "Run participant requires Health and PlayerResource components.");
             }
+
+            IPlayerSkillCommands commands = PlayerSkillCommands.Resolve(player);
+            if (commands is not IPlayerAbilitySlotBinding)
+            {
+                throw new InvalidOperationException(
+                    "Run participant requires a loadout-aware ability executor.");
+            }
         }
 
         private static GameObject FindRootObject(Scene scene, string objectName)

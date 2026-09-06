@@ -101,7 +101,8 @@ namespace Titanhold.Session.Editor
                         {
                             new RunParticipantSelection(
                                 "player:local",
-                                "character:warrior")
+                                "character:warrior",
+                                "ability:spin")
                         }));
                 Assert(begin.Success &&
                        runtime.GameSession.State.Phase ==
@@ -129,11 +130,15 @@ namespace Titanhold.Session.Editor
                            begin.RunSessionId,
                            out RunAbilityLoadoutService abilityLoadout) &&
                        abilityLoadout.ParticipantCount == 1 &&
-                       abilityLoadout.TryGrantAndAssignAbility(
+                       abilityLoadout.TryGetParticipant(
                            "player:local",
-                           "ability:spin",
-                           0).Success,
-                    "Run transition did not create participant ability state.");
+                           out RunParticipantAbilityState abilityState) &&
+                       abilityState.HasAbility("ability:spin") &&
+                       abilityState.TryGetAbilitySlot(
+                           0,
+                           out string startingAbilityId) &&
+                       startingAbilityId == "ability:spin",
+                    "Run transition did not seed the participant starting ability.");
 
                 GameSessionCommandResult cancel =
                     runtime.GameSession.TryCancelRunTransition(
@@ -157,7 +162,8 @@ namespace Titanhold.Session.Editor
                             {
                                 new RunParticipantSelection(
                                     "player:local",
-                                    "character:warrior")
+                                    "character:warrior",
+                                    "ability:spin")
                             }));
                 RunProgressionService retainedProgression = null;
                 RunAbilityLoadoutService retainedAbilityLoadout = null;
@@ -167,17 +173,20 @@ namespace Titanhold.Session.Editor
                            out retainedProgression) &&
                        runtime.TryGetActiveRunAbilityLoadout(
                            secondBegin.RunSessionId,
-                           out retainedAbilityLoadout),
+                           out retainedAbilityLoadout) &&
+                       retainedAbilityLoadout.TryGetParticipant(
+                           "player:local",
+                           out RunParticipantAbilityState secondAbilityState) &&
+                       secondAbilityState.TryGetAbilitySlot(
+                           0,
+                           out startingAbilityId) &&
+                       startingAbilityId == "ability:spin",
                     "Second run did not create fresh participant run state.");
                 Assert(runtime.GameSession.TryActivateRun(
                            secondBegin.RunSessionId).Success &&
                        retainedProgression.TryAddGold(
                            "player:local",
-                           40).Success &&
-                       retainedAbilityLoadout.TryGrantAndAssignAbility(
-                           "player:local",
-                           "ability:spin",
-                           0).Success,
+                           40).Success,
                     "Second run participant state setup failed.");
 
                 RunResultSummary result = new(

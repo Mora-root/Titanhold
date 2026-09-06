@@ -36,13 +36,16 @@ namespace Titanhold.Session.Editor
                 {
                     new RunParticipantSelection(
                         "player:local",
-                        "character:warrior")
+                        "character:warrior",
+                        "ability:spin")
                 });
             GameSessionCommandResult begin = service.TryBeginRun(launch);
             Assert(begin.Success &&
                    service.State.Phase == GameSessionPhase.TransitionToRun &&
                    service.State.ActiveRun != null &&
-                   service.State.ActiveRun.RunSessionId == begin.RunSessionId,
+                   service.State.ActiveRun.RunSessionId == begin.RunSessionId &&
+                   service.State.ActiveRun.Participants[0].StartingAbilityId ==
+                       "ability:spin",
                 "Valid solo launch did not begin a run transition.");
 
             string runId = begin.RunSessionId;

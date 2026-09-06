@@ -107,6 +107,7 @@ namespace Titanhold.Run.Editor
 
             host.ConfigureForEditor(
                 host.ItemDefinitions,
+                host.AbilityDefinitions,
                 definition,
                 host.ConclusionRewards);
             EditorUtility.SetDirty(host);
