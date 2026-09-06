@@ -128,6 +128,12 @@ The current Hub-provided Spin seed auto-confirms and seals the solo roster, so
 existing play remains unchanged. A later starting-choice UI will confirm each
 participant explicitly and gate exploration on the sealed roster; run activation
 is not gated by readiness yet.
+`RunStartingAbilitySelectionService` composes the general run-choice service and
+start readiness. A starter offer contains exactly three unique stable ability
+ids, always targets slot zero, and a successful selection grants the ability,
+assigns it, confirms that participant, and seals readiness after the final
+participant chooses. The runtime owns this coordinator with the other per-run
+ability state. Concrete class pools and their UI presentation are not wired yet.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
@@ -271,6 +277,8 @@ Use Run Ability Choices validation when deterministic ability offers, selection,
 or their session lifetime changes.
 Use Run Start Ability Readiness validation when starter confirmation, the
 future co-op ready barrier, or its session lifetime changes.
+Use Starting Ability Selection validation when three-option starter offers or
+their loadout/readiness coordination changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.

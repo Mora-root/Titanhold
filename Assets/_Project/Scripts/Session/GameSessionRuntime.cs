@@ -51,6 +51,8 @@ namespace Titanhold.Session
         public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
         public RunAbilityChoiceService ActiveRunAbilityChoices { get; private set; }
         public RunStartReadinessService ActiveRunStartReadiness { get; private set; }
+        public RunStartingAbilitySelectionService
+            ActiveRunStartingAbilitySelection { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
@@ -61,6 +63,8 @@ namespace Titanhold.Session
             ActiveRunAbilityChoicesChanged;
         public event Action<string, RunStartReadinessService>
             ActiveRunStartReadinessChanged;
+        public event Action<string, RunStartingAbilitySelectionService>
+            ActiveRunStartingAbilitySelectionChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -139,6 +143,26 @@ namespace Titanhold.Session
             }
 
             readiness = ActiveRunStartReadiness;
+            return true;
+        }
+
+        public bool TryGetActiveRunStartingAbilitySelection(
+            string runSessionId,
+            out RunStartingAbilitySelectionService selection)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunStartingAbilitySelection == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                selection = null;
+                return false;
+            }
+
+            selection = ActiveRunStartingAbilitySelection;
             return true;
         }
 
@@ -414,6 +438,10 @@ namespace Titanhold.Session
             ActiveRunAbilityChoices = new RunAbilityChoiceService(
                 abilityLoadout);
             ActiveRunStartReadiness = startReadiness;
+            ActiveRunStartingAbilitySelection =
+                new RunStartingAbilitySelectionService(
+                    ActiveRunAbilityChoices,
+                    ActiveRunStartReadiness);
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -426,6 +454,9 @@ namespace Titanhold.Session
             ActiveRunStartReadinessChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunStartReadiness);
+            ActiveRunStartingAbilitySelectionChanged?.Invoke(
+                activeRunStateSessionId,
+                ActiveRunStartingAbilitySelection);
         }
 
         private void ClearRunState()
@@ -433,7 +464,8 @@ namespace Titanhold.Session
             if (ActiveRunProgression == null &&
                 ActiveRunAbilityLoadout == null &&
                 ActiveRunAbilityChoices == null &&
-                ActiveRunStartReadiness == null)
+                ActiveRunStartReadiness == null &&
+                ActiveRunStartingAbilitySelection == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
@@ -442,11 +474,14 @@ namespace Titanhold.Session
             bool hadAbilityLoadout = ActiveRunAbilityLoadout != null;
             bool hadAbilityChoices = ActiveRunAbilityChoices != null;
             bool hadStartReadiness = ActiveRunStartReadiness != null;
+            bool hadStartingSelection =
+                ActiveRunStartingAbilitySelection != null;
             ActiveRunStartReadiness?.Dispose();
             ActiveRunProgression = null;
             ActiveRunAbilityLoadout = null;
             ActiveRunAbilityChoices = null;
             ActiveRunStartReadiness = null;
+            ActiveRunStartingAbilitySelection = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -471,6 +506,13 @@ namespace Titanhold.Session
             if (hadStartReadiness)
             {
                 ActiveRunStartReadinessChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadStartingSelection)
+            {
+                ActiveRunStartingAbilitySelectionChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }
