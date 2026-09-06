@@ -64,6 +64,32 @@ namespace Titanhold.Run
                 offered.State);
         }
 
+        public RunStartingAbilitySelectionResult TryOfferStartingChoice(
+            string playerId,
+            string choiceId,
+            string characterArchetypeId,
+            IRunStartingAbilityPoolResolver poolResolver,
+            int rollSeed)
+        {
+            string normalizedArchetypeId =
+                characterArchetypeId?.Trim() ?? string.Empty;
+            if (poolResolver == null || normalizedArchetypeId.Length == 0 ||
+                !poolResolver.TryResolve(
+                    normalizedArchetypeId,
+                    out RunStartingAbilityPool pool))
+            {
+                return RunStartingAbilitySelectionResult.Failed(
+                    RunStartingAbilitySelectionError.StartingPoolNotFound);
+            }
+
+            return TryOfferStartingChoice(
+                new RunStartingAbilityChoiceRequest(
+                    playerId,
+                    choiceId,
+                    pool.AbilityIds,
+                    rollSeed));
+        }
+
         public RunStartingAbilitySelectionResult TrySelectStartingAbility(
             string playerId,
             string choiceId,

@@ -39,6 +39,7 @@ namespace Titanhold.Run
         InvalidRequest,
         InvalidStartingPool,
         ParticipantNotFound,
+        StartingPoolNotFound,
         ParticipantAlreadyConfirmed,
         ReadinessAlreadySealed,
         ChoiceTargetsWrongSlot,

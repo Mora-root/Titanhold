@@ -134,6 +134,13 @@ ids, always targets slot zero, and a successful selection grants the ability,
 assigns it, confirms that participant, and seals readiness after the final
 participant chooses. The runtime owns this coordinator with the other per-run
 ability state. Concrete class pools and their UI presentation are not wired yet.
+Starting pools use a separate stable character-archetype id rather than a
+character-instance id. `RunStartingAbilityPoolRegistry` rejects the complete
+configuration when pool/archetype ids are malformed or duplicated, a pool does
+not contain exactly three unique abilities, or an ability is absent from the
+main ability-definition resolver. Abilities may intentionally be shared between
+archetypes for universal starter options. Concrete ScriptableObject pool assets
+and their Hub/run-scene wiring are later stages.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
@@ -279,6 +286,8 @@ Use Run Start Ability Readiness validation when starter confirmation, the
 future co-op ready barrier, or its session lifetime changes.
 Use Starting Ability Selection validation when three-option starter offers or
 their loadout/readiness coordination changes.
+Use Starting Ability Pools validation when archetype resolution or pool/catalog
+integrity changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.
