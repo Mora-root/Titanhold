@@ -165,6 +165,10 @@ local choice, rejects invalid or unoffered UI submissions before mutation, and
 delegates the accepted stable id to `RunStartingAbilitySelectionService`.
 Successful selection clears its presentation state; the domain service remains
 the authority for loadout assignment and readiness sealing.
+`HubStartingAbilitySelectionView` is a passive three-option Unity view. It
+renders immutable presentation data, emits only the selected option index, and
+owns no ability ids, choice rules, or session mutations. Its scene wiring is a
+later explicit asset stage.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
