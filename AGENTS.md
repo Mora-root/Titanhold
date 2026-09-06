@@ -169,6 +169,13 @@ the authority for loadout assignment and readiness sealing.
 renders immutable presentation data, emits only the selected option index, and
 owns no ability ids, choice rules, or session mutations. Its scene wiring is a
 later explicit asset stage.
+`HubRunLaunchController` creates the run session first, then loads the run scene
+only after that session's start-readiness roster is sealed. Seeded Spin keeps
+the current immediate path; an unseeded participant raises a starting-choice
+request and waits without polling. `HubStartingAbilitySelectionController`
+builds the local coordinator from that session's services, presents its pending
+choice, and submits the chosen option. Concrete scene wiring remains a later
+explicit asset stage.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
