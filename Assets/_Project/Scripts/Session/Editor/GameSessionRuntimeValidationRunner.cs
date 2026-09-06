@@ -139,6 +139,11 @@ namespace Titanhold.Session.Editor
                            out string startingAbilityId) &&
                        startingAbilityId == "ability:spin",
                     "Run transition did not seed the participant starting ability.");
+                Assert(runtime.TryGetActiveRunAbilityChoices(
+                           begin.RunSessionId,
+                           out RunAbilityChoiceService abilityChoices) &&
+                       abilityChoices.PendingChoiceCount == 0,
+                    "Run transition did not create participant ability choices.");
 
                 GameSessionCommandResult cancel =
                     runtime.GameSession.TryCancelRunTransition(
@@ -148,6 +153,9 @@ namespace Titanhold.Session.Editor
                            begin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunAbilityLoadout(
+                           begin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunAbilityChoices(
                            begin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,
@@ -167,6 +175,7 @@ namespace Titanhold.Session.Editor
                             }));
                 RunProgressionService retainedProgression = null;
                 RunAbilityLoadoutService retainedAbilityLoadout = null;
+                RunAbilityChoiceService retainedAbilityChoices = null;
                 Assert(secondBegin.Success &&
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
@@ -174,6 +183,9 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunAbilityLoadout(
                            secondBegin.RunSessionId,
                            out retainedAbilityLoadout) &&
+                       runtime.TryGetActiveRunAbilityChoices(
+                           secondBegin.RunSessionId,
+                           out retainedAbilityChoices) &&
                        retainedAbilityLoadout.TryGetParticipant(
                            "player:local",
                            out RunParticipantAbilityState secondAbilityState) &&
@@ -205,7 +217,13 @@ namespace Titanhold.Session.Editor
                            out RunAbilityLoadoutService transitionAbilityLoadout) &&
                        ReferenceEquals(
                            retainedAbilityLoadout,
-                           transitionAbilityLoadout),
+                           transitionAbilityLoadout) &&
+                       runtime.TryGetActiveRunAbilityChoices(
+                           secondBegin.RunSessionId,
+                           out RunAbilityChoiceService transitionAbilityChoices) &&
+                       ReferenceEquals(
+                           retainedAbilityChoices,
+                           transitionAbilityChoices),
                     "Hub transition cleared temporary run state before rewards could settle.");
                 Assert(runtime.GameSession.TryCancelHubTransition(
                            secondBegin.RunSessionId).Success &&
@@ -220,7 +238,13 @@ namespace Titanhold.Session.Editor
                            out RunAbilityLoadoutService retriedAbilityLoadout) &&
                        ReferenceEquals(
                            retainedAbilityLoadout,
-                           retriedAbilityLoadout),
+                           retriedAbilityLoadout) &&
+                       runtime.TryGetActiveRunAbilityChoices(
+                           secondBegin.RunSessionId,
+                           out RunAbilityChoiceService retriedAbilityChoices) &&
+                       ReferenceEquals(
+                           retainedAbilityChoices,
+                           retriedAbilityChoices),
                     "Failed Hub loading lost retryable temporary run state.");
                 Assert(runtime.GameSession.TryConcludeRun(result).Success &&
                        runtime.GameSession.TryEnterHub(
@@ -229,6 +253,9 @@ namespace Titanhold.Session.Editor
                            secondBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunAbilityLoadout(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunAbilityChoices(
                            secondBegin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,

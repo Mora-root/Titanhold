@@ -112,6 +112,15 @@ zero. On session-backed run entry, the participant's live slot state is bound to
 `PlayerAbilityExecutor` through the persistent ability-definition catalog. Direct
 `SampleScene` Play Mode keeps the serialized Spin fallback. Ability pools,
 level-based choices, and selection UI are later stages.
+`GameSessionRuntime` also owns a per-run ability-choice service over the live
+loadout. Explicit offer commands carry a participant id, choice id, target slot,
+candidate ids, option count, and roll seed. Offers are deterministic, exclude
+already-owned abilities, require the requested number of eligible options, and
+allow one pending choice per participant. Successful selection atomically grants
+and assigns one offered ability; resolved choice ids cannot be replayed. The
+service survives retryable run/Hub transitions and is cleared with the other run
+state. Milestone levels, class/universal pools, presentation, and pause behavior
+are not connected yet.
 
 `Combat/Abilities/AbilityExecutionService` is a plain C# foundation for one-release
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
@@ -251,6 +260,8 @@ Use Ability Definition Resolution validation when stable-id definition lookup or
 live run-slot resolution changes.
 Use Ability Definition Catalog Wiring validation when the persistent catalog,
 Hub starting ability, or run-entry executor binding changes.
+Use Run Ability Choices validation when deterministic ability offers, selection,
+or their session lifetime changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.

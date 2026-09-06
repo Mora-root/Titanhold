@@ -49,12 +49,15 @@ namespace Titanhold.Session
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
+        public RunAbilityChoiceService ActiveRunAbilityChoices { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
             ActiveRunProgressionChanged;
         public event Action<string, RunAbilityLoadoutService>
             ActiveRunAbilityLoadoutChanged;
+        public event Action<string, RunAbilityChoiceService>
+            ActiveRunAbilityChoicesChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -93,6 +96,26 @@ namespace Titanhold.Session
             }
 
             loadout = ActiveRunAbilityLoadout;
+            return true;
+        }
+
+        public bool TryGetActiveRunAbilityChoices(
+            string runSessionId,
+            out RunAbilityChoiceService choices)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunAbilityChoices == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                choices = null;
+                return false;
+            }
+
+            choices = ActiveRunAbilityChoices;
             return true;
         }
 
@@ -331,25 +354,34 @@ namespace Titanhold.Session
             activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
             ActiveRunAbilityLoadout = abilityLoadout;
+            ActiveRunAbilityChoices = new RunAbilityChoiceService(
+                abilityLoadout);
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
             ActiveRunAbilityLoadoutChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunAbilityLoadout);
+            ActiveRunAbilityChoicesChanged?.Invoke(
+                activeRunStateSessionId,
+                ActiveRunAbilityChoices);
         }
 
         private void ClearRunState()
         {
-            if (ActiveRunProgression == null && ActiveRunAbilityLoadout == null)
+            if (ActiveRunProgression == null &&
+                ActiveRunAbilityLoadout == null &&
+                ActiveRunAbilityChoices == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
             activeRunStateSessionId = string.Empty;
             bool hadProgression = ActiveRunProgression != null;
             bool hadAbilityLoadout = ActiveRunAbilityLoadout != null;
+            bool hadAbilityChoices = ActiveRunAbilityChoices != null;
             ActiveRunProgression = null;
             ActiveRunAbilityLoadout = null;
+            ActiveRunAbilityChoices = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -360,6 +392,13 @@ namespace Titanhold.Session
             if (hadAbilityLoadout)
             {
                 ActiveRunAbilityLoadoutChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadAbilityChoices)
+            {
+                ActiveRunAbilityChoicesChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }
