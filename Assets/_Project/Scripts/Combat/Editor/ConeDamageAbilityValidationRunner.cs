@@ -45,7 +45,9 @@ public static class ConeDamageAbilityValidationRunner
             Assert(definition.TryCreateSnapshot(
                        20f,
                        out ConeDamageAbilitySnapshot snapshot) &&
-                   snapshot.Damage == 20f &&
+                   snapshot.PrimaryDamage == 20f &&
+                   snapshot.SecondaryDamage == 6f &&
+                   snapshot.SecondaryDamageMultiplier == 0.3f &&
                    snapshot.UseRange == 2.5f &&
                    snapshot.ConeAngle == 120f &&
                    snapshot.OnHitEffect == null,
@@ -53,12 +55,16 @@ public static class ConeDamageAbilityValidationRunner
 
             data.FindProperty("damageMultiplier").floatValue = 4f;
             data.ApplyModifiedPropertiesWithoutUndo();
-            Assert(snapshot.Damage == 20f && snapshot.OnHitEffect == null,
+            Assert(snapshot.PrimaryDamage == 20f &&
+                   snapshot.SecondaryDamage == 6f &&
+                   snapshot.OnHitEffect == null,
                 "Authored changes mutated an existing cone snapshot.");
             Assert(definition.TryCreateSnapshot(
                        20f,
                        out ConeDamageAbilitySnapshot next) &&
-                   next.Damage == 80f && next.OnHitEffect == null,
+                   next.PrimaryDamage == 80f &&
+                   next.SecondaryDamage == 24f &&
+                   next.OnHitEffect == null,
                 "The next cone snapshot ignored updated authoring values.");
         }
         finally
@@ -148,9 +154,20 @@ public static class ConeDamageAbilityValidationRunner
             Assert(report.ResolutionCount == 2,
                 "Cone did not hit two distinct in-angle targets once each.");
             Assert(front.GetComponent<Health>().CurrentHealth == 80f &&
-                   diagonal.GetComponent<Health>().CurrentHealth == 80f &&
+                   diagonal.GetComponent<Health>().CurrentHealth == 94f &&
                    behind.GetComponent<Health>().CurrentHealth == 100f,
-                "Cone damage ignored its directional filter or deduplication.");
+                "Cleave lost its full primary hit, 30% secondary hit, " +
+                "directional filter, or target deduplication.");
+            bool foundPrimary = false;
+            bool foundSecondary = false;
+            for (int i = 0; i < report.ResolutionCount; i++)
+            {
+                float rawDamage = report[i].Result.Request.RawDamage;
+                foundPrimary |= rawDamage == 20f;
+                foundSecondary |= rawDamage == 6f;
+            }
+            Assert(foundPrimary && foundSecondary,
+                "Cleave report did not distinguish primary and secondary damage.");
 
             Assert(front.GetComponent<ValidationEffectReceiver>()
                        .ApplicationCount == 0 &&
@@ -181,6 +198,7 @@ public static class ConeDamageAbilityValidationRunner
                 0.2d,
                 0.3d),
             20f,
+            0.3f,
             2.5f,
             120f,
             1 << TargetLayer,

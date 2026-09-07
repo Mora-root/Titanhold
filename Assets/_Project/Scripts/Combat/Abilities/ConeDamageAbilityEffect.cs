@@ -7,6 +7,7 @@ namespace Titanhold.Combat.Abilities
     {
         public static CombatExecutionReport Apply(
             Transform source,
+            ITargetable selectedTarget,
             AbilityExecutionSnapshot execution,
             ConeDamageAbilitySnapshot ability,
             double releasedAt)
@@ -18,12 +19,8 @@ namespace Titanhold.Combat.Abilities
                 QueryTriggerInteraction.Ignore);
             HashSet<IDamageable> damagedTargets = new();
             List<DamageTargetResolution> resolutions = new();
-            DamageRequest request = new(
-                execution.ExecutionId,
-                execution.Actor,
-                ability.Damage,
-                DamageCause.Ability,
-                execution.Definition.AbilityId);
+            IDamageable primaryTarget = ResolvePrimaryTarget(
+                selectedTarget);
 
             for (int i = 0; i < hits.Length; i++)
             {
@@ -52,6 +49,15 @@ namespace Titanhold.Combat.Abilities
                 }
 
                 damagedTargets.Add(target);
+                float damage = ReferenceEquals(target, primaryTarget)
+                    ? ability.PrimaryDamage
+                    : ability.SecondaryDamage;
+                DamageRequest request = new(
+                    execution.ExecutionId,
+                    execution.Actor,
+                    damage,
+                    DamageCause.Ability,
+                    execution.Definition.AbilityId);
                 DamageResult damageResult =
                     target.ApplyDamageRequest(request);
                 resolutions.Add(new DamageTargetResolution(
@@ -68,6 +74,20 @@ namespace Titanhold.Combat.Abilities
             return new CombatExecutionReport(
                 execution.ExecutionId,
                 resolutions);
+        }
+
+        private static IDamageable ResolvePrimaryTarget(
+            ITargetable selectedTarget)
+        {
+            if (selectedTarget == null ||
+                (selectedTarget is Object unityObject && unityObject == null) ||
+                selectedTarget.AimPoint == null)
+            {
+                return null;
+            }
+
+            return selectedTarget.AimPoint
+                .GetComponentInParent<IDamageable>();
         }
 
         private static Vector3 ResolveTargetPosition(

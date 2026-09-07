@@ -215,11 +215,12 @@ Targeted and cone damage definitions can author an optional timed stat effect. I
 is applied only after successful non-lethal damage, so the triggering hit uses the
 target's existing defenses. Ability release receives explicit simulation time for
 authority-friendly effect expiry. The warrior starter set is planned as: Heavy
-Strike, which hits one target and generates Rage; a separate lower-damage targeted
-attack that stacks armor reduction; and Cleave, which damages its selected target
-plus other targets in the forward sector but generates no Rage. Spin is not one of
-the three starter options. Concrete ability assets, Rage generation, and run-level
-ability selection remain later stages.
+Strike, which hits one target and generates Rage; Crushing Strike
+(`ability:crushing-strike`), a separate lower-damage targeted attack that stacks
+armor reduction; and Cleave, which deals full damage to its selected target plus
+an initially tuned 30% damage to other targets in the forward sector but generates
+no Rage. Spin is not one of the three starter options. Concrete ability assets,
+Rage generation, and run-level ability selection remain later stages.
 `Combat/Effects/TimedStackingStatEffectService` is the plain C# runtime for
 source-attributed temporary stat effects. It uses explicit simulation time,
 aggregates all stacks from one effect instance into one sourced stat modifier,

@@ -7,7 +7,8 @@ namespace Titanhold.Combat.Abilities
     {
         public ConeDamageAbilitySnapshot(
             AbilityExecutionDefinition execution,
-            float damage,
+            float primaryDamage,
+            float secondaryDamageMultiplier,
             float useRange,
             float coneAngle,
             int targetMask,
@@ -18,8 +19,19 @@ namespace Titanhold.Combat.Abilities
         {
             Execution = execution ??
                 throw new ArgumentNullException(nameof(execution));
-            if (!AbilityExecutionDefinition.IsNonNegativeFinite(damage))
-                throw new ArgumentOutOfRangeException(nameof(damage));
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(
+                    primaryDamage))
+            {
+                throw new ArgumentOutOfRangeException(nameof(primaryDamage));
+            }
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(
+                    secondaryDamageMultiplier) ||
+                secondaryDamageMultiplier < 0f ||
+                secondaryDamageMultiplier > 1f)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(secondaryDamageMultiplier));
+            }
             if (!AbilityExecutionDefinition.IsNonNegativeFinite(useRange) ||
                 useRange <= 0f)
             {
@@ -45,7 +57,19 @@ namespace Titanhold.Combat.Abilities
                     nameof(animatorTrigger));
             }
 
-            Damage = damage;
+            double secondaryDamage =
+                (double)primaryDamage * secondaryDamageMultiplier;
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(
+                    secondaryDamage) ||
+                secondaryDamage > float.MaxValue)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(secondaryDamageMultiplier));
+            }
+
+            PrimaryDamage = primaryDamage;
+            SecondaryDamage = (float)secondaryDamage;
+            SecondaryDamageMultiplier = secondaryDamageMultiplier;
             UseRange = useRange;
             ConeAngle = coneAngle;
             TargetMask = targetMask;
@@ -56,7 +80,9 @@ namespace Titanhold.Combat.Abilities
         }
 
         public AbilityExecutionDefinition Execution { get; }
-        public float Damage { get; }
+        public float PrimaryDamage { get; }
+        public float SecondaryDamage { get; }
+        public float SecondaryDamageMultiplier { get; }
         public float UseRange { get; }
         public float ConeAngle { get; }
         public int TargetMask { get; }
@@ -93,6 +119,7 @@ namespace Titanhold.Combat.Abilities
 
             return ConeDamageAbilityEffect.Apply(
                 context.Source,
+                context.SelectedTarget,
                 execution,
                 this,
                 releasedAt);

@@ -20,6 +20,8 @@ namespace Titanhold.Combat.Abilities
         [SerializeField, Min(0f)] private float windUp = 0.23333333f;
         [SerializeField, Min(0f)] private float recovery = 0.30000003f;
         [SerializeField, Min(0f)] private float damageMultiplier = 1f;
+        [SerializeField, Range(0f, 1f)]
+        private float secondaryDamageMultiplier = 0.3f;
         [SerializeField, Min(0.01f)] private float useRange = 2.5f;
         [SerializeField, Range(1f, 360f)] private float coneAngle = 120f;
         [SerializeField] private LayerMask targetMask;
@@ -82,6 +84,7 @@ namespace Titanhold.Combat.Abilities
                 snapshot = new ConeDamageAbilitySnapshot(
                     execution,
                     (float)damage,
+                    secondaryDamageMultiplier,
                     useRange,
                     coneAngle,
                     targetMask.value,
