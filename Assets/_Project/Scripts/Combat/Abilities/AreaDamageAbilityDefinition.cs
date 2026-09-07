@@ -21,6 +21,8 @@ namespace Titanhold.Combat.Abilities
         [SerializeField, Min(0f)] private float radius = 2.5f;
         [SerializeField] private LayerMask targetMask;
         [SerializeField] private string animatorTrigger = "Spin";
+        [SerializeField]
+        private AbilitySourceResourceGainAuthoring sourceResourceGain = new();
 
         public string AbilityId => abilityId ?? string.Empty;
         public string DisplayName => displayName ?? string.Empty;
@@ -45,10 +47,18 @@ namespace Titanhold.Combat.Abilities
 
             try
             {
+                AbilitySourceResourceGain resourceGain = default;
+                if (sourceResourceGain != null &&
+                    !sourceResourceGain.TryCreate(out resourceGain))
+                {
+                    return false;
+                }
+
                 AbilityExecutionDefinition execution = new(
                     abilityId, resourceCost, cooldown, windUp, recovery);
                 snapshot = new AreaDamageAbilitySnapshot(execution,
-                    baseDamage * damageMultiplier, radius, targetMask.value, animatorTrigger);
+                    baseDamage * damageMultiplier, radius, targetMask.value,
+                    animatorTrigger, resourceGain);
                 return true;
             }
             catch (ArgumentException)

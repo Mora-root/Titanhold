@@ -153,7 +153,9 @@ Planned warrior starter set:
 - Cleave: full damage to the selected target, 30% to other forward-sector targets,
   and no Rage generation.
 
-Spin is not a starter. Rage generation is not implemented yet.
+Spin is not a starter. Generic bounded combat-resource state and once-per-release
+successful-damage generation exist, but participant binding, Rage balance/decay,
+external generation, and UI are not implemented yet.
 
 `SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled

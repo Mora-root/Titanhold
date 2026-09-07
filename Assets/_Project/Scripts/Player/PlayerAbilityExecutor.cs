@@ -20,6 +20,7 @@ public sealed class PlayerAbilityExecutor :
     private ITargetable currentTarget;
     private CombatActorReference actor;
     private AbilitySlotDefinitionResolver abilitySlots;
+    private ICombatResourceGateway sourceResourceGateway;
 
     public bool IsUsingSkill => execution?.CurrentExecution != null;
     public ITargetable CurrentTarget => currentTarget;
@@ -42,6 +43,9 @@ public sealed class PlayerAbilityExecutor :
         resource = GetComponent<PlayerResource>();
         playerAnimator = GetComponentInChildren<PlayerAnimator>();
         health = GetComponent<Health>();
+        sourceResourceGateway =
+            GetComponent(typeof(ICombatResourceGateway)) as
+                ICombatResourceGateway;
         execution = new AbilityExecutionService(ActorReference,
             resource != null ? new ResourceGateway(resource) : null);
     }
@@ -165,6 +169,11 @@ public sealed class PlayerAbilityExecutor :
                     new AbilityUseContext(transform, currentTarget),
                     release.Execution,
                     now);
+                AbilitySourceResourceGainResolver.TryApply(
+                    ability,
+                    release.Execution.ExecutionId,
+                    report,
+                    sourceResourceGateway);
                 ExecutionResolved?.Invoke(report);
             }
         }

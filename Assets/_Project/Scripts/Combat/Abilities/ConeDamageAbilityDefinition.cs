@@ -30,6 +30,8 @@ namespace Titanhold.Combat.Abilities
         [SerializeField] private string animatorTrigger = "Attack";
         [SerializeField]
         private TimedStackingStatEffectAuthoring onHitEffect = new();
+        [SerializeField]
+        private AbilitySourceResourceGainAuthoring sourceResourceGain = new();
 
         public string AbilityId => abilityId ?? string.Empty;
         public string DisplayName => displayName ?? string.Empty;
@@ -73,6 +75,13 @@ namespace Titanhold.Combat.Abilities
                 return false;
             }
 
+            AbilitySourceResourceGain resourceGain = default;
+            if (sourceResourceGain != null &&
+                !sourceResourceGain.TryCreate(out resourceGain))
+            {
+                return false;
+            }
+
             try
             {
                 AbilityExecutionDefinition execution = new(
@@ -91,7 +100,8 @@ namespace Titanhold.Combat.Abilities
                     obstructionMask.value,
                     maximumUseAngle,
                     animatorTrigger,
-                    effect);
+                    effect,
+                    resourceGain);
                 return true;
             }
             catch (ArgumentException)

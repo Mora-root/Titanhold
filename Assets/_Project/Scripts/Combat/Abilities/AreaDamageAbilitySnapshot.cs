@@ -4,10 +4,13 @@ namespace Titanhold.Combat.Abilities
 {
     // Offensive values and query settings are frozen at commit; target defenses
     // are evaluated by ApplyDamageRequest when the effect is released.
-    public sealed class AreaDamageAbilitySnapshot : IRuntimeAbilitySnapshot
+    public sealed class AreaDamageAbilitySnapshot :
+        IRuntimeAbilitySnapshot,
+        IRuntimeAbilitySourceResourceGain
     {
         public AreaDamageAbilitySnapshot(AbilityExecutionDefinition execution,
-            float damage, float radius, int targetMask, string animatorTrigger)
+            float damage, float radius, int targetMask, string animatorTrigger,
+            AbilitySourceResourceGain sourceResourceGain = default)
         {
             Execution = execution ?? throw new ArgumentNullException(nameof(execution));
             if (!AbilityExecutionDefinition.IsNonNegativeFinite(damage))
@@ -23,6 +26,7 @@ namespace Titanhold.Combat.Abilities
             Radius = radius;
             TargetMask = targetMask;
             AnimatorTrigger = animatorTrigger;
+            SourceResourceGain = sourceResourceGain;
         }
 
         public AbilityExecutionDefinition Execution { get; }
@@ -30,6 +34,7 @@ namespace Titanhold.Combat.Abilities
         public float Radius { get; }
         public int TargetMask { get; }
         public string AnimatorTrigger { get; }
+        public AbilitySourceResourceGain SourceResourceGain { get; }
 
         public bool CanCommit(AbilityUseContext context)
         {

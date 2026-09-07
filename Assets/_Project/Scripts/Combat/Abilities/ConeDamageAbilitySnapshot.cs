@@ -3,7 +3,9 @@ using Titanhold.Combat.Effects;
 
 namespace Titanhold.Combat.Abilities
 {
-    public sealed class ConeDamageAbilitySnapshot : IRuntimeAbilitySnapshot
+    public sealed class ConeDamageAbilitySnapshot :
+        IRuntimeAbilitySnapshot,
+        IRuntimeAbilitySourceResourceGain
     {
         public ConeDamageAbilitySnapshot(
             AbilityExecutionDefinition execution,
@@ -15,7 +17,8 @@ namespace Titanhold.Combat.Abilities
             int obstructionMask,
             float maximumUseAngle,
             string animatorTrigger,
-            TimedStackingStatEffectDefinition onHitEffect = null)
+            TimedStackingStatEffectDefinition onHitEffect = null,
+            AbilitySourceResourceGain sourceResourceGain = default)
         {
             Execution = execution ??
                 throw new ArgumentNullException(nameof(execution));
@@ -77,6 +80,7 @@ namespace Titanhold.Combat.Abilities
             MaximumUseAngle = maximumUseAngle;
             AnimatorTrigger = animatorTrigger;
             OnHitEffect = onHitEffect;
+            SourceResourceGain = sourceResourceGain;
         }
 
         public AbilityExecutionDefinition Execution { get; }
@@ -90,6 +94,7 @@ namespace Titanhold.Combat.Abilities
         public float MaximumUseAngle { get; }
         public string AnimatorTrigger { get; }
         public TimedStackingStatEffectDefinition OnHitEffect { get; }
+        public AbilitySourceResourceGain SourceResourceGain { get; }
 
         public bool CanCommit(AbilityUseContext context)
         {
