@@ -208,14 +208,26 @@ player's normal rotation speed when only facing is insufficient, and commits onl
 after validation succeeds. Manual movement cancels this pending approach. Once
 committed, the skill state may keep turning toward its captured target, but release
 does not repeat the angle check so model overlap cannot trivially evade a committed
-attack. Concrete cone abilities and run-level ability selection remain later stages.
+attack. `ConeDamageAbilityDefinition` is the shared forward-sector damage form. It
+uses the selected target for approach and pre-commit facing, then resolves every
+unique eligible target inside its authored release cone as one combat report.
+Targeted and cone damage definitions can author an optional timed stat effect. It
+is applied only after successful non-lethal damage, so the triggering hit uses the
+target's existing defenses. Ability release receives explicit simulation time for
+authority-friendly effect expiry. The warrior starter set is planned as: Heavy
+Strike, which hits one target and generates Rage; a separate lower-damage targeted
+attack that stacks armor reduction; and Cleave, which damages its selected target
+plus other targets in the forward sector but generates no Rage. Spin is not one of
+the three starter options. Concrete ability assets, Rage generation, and run-level
+ability selection remain later stages.
 `Combat/Effects/TimedStackingStatEffectService` is the plain C# runtime for
 source-attributed temporary stat effects. It uses explicit simulation time,
 aggregates all stacks from one effect instance into one sourced stat modifier,
 refreshes their shared expiry on application, enforces the authored stack cap,
 and removes all stacks together. `TimedStackingStatEffectReceiver` is the Unity
-adapter; it is not connected to actor prefabs yet. The planned warrior armor-break
-starter uses five stacks of `-8%` armor with an eight-second shared duration.
+adapter and accepts explicit simulation time through the combat effect boundary;
+it is not connected to actor prefabs yet. The planned warrior armor-break starter
+uses five stacks of `-8%` armor with an eight-second shared duration.
 Co-op combination and global-cap rules are deliberately not defined yet.
 Ability definitions expose their stable ids through `IAbilityDefinition`.
 `AbilityDefinitionRegistry` rejects the entire definition set when any entry is
@@ -356,6 +368,8 @@ Use Targeted Damage Ability validation when one-target snapshots, target
 eligibility, range/facing preflight, range grace, obstruction checks, or release
 attribution changes. Also run Player Skill Command Buffer validation and the Spin
 Ability Play Mode smoke test when targeted approach or commit sequencing changes.
+Use Cone Damage Ability validation when sector filtering, multi-collider target
+deduplication, optional on-hit effects, or explicit effect timing changes.
 Use Timed Stacking Stat Effects validation when temporary stat-effect stacking,
 expiry, source attribution, or atomic sourced-modifier replacement changes.
 Use Spin Ability Wiring validation and the Spin Ability Play Mode smoke test for

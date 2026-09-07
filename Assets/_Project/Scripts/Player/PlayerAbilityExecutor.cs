@@ -163,7 +163,8 @@ public sealed class PlayerAbilityExecutor :
             {
                 CombatExecutionReport report = ability.Release(
                     new AbilityUseContext(transform, currentTarget),
-                    release.Execution);
+                    release.Execution,
+                    now);
                 ExecutionResolved?.Invoke(report);
             }
         }

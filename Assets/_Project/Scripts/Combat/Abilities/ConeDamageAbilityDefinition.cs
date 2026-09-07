@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Titanhold.Combat.Abilities
 {
     [CreateAssetMenu(
-        menuName = "Titanhold/Abilities/Targeted Damage Ability")]
-    public sealed class TargetedDamageAbilityDefinition :
+        menuName = "Titanhold/Abilities/Cone Damage Ability")]
+    public sealed class ConeDamageAbilityDefinition :
         ScriptableObject,
         IRuntimeAbilityDefinition,
         IAbilityPresentationDefinition
@@ -19,9 +19,10 @@ namespace Titanhold.Combat.Abilities
         [SerializeField, Min(0f)] private float cooldown = 3f;
         [SerializeField, Min(0f)] private float windUp = 0.23333333f;
         [SerializeField, Min(0f)] private float recovery = 0.30000003f;
-        [SerializeField, Min(0f)] private float damageMultiplier = 1.5f;
-        [SerializeField, Min(0.01f)] private float useRange = 2f;
-        [SerializeField, Min(1f)] private float releaseRangeMultiplier = 1.5f;
+        [SerializeField, Min(0f)] private float damageMultiplier = 1f;
+        [SerializeField, Min(0.01f)] private float useRange = 2.5f;
+        [SerializeField, Range(1f, 360f)] private float coneAngle = 120f;
+        [SerializeField] private LayerMask targetMask;
         [SerializeField] private LayerMask obstructionMask;
         [SerializeField, Range(1f, 180f)] private float maximumUseAngle = 45f;
         [SerializeField] private string animatorTrigger = "Attack";
@@ -46,7 +47,7 @@ namespace Titanhold.Combat.Abilities
 
         public bool TryCreateSnapshot(
             float baseDamage,
-            out TargetedDamageAbilitySnapshot snapshot)
+            out ConeDamageAbilitySnapshot snapshot)
         {
             snapshot = null;
             if (!AbilityExecutionDefinition.IsNonNegativeFinite(baseDamage) ||
@@ -78,11 +79,12 @@ namespace Titanhold.Combat.Abilities
                     cooldown,
                     windUp,
                     recovery);
-                snapshot = new TargetedDamageAbilitySnapshot(
+                snapshot = new ConeDamageAbilitySnapshot(
                     execution,
                     (float)damage,
                     useRange,
-                    releaseRangeMultiplier,
+                    coneAngle,
+                    targetMask.value,
                     obstructionMask.value,
                     maximumUseAngle,
                     animatorTrigger,
@@ -103,12 +105,12 @@ namespace Titanhold.Combat.Abilities
             if (!actor.IsValid ||
                 !TryCreateSnapshot(
                     actor.GlobalDamage,
-                    out TargetedDamageAbilitySnapshot targetedSnapshot))
+                    out ConeDamageAbilitySnapshot coneSnapshot))
             {
                 return false;
             }
 
-            snapshot = targetedSnapshot;
+            snapshot = coneSnapshot;
             return true;
         }
     }

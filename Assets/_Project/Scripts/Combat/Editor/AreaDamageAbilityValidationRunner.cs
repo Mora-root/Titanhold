@@ -139,7 +139,8 @@ public static class AreaDamageAbilityValidationRunner
                 "Self-centred area ability rejected a valid source without a target.");
             CombatExecutionReport report = ability.Release(
                 context,
-                release.Execution);
+                release.Execution,
+                0.2d);
             Assert(report.ResolutionCount == 2 && report.ExecutionId == id,
                 "Area did not produce one batch with two distinct targets.");
             Assert(firstHealth.CurrentHealth == 85f && secondHealth.CurrentHealth == 70f && self.CurrentHealth == 100f,

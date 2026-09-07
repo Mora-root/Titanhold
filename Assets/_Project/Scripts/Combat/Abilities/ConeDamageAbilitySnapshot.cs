@@ -1,19 +1,16 @@
 using System;
 using Titanhold.Combat.Effects;
-using UnityEngine;
 
 namespace Titanhold.Combat.Abilities
 {
-    // Offensive values and targeting rules are fixed at commit. Target state,
-    // position, line of sight, and defenses are evaluated again on release.
-    public sealed class TargetedDamageAbilitySnapshot :
-        IRuntimeAbilitySnapshot
+    public sealed class ConeDamageAbilitySnapshot : IRuntimeAbilitySnapshot
     {
-        public TargetedDamageAbilitySnapshot(
+        public ConeDamageAbilitySnapshot(
             AbilityExecutionDefinition execution,
             float damage,
             float useRange,
-            float releaseRangeMultiplier,
+            float coneAngle,
+            int targetMask,
             int obstructionMask,
             float maximumUseAngle,
             string animatorTrigger,
@@ -28,26 +25,18 @@ namespace Titanhold.Combat.Abilities
             {
                 throw new ArgumentOutOfRangeException(nameof(useRange));
             }
-            if (!AbilityExecutionDefinition.IsNonNegativeFinite(
-                    releaseRangeMultiplier) ||
-                releaseRangeMultiplier < 1f)
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(coneAngle) ||
+                coneAngle <= 0f || coneAngle > 360f)
             {
-                throw new ArgumentOutOfRangeException(
-                    nameof(releaseRangeMultiplier));
+                throw new ArgumentOutOfRangeException(nameof(coneAngle));
             }
-            if (!AbilityExecutionDefinition.IsNonNegativeFinite(maximumUseAngle) ||
+            if (targetMask == 0)
+                throw new ArgumentOutOfRangeException(nameof(targetMask));
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(
+                    maximumUseAngle) ||
                 maximumUseAngle <= 0f || maximumUseAngle > 180f)
             {
                 throw new ArgumentOutOfRangeException(nameof(maximumUseAngle));
-            }
-
-            double releaseRange =
-                (double)useRange * releaseRangeMultiplier;
-            if (!AbilityExecutionDefinition.IsNonNegativeFinite(releaseRange) ||
-                releaseRange > float.MaxValue)
-            {
-                throw new ArgumentOutOfRangeException(
-                    nameof(releaseRangeMultiplier));
             }
             if (string.IsNullOrWhiteSpace(animatorTrigger))
             {
@@ -58,7 +47,8 @@ namespace Titanhold.Combat.Abilities
 
             Damage = damage;
             UseRange = useRange;
-            ReleaseRange = (float)releaseRange;
+            ConeAngle = coneAngle;
+            TargetMask = targetMask;
             ObstructionMask = obstructionMask;
             MaximumUseAngle = maximumUseAngle;
             AnimatorTrigger = animatorTrigger;
@@ -68,7 +58,8 @@ namespace Titanhold.Combat.Abilities
         public AbilityExecutionDefinition Execution { get; }
         public float Damage { get; }
         public float UseRange { get; }
-        public float ReleaseRange { get; }
+        public float ConeAngle { get; }
+        public int TargetMask { get; }
         public int ObstructionMask { get; }
         public float MaximumUseAngle { get; }
         public string AnimatorTrigger { get; }
@@ -97,40 +88,14 @@ namespace Titanhold.Combat.Abilities
         {
             if (execution == null)
                 throw new ArgumentNullException(nameof(execution));
-            if (!TargetedAbilityRules.Evaluate(
-                    context,
-                    ReleaseRange,
-                    ObstructionMask,
-                    false,
-                    MaximumUseAngle).IsReady)
-            {
-                return CombatExecutionReport.Empty(execution.ExecutionId);
-            }
-
-            IDamageable target = context.SelectedTarget.AimPoint
-                .GetComponentInParent<IDamageable>();
-            if (target == null)
+            if (!context.HasSource)
                 return CombatExecutionReport.Empty(execution.ExecutionId);
 
-            DamageRequest request = new(
-                execution.ExecutionId,
-                execution.Actor,
-                Damage,
-                DamageCause.Ability,
-                execution.Definition.AbilityId);
-            DamageResult result = target.ApplyDamageRequest(request);
-            Transform targetTransform = target is Component component
-                ? component.transform
-                : context.SelectedTarget.AimPoint;
-            TimedStatAbilityEffect.TryApply(
-                targetTransform,
-                result,
-                OnHitEffect,
-                execution.Actor,
+            return ConeDamageAbilityEffect.Apply(
+                context.Source,
+                execution,
+                this,
                 releasedAt);
-            return CombatExecutionReport.Single(
-                execution.ExecutionId,
-                new DamageTargetResolution(target, result));
         }
     }
 }

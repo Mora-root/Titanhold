@@ -1,6 +1,7 @@
 using System;
 using Titanhold.Combat;
 using Titanhold.Combat.Abilities;
+using Titanhold.Combat.Effects;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -38,26 +39,35 @@ public static class TargetedDamageAbilityValidationRunner
             SerializedObject data = new(definition);
             data.FindProperty("abilityId").stringValue =
                 "ability:power-strike";
+            SerializedProperty effect = data.FindProperty("onHitEffect");
+            effect.FindPropertyRelative("enabled").boolValue = true;
+            effect.FindPropertyRelative("effectId").stringValue =
+                "effect:armor-break";
             data.ApplyModifiedPropertiesWithoutUndo();
             Assert(definition.TryCreateSnapshot(
                        20f,
                        out TargetedDamageAbilitySnapshot snapshot) &&
                    snapshot.Damage == 30f &&
                    snapshot.UseRange == 2f &&
-                   snapshot.ReleaseRange == 3f,
+                   snapshot.ReleaseRange == 3f &&
+                   snapshot.OnHitEffect?.EffectId ==
+                   "effect:armor-break",
                 "Valid targeted definition did not create its snapshot.");
 
             data.FindProperty("damageMultiplier").floatValue = 4f;
             data.FindProperty("useRange").floatValue = 5f;
+            effect.FindPropertyRelative("valuePerStack").floatValue = -20f;
             data.ApplyModifiedPropertiesWithoutUndo();
-            Assert(snapshot.Damage == 30f && snapshot.UseRange == 2f,
+            Assert(snapshot.Damage == 30f && snapshot.UseRange == 2f &&
+                   snapshot.OnHitEffect.ValuePerStack == -8f,
                 "Authored changes mutated an existing targeted snapshot.");
             Assert(((IRuntimeAbilityDefinition)definition)
                        .TryCreateRuntimeSnapshot(
                            new AbilityActorSnapshot(20f),
                            out IRuntimeAbilitySnapshot runtime) &&
                    runtime is TargetedDamageAbilitySnapshot next &&
-                   next.Damage == 80f && next.UseRange == 5f,
+                   next.Damage == 80f && next.UseRange == 5f &&
+                   next.OnHitEffect.ValuePerStack == -20f,
                 "Runtime contract did not return the updated targeted snapshot.");
         }
         finally
@@ -146,7 +156,18 @@ public static class TargetedDamageAbilityValidationRunner
             health.RestoreFull();
             ValidationTarget target =
                 targetObject.AddComponent<ValidationTarget>();
-            TargetedDamageAbilitySnapshot ability = Snapshot(0);
+            ValidationEffectReceiver effectReceiver =
+                targetObject.AddComponent<ValidationEffectReceiver>();
+            TimedStackingStatEffectDefinition armorBreak = new(
+                "effect:armor-break",
+                StatType.Armor,
+                StatModifierType.Increased,
+                -8f,
+                5,
+                8d);
+            TargetedDamageAbilitySnapshot ability = Snapshot(
+                0,
+                armorBreak);
             AbilityExecutionDefinition executionDefinition =
                 ability.Execution;
             AbilityExecutionService service = new(Actor());
@@ -165,7 +186,8 @@ public static class TargetedDamageAbilityValidationRunner
             Assert(release.Success, "Targeted ability did not release.");
             CombatExecutionReport report = ability.Release(
                 new AbilityUseContext(source.transform, target),
-                release.Execution);
+                release.Execution,
+                executionDefinition.WindUp);
             Assert(report.ResolutionCount == 1 &&
                    health.CurrentHealth == 85f,
                 $"Targeted release ignored its grace range or release-time armor " +
@@ -176,13 +198,22 @@ public static class TargetedDamageAbilityValidationRunner
                    request.AbilityId == "ability:power-strike" &&
                    request.RawDamage == 30f,
                 "Targeted release lost its execution attribution.");
+            Assert(effectReceiver.ApplicationCount == 1 &&
+                   effectReceiver.LastDefinition == armorBreak &&
+                   effectReceiver.LastSource == Actor() &&
+                   effectReceiver.LastSimulationTime ==
+                   executionDefinition.WindUp,
+                "Targeted hit effect lost its definition, source, or time.");
 
             targetObject.transform.position = Vector3.right * 3.01f;
             Physics.SyncTransforms();
             Assert(ability.Release(
                        new AbilityUseContext(source.transform, target),
-                       release.Execution).ResolutionCount == 0,
+                       release.Execution,
+                       executionDefinition.WindUp).ResolutionCount == 0,
                 "Targeted release hit outside its expanded release range.");
+            Assert(effectReceiver.ApplicationCount == 1,
+                "Rejected targeted release applied its effect.");
         }
         finally
         {
@@ -192,7 +223,8 @@ public static class TargetedDamageAbilityValidationRunner
     }
 
     private static TargetedDamageAbilitySnapshot Snapshot(
-        int obstructionMask)
+        int obstructionMask,
+        TimedStackingStatEffectDefinition effect = null)
     {
         return new TargetedDamageAbilitySnapshot(
             new AbilityExecutionDefinition(
@@ -206,7 +238,8 @@ public static class TargetedDamageAbilityValidationRunner
             1.5f,
             obstructionMask,
             45f,
-            "Attack");
+            "Attack",
+            effect);
     }
 
     private static GameObject TemporaryObject(string name)
@@ -242,6 +275,34 @@ public static class TargetedDamageAbilityValidationRunner
                 Health health = GetComponent<Health>();
                 return health == null || health.IsAlive;
             }
+        }
+    }
+
+    private sealed class ValidationEffectReceiver :
+        MonoBehaviour,
+        ITimedStackingStatEffectReceiver
+    {
+        public int ApplicationCount { get; private set; }
+        public TimedStackingStatEffectDefinition LastDefinition
+        {
+            get;
+            private set;
+        }
+        public CombatActorReference LastSource { get; private set; }
+        public double LastSimulationTime { get; private set; }
+
+        public bool TryApply(
+            TimedStackingStatEffectDefinition definition,
+            CombatActorReference source,
+            double simulationTime,
+            out TimedStatEffectSnapshot snapshot)
+        {
+            ApplicationCount++;
+            LastDefinition = definition;
+            LastSource = source;
+            LastSimulationTime = simulationTime;
+            snapshot = default;
+            return true;
         }
     }
 }

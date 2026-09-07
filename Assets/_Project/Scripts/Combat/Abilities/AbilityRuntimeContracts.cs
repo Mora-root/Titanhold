@@ -93,6 +93,7 @@ namespace Titanhold.Combat.Abilities
 
         CombatExecutionReport Release(
             AbilityUseContext context,
-            AbilityExecutionSnapshot execution);
+            AbilityExecutionSnapshot execution,
+            double releasedAt);
     }
 }

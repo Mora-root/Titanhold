@@ -38,7 +38,8 @@ namespace Titanhold.Combat.Abilities
 
         public CombatExecutionReport Release(
             AbilityUseContext context,
-            AbilityExecutionSnapshot execution)
+            AbilityExecutionSnapshot execution,
+            double releasedAt)
         {
             if (execution == null)
                 throw new ArgumentNullException(nameof(execution));

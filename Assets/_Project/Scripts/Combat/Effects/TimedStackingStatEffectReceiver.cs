@@ -4,7 +4,9 @@ using UnityEngine;
 namespace Titanhold.Combat.Effects
 {
     [DisallowMultipleComponent]
-    public sealed class TimedStackingStatEffectReceiver : MonoBehaviour
+    public sealed class TimedStackingStatEffectReceiver :
+        MonoBehaviour,
+        ITimedStackingStatEffectReceiver
     {
         [SerializeField] private CharacterStats characterStats;
 
@@ -38,13 +40,25 @@ namespace Titanhold.Combat.Effects
             CombatActorReference source,
             out TimedStatEffectSnapshot snapshot)
         {
+            return TryApply(
+                definition,
+                source,
+                Time.timeAsDouble,
+                out snapshot);
+        }
+
+        public bool TryApply(
+            TimedStackingStatEffectDefinition definition,
+            CombatActorReference source,
+            double simulationTime,
+            out TimedStatEffectSnapshot snapshot)
+        {
             snapshot = default;
-            return effects != null &&
-                   effects.TryApply(
-                       definition,
-                       source,
-                       Time.timeAsDouble,
-                       out snapshot);
+            return effects != null && effects.TryApply(
+                definition,
+                source,
+                simulationTime,
+                out snapshot);
         }
 
         public bool TryGet(
