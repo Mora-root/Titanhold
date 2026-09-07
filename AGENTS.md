@@ -196,8 +196,12 @@ type. `PlayerBrain` and combat reward adapters share the explicitly selected
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius, and the existing
 animation's release/recovery timing. The old `PlayerSkillExecutor` component is
 disabled but retained with its `SkillData` reference. Legacy animation events do
-not authorize effects on the replacement path. Concrete targeted/cone ability
-definitions and run-level ability selection remain later stages.
+not authorize effects on the replacement path. `TargetedDamageAbilityDefinition`
+is the shared one-target damage form. It requires an explicit live non-self target,
+checks authored range and optional obstruction layers at commit, and repeats those
+checks with an authored release-range multiplier before resolving release-time
+defenses. Player auto-approach for an out-of-range ability, concrete cone abilities,
+and run-level ability selection remain later stages.
 `Combat/Effects/TimedStackingStatEffectService` is the plain C# runtime for
 source-attributed temporary stat effects. It uses explicit simulation time,
 aggregates all stacks from one effect instance into one sourced stat modifier,
@@ -341,6 +345,8 @@ integrity changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.
+Use Targeted Damage Ability validation when one-target snapshots, target
+eligibility, range grace, obstruction checks, or release attribution changes.
 Use Timed Stacking Stat Effects validation when temporary stat-effect stacking,
 expiry, source attribution, or atomic sourced-modifier replacement changes.
 Use Spin Ability Wiring validation and the Spin Ability Play Mode smoke test for
