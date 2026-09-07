@@ -198,6 +198,14 @@ animation's release/recovery timing. The old `PlayerSkillExecutor` component is
 disabled but retained with its `SkillData` reference. Legacy animation events do
 not authorize effects on the replacement path. Concrete targeted/cone ability
 definitions and run-level ability selection remain later stages.
+`Combat/Effects/TimedStackingStatEffectService` is the plain C# runtime for
+source-attributed temporary stat effects. It uses explicit simulation time,
+aggregates all stacks from one effect instance into one sourced stat modifier,
+refreshes their shared expiry on application, enforces the authored stack cap,
+and removes all stacks together. `TimedStackingStatEffectReceiver` is the Unity
+adapter; it is not connected to actor prefabs yet. The planned warrior armor-break
+starter uses five stacks of `-8%` armor with an eight-second shared duration.
+Co-op combination and global-cap rules are deliberately not defined yet.
 Ability definitions expose their stable ids through `IAbilityDefinition`.
 `AbilityDefinitionRegistry` rejects the entire definition set when any entry is
 missing, malformed, or duplicated. `AbilitySlotDefinitionResolver` joins a live
@@ -333,6 +341,8 @@ integrity changes.
 Use Ability Execution Foundation validation for the shared ability lifecycle.
 Use Area Damage Ability validation for offensive snapshots, deferred resource
 notifications, area damage batching, and player executor selection.
+Use Timed Stacking Stat Effects validation when temporary stat-effect stacking,
+expiry, source attribution, or atomic sourced-modifier replacement changes.
 Use Spin Ability Wiring validation and the Spin Ability Play Mode smoke test for
 the installed Spin definition/player binding. Run the latter from saved
 `SampleScene`; it checks resource cost, pause, offensive snapshot damage, one

@@ -78,6 +78,51 @@ public sealed class StatBlock
         }
     }
 
+    public bool TrySetModifierFromSource(
+        StatModifier modifier,
+        StatModifierSource source)
+    {
+        if (modifier == null || !source.IsValid)
+            return false;
+
+        int matchingCount = 0;
+        SourcedStatModifier matchingModifier = null;
+        for (int i = 0; i < sourcedModifiers.Count; i++)
+        {
+            if (sourcedModifiers[i].Source != source)
+                continue;
+
+            matchingCount++;
+            matchingModifier = sourcedModifiers[i];
+        }
+
+        if (matchingCount == 1 &&
+            matchingModifier.Modifier.Type == modifier.Type &&
+            matchingModifier.Modifier.ModifierType == modifier.ModifierType &&
+            FloatEquals(matchingModifier.Modifier.Value, modifier.Value))
+        {
+            return true;
+        }
+
+        HashSet<StatType> changedStats = new();
+        for (int i = sourcedModifiers.Count - 1; i >= 0; i--)
+        {
+            if (sourcedModifiers[i].Source != source)
+                continue;
+
+            changedStats.Add(sourcedModifiers[i].Modifier.Type);
+            sourcedModifiers.RemoveAt(i);
+        }
+
+        sourcedModifiers.Add(new SourcedStatModifier(modifier, source));
+        changedStats.Add(modifier.Type);
+
+        foreach (StatType type in changedStats)
+            MarkChanged(type);
+
+        return true;
+    }
+
     public void RemoveModifier(StatModifier modifier)
     {
         if (modifier == null)

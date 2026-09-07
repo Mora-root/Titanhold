@@ -72,6 +72,14 @@ public class CharacterStats : MonoBehaviour
         statBlock.AddModifiers(modifiers, source);
     }
 
+    public bool TrySetModifierFromSource(
+        StatModifier modifier,
+        StatModifierSource source)
+    {
+        EnsureInitialized();
+        return statBlock.TrySetModifierFromSource(modifier, source);
+    }
+
     public void RemoveModifier(StatModifier modifier)
     {
         EnsureInitialized();
