@@ -7,7 +7,8 @@ using UnityEngine;
 public sealed class PlayerAbilityExecutor :
     MonoBehaviour,
     IPlayerSkillCommands,
-    IPlayerAbilitySlotBinding
+    IPlayerAbilitySlotBinding,
+    IPlayerCombatResourceBinding
 {
     [SerializeField] private AreaDamageAbilityDefinition skill1;
 
@@ -20,11 +21,14 @@ public sealed class PlayerAbilityExecutor :
     private ITargetable currentTarget;
     private CombatActorReference actor;
     private AbilitySlotDefinitionResolver abilitySlots;
+    private ICombatResourceGateway localSourceResourceGateway;
     private ICombatResourceGateway sourceResourceGateway;
 
     public bool IsUsingSkill => execution?.CurrentExecution != null;
     public ITargetable CurrentTarget => currentTarget;
     public bool HasAbilitySlotBinding => abilitySlots != null;
+    public bool HasCombatResourceBinding =>
+        sourceResourceGateway != null;
     public CombatActorReference ActorReference
     {
         get
@@ -43,9 +47,10 @@ public sealed class PlayerAbilityExecutor :
         resource = GetComponent<PlayerResource>();
         playerAnimator = GetComponentInChildren<PlayerAnimator>();
         health = GetComponent<Health>();
-        sourceResourceGateway =
+        localSourceResourceGateway =
             GetComponent(typeof(ICombatResourceGateway)) as
                 ICombatResourceGateway;
+        sourceResourceGateway = localSourceResourceGateway;
         execution = new AbilityExecutionService(ActorReference,
             resource != null ? new ResourceGateway(resource) : null);
     }
@@ -142,6 +147,24 @@ public sealed class PlayerAbilityExecutor :
             return false;
 
         abilitySlots = null;
+        return true;
+    }
+
+    public bool TryBindCombatResources(ICombatResourceGateway resources)
+    {
+        if (resources == null || IsUsingSkill)
+            return false;
+
+        sourceResourceGateway = resources;
+        return true;
+    }
+
+    public bool TryClearCombatResourceBinding()
+    {
+        if (IsUsingSkill)
+            return false;
+
+        sourceResourceGateway = localSourceResourceGateway;
         return true;
     }
 

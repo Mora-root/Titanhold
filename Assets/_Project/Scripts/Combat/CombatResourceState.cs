@@ -3,6 +3,32 @@ using System.Collections.Generic;
 
 namespace Titanhold.Combat
 {
+    public readonly struct CombatResourceSnapshot
+    {
+        internal CombatResourceSnapshot(
+            string resourceId,
+            float maximum,
+            float current)
+        {
+            ResourceId = resourceId;
+            Maximum = maximum;
+            Current = current;
+        }
+
+        public string ResourceId { get; }
+        public float Maximum { get; }
+        public float Current { get; }
+        public bool IsValid =>
+            !string.IsNullOrWhiteSpace(ResourceId) &&
+            Maximum > 0f &&
+            !float.IsNaN(Maximum) &&
+            !float.IsInfinity(Maximum) &&
+            Current >= 0f &&
+            Current <= Maximum &&
+            !float.IsNaN(Current) &&
+            !float.IsInfinity(Current);
+    }
+
     public interface ICombatResourceGateway
     {
         bool TryGain(
@@ -41,6 +67,8 @@ namespace Titanhold.Combat
         public string ResourceId { get; }
         public float Maximum { get; }
         public float Current => current;
+        public CombatResourceSnapshot Snapshot =>
+            new(ResourceId, Maximum, current);
 
         public event Action<float, float> Changed;
 

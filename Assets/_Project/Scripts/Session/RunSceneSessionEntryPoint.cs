@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Titanhold.Combat;
 using Titanhold.Run;
 using UnityEngine;
 
@@ -117,6 +118,16 @@ namespace Titanhold.Session
                 return;
             }
 
+            if (!TryBindParticipantCombatResources(
+                    runtime,
+                    descriptor,
+                    resolved,
+                    out string resourceError))
+            {
+                RejectEntry(runtime, descriptor, resourceError);
+                return;
+            }
+
             GameSessionCommandResult activation =
                 runtime.GameSession.TryActivateRun(descriptor.RunSessionId);
             if (!activation.Success)
@@ -133,7 +144,7 @@ namespace Titanhold.Session
             RunSessionDescriptor descriptor,
             string error)
         {
-            ClearParticipantAbilityBindings();
+            ClearParticipantRuntimeBindings();
             Debug.LogError(error, this);
             GameSessionCommandResult cancel =
                 runtime.GameSession.TryCancelRunTransition(
@@ -221,7 +232,71 @@ namespace Titanhold.Session
             return true;
         }
 
-        private void ClearParticipantAbilityBindings()
+        private static bool TryBindParticipantCombatResources(
+            GameSessionRuntime runtime,
+            RunSessionDescriptor descriptor,
+            IReadOnlyList<RunSceneParticipantBinding> resolved,
+            out string error)
+        {
+            error = string.Empty;
+            if (!runtime.TryGetActiveRunCombatResources(
+                    descriptor.RunSessionId,
+                    out RunCombatResourceService resources))
+            {
+                error = "Run session has no active combat-resource roster.";
+                return false;
+            }
+
+            IPlayerCombatResourceBinding[] bindings =
+                new IPlayerCombatResourceBinding[resolved.Count];
+            ICombatResourceGateway[] gateways =
+                new ICombatResourceGateway[resolved.Count];
+            for (int i = 0; i < resolved.Count; i++)
+            {
+                RunSceneParticipantBinding participant = resolved[i];
+                GameObject participantObject = participant.Inventory.gameObject;
+                IPlayerSkillCommands commands =
+                    PlayerSkillCommands.Resolve(participantObject);
+                bindings[i] = commands as IPlayerCombatResourceBinding;
+                if (bindings[i] == null)
+                {
+                    error =
+                        $"Run participant '{participant.PlayerId}' has no combat-resource-aware ability executor.";
+                    return false;
+                }
+
+                if (!resources.TryCreateParticipantGateway(
+                        participant.PlayerId,
+                        out gateways[i]))
+                {
+                    error =
+                        $"Run participant '{participant.PlayerId}' has no combat-resource gateway.";
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < bindings.Length; i++)
+            {
+                if (bindings[i].TryBindCombatResources(gateways[i]))
+                    continue;
+
+                for (int rollbackIndex = 0;
+                     rollbackIndex < i;
+                     rollbackIndex++)
+                {
+                    bindings[rollbackIndex]
+                        .TryClearCombatResourceBinding();
+                }
+
+                error =
+                    $"Could not bind combat resources for run participant '{resolved[i].PlayerId}'.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private void ClearParticipantRuntimeBindings()
         {
             if (participants == null)
                 return;
@@ -236,6 +311,8 @@ namespace Titanhold.Session
                     PlayerSkillCommands.Resolve(inventory.gameObject);
                 if (commands is IPlayerAbilitySlotBinding binding)
                     binding.TryClearAbilitySlotBinding();
+                if (commands is IPlayerCombatResourceBinding resourceBinding)
+                    resourceBinding.TryClearCombatResourceBinding();
             }
         }
 

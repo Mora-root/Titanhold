@@ -54,6 +54,13 @@ public interface IPlayerAbilitySlotBinding
     bool TryClearAbilitySlotBinding();
 }
 
+public interface IPlayerCombatResourceBinding
+{
+    bool HasCombatResourceBinding { get; }
+    bool TryBindCombatResources(ICombatResourceGateway resources);
+    bool TryClearCombatResourceBinding();
+}
+
 public static class PlayerSkillCommands
 {
     public static IPlayerSkillCommands Resolve(GameObject participant)

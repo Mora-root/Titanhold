@@ -143,6 +143,11 @@ namespace Titanhold.Session.Editor
                 throw new InvalidOperationException(
                     "Run participant requires a loadout-aware ability executor.");
             }
+            if (commands is not IPlayerCombatResourceBinding)
+            {
+                throw new InvalidOperationException(
+                    "Run participant requires a combat-resource-aware ability executor.");
+            }
         }
 
         private static GameObject FindRootObject(Scene scene, string objectName)

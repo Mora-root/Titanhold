@@ -1,4 +1,5 @@
 using System;
+using Titanhold.Combat;
 using Titanhold.Combat.Abilities;
 using Titanhold.Run;
 using UnityEditor;
@@ -131,6 +132,22 @@ namespace Titanhold.Session.Editor
                        runState.Level == 2 &&
                        runState.Experience == 5,
                     "Run transition did not create participant progression.");
+                Assert(runtime.TryGetActiveRunCombatResources(
+                           begin.RunSessionId,
+                           out RunCombatResourceService combatResources) &&
+                       combatResources.ParticipantCount == 1 &&
+                       combatResources.TryRegisterResource(
+                           "player:local",
+                           "resource:rage",
+                           8f).Success &&
+                       combatResources.TryCreateParticipantGateway(
+                           "player:local",
+                           out ICombatResourceGateway resourceGateway) &&
+                       resourceGateway.TryGain(
+                           CombatExecutionId.New(),
+                           "resource:rage",
+                           2f),
+                    "Run transition did not create participant combat resources.");
                 Assert(runtime.TryGetActiveRunAbilityLoadout(
                            begin.RunSessionId,
                            out RunAbilityLoadoutService abilityLoadout) &&
@@ -187,6 +204,9 @@ namespace Titanhold.Session.Editor
                        !runtime.TryGetActiveRunProgression(
                            begin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunCombatResources(
+                           begin.RunSessionId,
+                           out _) &&
                        !runtime.TryGetActiveRunAbilityLoadout(
                            begin.RunSessionId,
                            out _) &&
@@ -216,6 +236,7 @@ namespace Titanhold.Session.Editor
                                     "ability:spin")
                             }));
                 RunProgressionService retainedProgression = null;
+                RunCombatResourceService retainedCombatResources = null;
                 RunAbilityLoadoutService retainedAbilityLoadout = null;
                 RunAbilityChoiceService retainedAbilityChoices = null;
                 RunStartReadinessService retainedStartReadiness = null;
@@ -225,6 +246,9 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
                            out retainedProgression) &&
+                       runtime.TryGetActiveRunCombatResources(
+                           secondBegin.RunSessionId,
+                           out retainedCombatResources) &&
                        runtime.TryGetActiveRunAbilityLoadout(
                            secondBegin.RunSessionId,
                            out retainedAbilityLoadout) &&
@@ -264,6 +288,12 @@ namespace Titanhold.Session.Editor
                        ReferenceEquals(
                            retainedProgression,
                            transitionProgression) &&
+                       runtime.TryGetActiveRunCombatResources(
+                           secondBegin.RunSessionId,
+                           out RunCombatResourceService transitionResources) &&
+                       ReferenceEquals(
+                           retainedCombatResources,
+                           transitionResources) &&
                        runtime.TryGetActiveRunAbilityLoadout(
                            secondBegin.RunSessionId,
                            out RunAbilityLoadoutService transitionAbilityLoadout) &&
@@ -298,6 +328,12 @@ namespace Titanhold.Session.Editor
                        ReferenceEquals(
                            retainedProgression,
                            retriedProgression) &&
+                       runtime.TryGetActiveRunCombatResources(
+                           secondBegin.RunSessionId,
+                           out RunCombatResourceService retriedResources) &&
+                       ReferenceEquals(
+                           retainedCombatResources,
+                           retriedResources) &&
                        runtime.TryGetActiveRunAbilityLoadout(
                            secondBegin.RunSessionId,
                            out RunAbilityLoadoutService retriedAbilityLoadout) &&
@@ -328,6 +364,9 @@ namespace Titanhold.Session.Editor
                        runtime.GameSession.TryEnterHub(
                            secondBegin.RunSessionId).Success &&
                        !runtime.TryGetActiveRunProgression(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunCombatResources(
                            secondBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunAbilityLoadout(

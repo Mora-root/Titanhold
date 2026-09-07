@@ -51,6 +51,11 @@ namespace Titanhold.Session
         public IRunStartingAbilityPoolResolver StartingAbilityPools { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
+        public RunCombatResourceService ActiveRunCombatResources
+        {
+            get;
+            private set;
+        }
         public RunAbilityLoadoutService ActiveRunAbilityLoadout { get; private set; }
         public RunAbilityChoiceService ActiveRunAbilityChoices { get; private set; }
         public RunStartReadinessService ActiveRunStartReadiness { get; private set; }
@@ -60,6 +65,8 @@ namespace Titanhold.Session
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
             ActiveRunProgressionChanged;
+        public event Action<string, RunCombatResourceService>
+            ActiveRunCombatResourcesChanged;
         public event Action<string, RunAbilityLoadoutService>
             ActiveRunAbilityLoadoutChanged;
         public event Action<string, RunAbilityChoiceService>
@@ -86,6 +93,26 @@ namespace Titanhold.Session
             }
 
             progression = ActiveRunProgression;
+            return true;
+        }
+
+        public bool TryGetActiveRunCombatResources(
+            string runSessionId,
+            out RunCombatResourceService resources)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunCombatResources == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                resources = null;
+                return false;
+            }
+
+            resources = ActiveRunCombatResources;
             return true;
         }
 
@@ -357,6 +384,8 @@ namespace Titanhold.Session
             RunProgressionService progression = new(
                 runExperienceCurve,
                 maximumParticipantCount);
+            RunCombatResourceService combatResources = new(
+                maximumParticipantCount);
             RunAbilityLoadoutService abilityLoadout = new(
                 runAbilitySlotCount,
                 maximumParticipantCount);
@@ -377,6 +406,15 @@ namespace Titanhold.Session
                     throw new InvalidOperationException(
                         "Validated run participant could not be registered " +
                         $"for progression: {registration.Error}.");
+                }
+
+                RunCombatResourceResult resourceRegistration =
+                    combatResources.TryRegisterParticipant(identity);
+                if (!resourceRegistration.Success)
+                {
+                    throw new InvalidOperationException(
+                        "Validated run participant could not be registered " +
+                        $"for combat resources: {resourceRegistration.Error}.");
                 }
 
                 RunAbilityLoadoutResult abilityRegistration =
@@ -468,6 +506,7 @@ namespace Titanhold.Session
 
             activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
+            ActiveRunCombatResources = combatResources;
             ActiveRunAbilityLoadout = abilityLoadout;
             ActiveRunAbilityChoices = abilityChoices;
             ActiveRunStartReadiness = startReadiness;
@@ -475,6 +514,9 @@ namespace Titanhold.Session
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
+            ActiveRunCombatResourcesChanged?.Invoke(
+                activeRunStateSessionId,
+                ActiveRunCombatResources);
             ActiveRunAbilityLoadoutChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunAbilityLoadout);
@@ -499,6 +541,7 @@ namespace Titanhold.Session
         private void ClearRunState()
         {
             if (ActiveRunProgression == null &&
+                ActiveRunCombatResources == null &&
                 ActiveRunAbilityLoadout == null &&
                 ActiveRunAbilityChoices == null &&
                 ActiveRunStartReadiness == null &&
@@ -508,6 +551,7 @@ namespace Titanhold.Session
             string clearedRunSessionId = activeRunStateSessionId;
             activeRunStateSessionId = string.Empty;
             bool hadProgression = ActiveRunProgression != null;
+            bool hadCombatResources = ActiveRunCombatResources != null;
             bool hadAbilityLoadout = ActiveRunAbilityLoadout != null;
             bool hadAbilityChoices = ActiveRunAbilityChoices != null;
             bool hadStartReadiness = ActiveRunStartReadiness != null;
@@ -515,6 +559,7 @@ namespace Titanhold.Session
                 ActiveRunStartingAbilitySelection != null;
             ActiveRunStartReadiness?.Dispose();
             ActiveRunProgression = null;
+            ActiveRunCombatResources = null;
             ActiveRunAbilityLoadout = null;
             ActiveRunAbilityChoices = null;
             ActiveRunStartReadiness = null;
@@ -522,6 +567,13 @@ namespace Titanhold.Session
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadCombatResources)
+            {
+                ActiveRunCombatResourcesChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }

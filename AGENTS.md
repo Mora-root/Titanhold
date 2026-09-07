@@ -88,11 +88,11 @@ to participant ids and handles multi-target executions once. World gold pickups
 credit that participant's run wallet through its progression gateway. `PlayerGold`
 is compatibility-only and must not define durable save data.
 
-`GameSessionRuntime` owns the active per-participant progression roster, account
-wallet, five-slot run ability loadouts, ability-choice service, and start-readiness
-roster. These survive retryable run/Hub transitions and clear only after entering
-Hub or cancelling launch. Ability ownership and slot commands use stable ids;
-replacement and movement are atomic.
+`GameSessionRuntime` owns the active per-participant progression and combat-resource
+rosters, account wallet, five-slot run ability loadouts, ability-choice service,
+and start-readiness roster. These survive retryable run/Hub transitions and clear
+only after entering Hub or cancelling launch. Ability ownership and slot commands
+use stable ids; replacement and movement are atomic.
 
 General ability offers are deterministic, exclude already owned definitions, allow
 one pending choice per participant, and cannot replay a resolved choice id.
@@ -153,9 +153,10 @@ Planned warrior starter set:
 - Cleave: full damage to the selected target, 30% to other forward-sector targets,
   and no Rage generation.
 
-Spin is not a starter. Generic bounded combat-resource state and once-per-release
-successful-damage generation exist, but participant binding, Rage balance/decay,
-external generation, and UI are not implemented yet.
+Spin is not a starter. Generic bounded combat-resource state, per-run participant
+ownership/binding, and idempotent once-per-release successful-damage generation
+exist. A concrete Rage definition, balance/decay, external generation, and UI are
+not implemented yet.
 
 `SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled
@@ -246,8 +247,9 @@ After code changes, recompile and run the narrowest applicable Unity checks:
   Wiring, Run Ability Choices;
 - starting choice: Run Start Ability Readiness, Starting Ability Selection,
   Starting Ability Pools, and their UI/wiring validators;
-- execution: Ability Execution Foundation, Area Damage Ability, Targeted Damage
-  Ability, Cone Damage Ability, Timed Stacking Stat Effects;
+- execution: Ability Execution Foundation, Combat Resources, Run Combat Resources,
+  Area Damage Ability, Targeted Damage Ability, Cone Damage Ability, Timed Stacking
+  Stat Effects;
 - sequencing/wiring: Player Skill Command Buffer, Spin Ability Wiring, and the
   Spin Ability Play Mode smoke test from saved `SampleScene`;
 - run: assault arena/target selection, Round Enemy Scaling, Assault Enemy Scaling,
