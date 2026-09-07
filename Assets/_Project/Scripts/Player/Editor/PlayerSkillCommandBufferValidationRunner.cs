@@ -19,15 +19,20 @@ public static class PlayerSkillCommandBufferValidationRunner
 
             Assert(buffer.TryBuffer(new PlayerSkillCommand(0)),
                 "First skill command was rejected.");
-            Assert(buffer.TryBuffer(new PlayerSkillCommand(2)),
+            ITargetable selectedTarget = new ValidationTarget();
+            Assert(buffer.TryBuffer(new PlayerSkillCommand(2, selectedTarget)),
                 "Replacement skill command was rejected.");
             Assert(buffer.HasPendingCommand &&
-                   buffer.PendingCommand.SlotIndex == 2,
-                "Last skill command did not replace the previous command.");
+                   buffer.PendingCommand.SlotIndex == 2 &&
+                   ReferenceEquals(
+                       buffer.PendingCommand.SelectedTarget,
+                       selectedTarget),
+                "Last skill command or its selected target was not preserved.");
 
             Assert(buffer.TryTake(out PlayerSkillCommand command) &&
-                   command.SlotIndex == 2,
-                "Buffered skill command was not consumed.");
+                   command.SlotIndex == 2 &&
+                   ReferenceEquals(command.SelectedTarget, selectedTarget),
+                "Buffered skill command or its selected target was not consumed.");
             Assert(!buffer.HasPendingCommand &&
                    !buffer.TryTake(out _),
                 "Consumed skill command remained in the buffer.");
@@ -50,5 +55,11 @@ public static class PlayerSkillCommandBufferValidationRunner
     {
         if (!condition)
             throw new InvalidOperationException(message);
+    }
+
+    private sealed class ValidationTarget : ITargetable
+    {
+        public Transform AimPoint => null;
+        public bool IsTargetable => true;
     }
 }

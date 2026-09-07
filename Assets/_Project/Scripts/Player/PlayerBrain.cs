@@ -125,7 +125,9 @@ public class PlayerBrain : MonoBehaviour
         if (intent.Skill1Pressed)
         {
             PlayerSkillCommand command =
-                new PlayerSkillCommand(Skill1SlotIndex);
+                new PlayerSkillCommand(
+                    Skill1SlotIndex,
+                    TargetSelection.CurrentSelection as ITargetable);
             if (Combat.IsAttacking || Skills?.IsUsingSkill == true)
             {
                 skillCommandBuffer.TryBuffer(command);
@@ -245,7 +247,9 @@ public class PlayerBrain : MonoBehaviour
     private bool TryExecuteSkill(PlayerSkillCommand command)
     {
         if (!command.IsValid || Skills == null ||
-            !Skills.TryUseSkillSlot(command.SlotIndex))
+            !Skills.TryUseSkillSlot(
+                command.SlotIndex,
+                command.SelectedTarget))
         {
             return false;
         }

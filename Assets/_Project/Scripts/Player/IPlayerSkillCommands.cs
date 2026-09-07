@@ -10,6 +10,7 @@ public interface IPlayerSkillCommands
     CombatActorReference ActorReference { get; }
     event Action<CombatExecutionReport> ExecutionResolved;
     bool TryUseSkillSlot(int slotIndex);
+    bool TryUseSkillSlot(int slotIndex, ITargetable selectedTarget);
     void CancelCurrentSkill();
 }
 

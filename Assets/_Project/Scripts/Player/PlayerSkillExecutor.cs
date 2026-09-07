@@ -52,6 +52,15 @@ public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
         };
     }
 
+    public bool TryUseSkillSlot(
+        int slotIndex,
+        ITargetable selectedTarget)
+    {
+        // Legacy skills are self-centred area effects and intentionally ignore
+        // explicit targeting. The replacement executor validates it per ability.
+        return TryUseSkillSlot(slotIndex);
+    }
+
     private bool TryUseSkill(SkillData skill)
     {
         if (skill == null) return false;

@@ -182,16 +182,22 @@ that wiring and has a separate read-only validator.
 abilities, with actor-local cooldowns, immutable execution snapshots, explicit
 simulation time, and execution-id-checked release, finish, and cancellation.
 Resource gateways must reject spends without mutation and defer notifications
-until the enclosing command returns. `AreaDamageAbilityDefinition` creates an
-immutable offensive/query snapshot, and `PlayerAbilityExecutor` releases its
-single area effect using scaled simulation time. `PlayerBrain` and combat reward
-adapters share the explicitly selected `IPlayerSkillCommands` executor.
+until the enclosing command returns. Runtime ability definitions and immutable
+snapshots use the shared `IRuntimeAbilityDefinition` / `IRuntimeAbilitySnapshot`
+contract; each snapshot owns commit validation and one-release effect dispatch.
+Player skill commands capture the explicitly selected target when input is
+issued, including while buffered behind another action. Self-centred abilities
+may ignore that target, while future targeted abilities must validate it at
+commit and release. `AreaDamageAbilityDefinition` uses this contract, and
+`PlayerAbilityExecutor` dispatches it without depending on that concrete ability
+type. `PlayerBrain` and combat reward adapters share the explicitly selected
+`IPlayerSkillCommands` executor.
 `SpinAbility.asset` is wired through `Player.prefab` with stable id `ability:spin`:
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius, and the existing
 animation's release/recovery timing. The old `PlayerSkillExecutor` component is
 disabled but retained with its `SkillData` reference. Legacy animation events do
-not authorize effects on the replacement path. Other ability forms and run-level
-ability selection remain later stages.
+not authorize effects on the replacement path. Concrete targeted/cone ability
+definitions and run-level ability selection remain later stages.
 Ability definitions expose their stable ids through `IAbilityDefinition`.
 `AbilityDefinitionRegistry` rejects the entire definition set when any entry is
 missing, malformed, or duplicated. `AbilitySlotDefinitionResolver` joins a live

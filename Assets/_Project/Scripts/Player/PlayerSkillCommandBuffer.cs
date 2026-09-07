@@ -1,12 +1,16 @@
 public readonly struct PlayerSkillCommand
 {
-    public PlayerSkillCommand(int slotIndex)
+    public PlayerSkillCommand(
+        int slotIndex,
+        ITargetable selectedTarget = null)
     {
         SlotIndex = slotIndex;
+        SelectedTarget = selectedTarget;
         IsValid = slotIndex >= 0;
     }
 
     public int SlotIndex { get; }
+    public ITargetable SelectedTarget { get; }
     public bool IsValid { get; }
 }
 

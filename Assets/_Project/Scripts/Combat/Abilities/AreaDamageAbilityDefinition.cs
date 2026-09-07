@@ -6,7 +6,7 @@ namespace Titanhold.Combat.Abilities
     [CreateAssetMenu(menuName = "Titanhold/Abilities/Area Damage Ability")]
     public sealed class AreaDamageAbilityDefinition :
         ScriptableObject,
-        IAbilityDefinition,
+        IRuntimeAbilityDefinition,
         IAbilityPresentationDefinition
     {
         [SerializeField] private string abilityId;
@@ -46,6 +46,21 @@ namespace Titanhold.Combat.Abilities
             {
                 return false;
             }
+        }
+
+        public bool TryCreateRuntimeSnapshot(
+            AbilityActorSnapshot actor,
+            out IRuntimeAbilitySnapshot snapshot)
+        {
+            snapshot = null;
+            if (!actor.IsValid ||
+                !TryCreateSnapshot(actor.GlobalDamage, out AreaDamageAbilitySnapshot areaSnapshot))
+            {
+                return false;
+            }
+
+            snapshot = areaSnapshot;
+            return true;
         }
     }
 }

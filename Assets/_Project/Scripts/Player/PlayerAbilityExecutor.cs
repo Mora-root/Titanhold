@@ -16,7 +16,8 @@ public sealed class PlayerAbilityExecutor :
     private PlayerAnimator playerAnimator;
     private Health health;
     private AbilityExecutionService execution;
-    private AreaDamageAbilitySnapshot currentAbility;
+    private IRuntimeAbilitySnapshot currentAbility;
+    private ITargetable currentTarget;
     private CombatActorReference actor;
     private AbilitySlotDefinitionResolver abilitySlots;
 
@@ -46,12 +47,21 @@ public sealed class PlayerAbilityExecutor :
 
     public bool TryUseSkillSlot(int slotIndex)
     {
-        if (!TryResolveAbility(slotIndex, out AreaDamageAbilityDefinition abilityDefinition) ||
+        return TryUseSkillSlot(slotIndex, null);
+    }
+
+    public bool TryUseSkillSlot(
+        int slotIndex,
+        ITargetable selectedTarget)
+    {
+        if (!TryResolveAbility(slotIndex, out IRuntimeAbilityDefinition abilityDefinition) ||
             !isActiveAndEnabled || execution == null ||
             IsUsingSkill || (health != null && !health.IsAlive) || playerAnimator == null ||
-            !abilityDefinition.TryCreateSnapshot(
-                CombatDamageCalculator.GetGlobalDamage(stats),
-                out AreaDamageAbilitySnapshot ability) ||
+            !abilityDefinition.TryCreateRuntimeSnapshot(
+                new AbilityActorSnapshot(
+                    CombatDamageCalculator.GetGlobalDamage(stats)),
+                out IRuntimeAbilitySnapshot ability) ||
+            !ability.CanCommit(new AbilityUseContext(transform, selectedTarget)) ||
             !playerAnimator.CanPlaySkill(ability.AnimatorTrigger))
             return false;
 
@@ -63,6 +73,7 @@ public sealed class PlayerAbilityExecutor :
                 return false;
 
             currentAbility = ability;
+            currentTarget = selectedTarget;
             playerAnimator.PlaySkill(ability.AnimatorTrigger);
         }
 
@@ -112,11 +123,13 @@ public sealed class PlayerAbilityExecutor :
         AbilityExecutionSnapshot active = execution.CurrentExecution;
         if (execution.Phase == AbilityExecutionPhase.Committed && now >= active.ReleaseAt)
         {
-            AreaDamageAbilitySnapshot ability = currentAbility;
+            IRuntimeAbilitySnapshot ability = currentAbility;
             AbilityExecutionResult release = execution.TryRelease(active.ExecutionId, now);
             if (release.Success)
             {
-                CombatExecutionReport report = AreaDamageAbilityEffect.Apply(transform, release.Execution, ability);
+                CombatExecutionReport report = ability.Release(
+                    new AbilityUseContext(transform, currentTarget),
+                    release.Execution);
                 ExecutionResolved?.Invoke(report);
             }
         }
@@ -124,21 +137,21 @@ public sealed class PlayerAbilityExecutor :
         // Report subscribers can cancel the cast; retain the original id so a
         // subsequent execution cannot accidentally be finished by this tick.
         if (execution.TryFinish(active.ExecutionId, now).Success)
-            currentAbility = null;
+            ClearCurrentAbility();
     }
 
     public void CancelCurrentSkill()
     {
         if (IsUsingSkill && execution.TryCancel(
                 execution.CurrentExecution.ExecutionId, Time.timeAsDouble).Success)
-            currentAbility = null;
+            ClearCurrentAbility();
     }
 
     private void OnDisable() => CancelCurrentSkill();
 
     private bool TryResolveAbility(
         int slotIndex,
-        out AreaDamageAbilityDefinition definition)
+        out IRuntimeAbilityDefinition definition)
     {
         definition = null;
         if (abilitySlots == null)
@@ -153,7 +166,13 @@ public sealed class PlayerAbilityExecutor :
         return abilitySlots.TryResolve(
                    slotIndex,
                    out IAbilityDefinition resolved) &&
-               (definition = resolved as AreaDamageAbilityDefinition) != null;
+               (definition = resolved as IRuntimeAbilityDefinition) != null;
+    }
+
+    private void ClearCurrentAbility()
+    {
+        currentAbility = null;
+        currentTarget = null;
     }
 
     private sealed class ResourceGateway : IAbilityResourceGateway

@@ -43,6 +43,12 @@ public static class AreaDamageAbilityValidationRunner
                 "Authored changes mutated an existing snapshot.");
             Assert(definition.TryCreateSnapshot(40f, out var next) && next.Damage == 160f,
                 "The next cast did not use updated offensive values.");
+            Assert(((IRuntimeAbilityDefinition)definition).TryCreateRuntimeSnapshot(
+                       new AbilityActorSnapshot(40f),
+                       out IRuntimeAbilitySnapshot runtimeSnapshot) &&
+                   runtimeSnapshot is AreaDamageAbilitySnapshot runtimeArea &&
+                   runtimeArea.Damage == 160f,
+                "Runtime contract did not preserve the area snapshot.");
             Assert(!definition.TryCreateSnapshot(float.PositiveInfinity, out _) &&
                    !definition.TryCreateSnapshot(float.MaxValue, out _), "Invalid/overflowing damage was accepted.");
             data.FindProperty("windUp").floatValue = -1f;
@@ -128,7 +134,12 @@ public static class AreaDamageAbilityValidationRunner
             stats.Block.SetBaseValue(StatType.Armor, 100f);
             AbilityExecutionResult release = service.TryRelease(id, 0.2d);
             Assert(release.Success, "Area release failed.");
-            CombatExecutionReport report = AreaDamageAbilityEffect.Apply(source.transform, release.Execution, ability);
+            AbilityUseContext context = new(source.transform, null);
+            Assert(ability.CanCommit(context),
+                "Self-centred area ability rejected a valid source without a target.");
+            CombatExecutionReport report = ability.Release(
+                context,
+                release.Execution);
             Assert(report.ResolutionCount == 2 && report.ExecutionId == id,
                 "Area did not produce one batch with two distinct targets.");
             Assert(firstHealth.CurrentHealth == 85f && secondHealth.CurrentHealth == 70f && self.CurrentHealth == 100f,
