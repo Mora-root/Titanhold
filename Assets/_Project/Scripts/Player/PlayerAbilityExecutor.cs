@@ -22,6 +22,7 @@ public sealed class PlayerAbilityExecutor :
     private AbilitySlotDefinitionResolver abilitySlots;
 
     public bool IsUsingSkill => execution?.CurrentExecution != null;
+    public ITargetable CurrentTarget => currentTarget;
     public bool HasAbilitySlotBinding => abilitySlots != null;
     public CombatActorReference ActorReference
     {
@@ -43,6 +44,39 @@ public sealed class PlayerAbilityExecutor :
         health = GetComponent<Health>();
         execution = new AbilityExecutionService(ActorReference,
             resource != null ? new ResourceGateway(resource) : null);
+    }
+
+    public PlayerSkillUseEvaluation EvaluateSkillSlot(
+        int slotIndex,
+        ITargetable selectedTarget)
+    {
+        if (!TryResolveAbility(
+                slotIndex,
+                out IRuntimeAbilityDefinition abilityDefinition) ||
+            !isActiveAndEnabled || execution == null ||
+            IsUsingSkill || (health != null && !health.IsAlive) ||
+            playerAnimator == null)
+        {
+            return PlayerSkillUseEvaluation.Invalid;
+        }
+
+        AbilityCommitEvaluation evaluation =
+            abilityDefinition.EvaluateUse(
+                new AbilityUseContext(transform, selectedTarget));
+        if (evaluation.IsReady)
+        {
+            return new PlayerSkillUseEvaluation(
+                PlayerSkillUseStatus.Ready,
+                evaluation.Status);
+        }
+
+        return evaluation.CanReposition
+            ? new PlayerSkillUseEvaluation(
+                PlayerSkillUseStatus.RequiresReposition,
+                evaluation.Status)
+            : new PlayerSkillUseEvaluation(
+                PlayerSkillUseStatus.Invalid,
+                evaluation.Status);
     }
 
     public bool TryUseSkillSlot(int slotIndex)

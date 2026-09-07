@@ -13,6 +13,7 @@ namespace Titanhold.Combat.Abilities
             float useRange,
             float releaseRangeMultiplier,
             int obstructionMask,
+            float maximumUseAngle,
             string animatorTrigger)
         {
             Execution = execution ??
@@ -30,6 +31,11 @@ namespace Titanhold.Combat.Abilities
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(releaseRangeMultiplier));
+            }
+            if (!AbilityExecutionDefinition.IsNonNegativeFinite(maximumUseAngle) ||
+                maximumUseAngle <= 0f || maximumUseAngle > 180f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(maximumUseAngle));
             }
 
             double releaseRange =
@@ -51,6 +57,7 @@ namespace Titanhold.Combat.Abilities
             UseRange = useRange;
             ReleaseRange = (float)releaseRange;
             ObstructionMask = obstructionMask;
+            MaximumUseAngle = maximumUseAngle;
             AnimatorTrigger = animatorTrigger;
         }
 
@@ -59,14 +66,23 @@ namespace Titanhold.Combat.Abilities
         public float UseRange { get; }
         public float ReleaseRange { get; }
         public int ObstructionMask { get; }
+        public float MaximumUseAngle { get; }
         public string AnimatorTrigger { get; }
 
         public bool CanCommit(AbilityUseContext context)
         {
-            return TargetedAbilityRules.CanReach(
+            return EvaluateCommit(context).IsReady;
+        }
+
+        public AbilityCommitEvaluation EvaluateCommit(
+            AbilityUseContext context)
+        {
+            return TargetedAbilityRules.Evaluate(
                 context,
                 UseRange,
-                ObstructionMask);
+                ObstructionMask,
+                true,
+                MaximumUseAngle);
         }
 
         public CombatExecutionReport Release(
@@ -75,10 +91,12 @@ namespace Titanhold.Combat.Abilities
         {
             if (execution == null)
                 throw new ArgumentNullException(nameof(execution));
-            if (!TargetedAbilityRules.CanReach(
+            if (!TargetedAbilityRules.Evaluate(
                     context,
                     ReleaseRange,
-                    ObstructionMask))
+                    ObstructionMask,
+                    false,
+                    MaximumUseAngle).IsReady)
             {
                 return CombatExecutionReport.Empty(execution.ExecutionId);
             }

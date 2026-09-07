@@ -22,12 +22,24 @@ namespace Titanhold.Combat.Abilities
         [SerializeField, Min(0.01f)] private float useRange = 2f;
         [SerializeField, Min(1f)] private float releaseRangeMultiplier = 1.5f;
         [SerializeField] private LayerMask obstructionMask;
+        [SerializeField, Range(1f, 180f)] private float maximumUseAngle = 45f;
         [SerializeField] private string animatorTrigger = "Attack";
 
         public string AbilityId => abilityId ?? string.Empty;
         public string DisplayName => displayName ?? string.Empty;
         public string Description => description ?? string.Empty;
         public Sprite Icon => icon;
+
+        public AbilityCommitEvaluation EvaluateUse(
+            AbilityUseContext context)
+        {
+            return TargetedAbilityRules.Evaluate(
+                context,
+                useRange,
+                obstructionMask.value,
+                true,
+                maximumUseAngle);
+        }
 
         public bool TryCreateSnapshot(
             float baseDamage,
@@ -62,6 +74,7 @@ namespace Titanhold.Combat.Abilities
                     useRange,
                     releaseRangeMultiplier,
                     obstructionMask.value,
+                    maximumUseAngle,
                     animatorTrigger);
                 return true;
             }

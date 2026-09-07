@@ -31,15 +31,15 @@ namespace Titanhold.Combat.Abilities
         public Transform Source { get; }
         public ITargetable SelectedTarget { get; }
         public bool HasSource => Source != null;
+        public bool HasSelectedTarget =>
+            SelectedTarget != null &&
+            (!(SelectedTarget is Object unityObject) || unityObject != null);
         public bool HasUsableTarget
         {
             get
             {
-                if (SelectedTarget == null ||
-                    (SelectedTarget is Object unityObject && unityObject == null))
-                {
+                if (!HasSelectedTarget)
                     return false;
-                }
 
                 return SelectedTarget.IsTargetable &&
                        SelectedTarget.AimPoint != null;
@@ -47,8 +47,38 @@ namespace Titanhold.Combat.Abilities
         }
     }
 
+    public enum AbilityCommitStatus
+    {
+        Ready,
+        InvalidDefinition,
+        MissingSource,
+        MissingTarget,
+        InvalidTarget,
+        SelfTarget,
+        OutOfRange,
+        Obstructed,
+        NeedsFacing
+    }
+
+    public readonly struct AbilityCommitEvaluation
+    {
+        public AbilityCommitEvaluation(AbilityCommitStatus status)
+        {
+            Status = status;
+        }
+
+        public AbilityCommitStatus Status { get; }
+        public bool IsReady => Status == AbilityCommitStatus.Ready;
+        public bool CanReposition =>
+            Status == AbilityCommitStatus.OutOfRange ||
+            Status == AbilityCommitStatus.Obstructed ||
+            Status == AbilityCommitStatus.NeedsFacing;
+    }
+
     public interface IRuntimeAbilityDefinition : IAbilityDefinition
     {
+        AbilityCommitEvaluation EvaluateUse(AbilityUseContext context);
+
         bool TryCreateRuntimeSnapshot(
             AbilityActorSnapshot actor,
             out IRuntimeAbilitySnapshot snapshot);

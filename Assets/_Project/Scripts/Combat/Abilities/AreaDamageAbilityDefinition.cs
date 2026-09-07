@@ -27,6 +27,15 @@ namespace Titanhold.Combat.Abilities
         public string Description => description ?? string.Empty;
         public Sprite Icon => icon;
 
+        public AbilityCommitEvaluation EvaluateUse(
+            AbilityUseContext context)
+        {
+            return new AbilityCommitEvaluation(
+                context.HasSource
+                    ? AbilityCommitStatus.Ready
+                    : AbilityCommitStatus.MissingSource);
+        }
+
         public bool TryCreateSnapshot(float baseDamage, out AreaDamageAbilitySnapshot snapshot)
         {
             snapshot = null;

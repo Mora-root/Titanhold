@@ -31,6 +31,7 @@ public class PlayerBrain : MonoBehaviour
     public IState MoveState { get; private set; }
     public IState ApproachState { get; private set; }
     public IState SkillState { get; private set; }
+    public SkillApproachState SkillApproachState { get; private set; }
     public IState AttackState { get; private set; }
     public IState InteractState { get; private set; }
     public IState LootState { get; private set; }
@@ -61,6 +62,7 @@ public class PlayerBrain : MonoBehaviour
         MoveState = new MoveState(this);
         ApproachState = new ApproachState(this);
         SkillState = new SkillState(this);
+        SkillApproachState = new SkillApproachState(this);
         AttackState = new AttackState(this);
         InteractState = new InteractState(this);
         LootState = new LootState(this);
@@ -135,7 +137,7 @@ public class PlayerBrain : MonoBehaviour
             }
 
             skillCommandBuffer.Clear();
-            if (TryExecuteSkill(command))
+            if (TryHandleSkillCommand(command))
                 return;
         }
 
@@ -144,7 +146,7 @@ public class PlayerBrain : MonoBehaviour
 
         if (!Combat.IsAttacking &&
             skillCommandBuffer.TryTake(out PlayerSkillCommand queuedCommand) &&
-            TryExecuteSkill(queuedCommand))
+            TryHandleSkillCommand(queuedCommand))
         {
             return;
         }
@@ -169,6 +171,7 @@ public class PlayerBrain : MonoBehaviour
         // Left click = action
         if (intent.LeftClicked)
         {
+            CancelSkillApproach();
             var selectable = Targeting.GetSelectableUnderMouse();
 
             if (selectable != null)
@@ -192,6 +195,7 @@ public class PlayerBrain : MonoBehaviour
         // Left click hold = movement only
         if (intent.IsDragging)
         {
+            CancelSkillApproach();
             // action is being reset, UI-selection is NOT being touched
             ClearActionSelection();
         }
@@ -228,6 +232,7 @@ public class PlayerBrain : MonoBehaviour
     public void ClearQueuedAction()
     {
         skillCommandBuffer.Clear();
+        CancelSkillApproach();
     }
 
     public void MoveTo(Vector3 pos) => Movement.MoveTo(pos);
@@ -244,7 +249,7 @@ public class PlayerBrain : MonoBehaviour
     public void ChangeToInteract() => StateMachine.ChangeState(InteractState);
     public void ChangeToLoot() => StateMachine.ChangeState(LootState);
 
-    private bool TryExecuteSkill(PlayerSkillCommand command)
+    public bool TryCommitSkillCommand(PlayerSkillCommand command)
     {
         if (!command.IsValid || Skills == null ||
             !Skills.TryUseSkillSlot(
@@ -257,6 +262,41 @@ public class PlayerBrain : MonoBehaviour
         Stop();
         ChangeToSkill();
         return true;
+    }
+
+    // Retained as the local command boundary used by the existing Play Mode
+    // regression runner. Positioning calls the same implementation explicitly.
+    private bool TryExecuteSkill(PlayerSkillCommand command)
+    {
+        return TryCommitSkillCommand(command);
+    }
+
+    private bool TryHandleSkillCommand(PlayerSkillCommand command)
+    {
+        if (!command.IsValid || Skills == null)
+            return false;
+
+        PlayerSkillUseEvaluation evaluation =
+            Skills.EvaluateSkillSlot(
+                command.SlotIndex,
+                command.SelectedTarget);
+        if (evaluation.IsReady)
+            return TryExecuteSkill(command);
+        if (!evaluation.RequiresReposition ||
+            !SkillApproachState.TrySetCommand(command))
+        {
+            return false;
+        }
+
+        if (StateMachine.CurrentState != SkillApproachState)
+            StateMachine.ChangeState(SkillApproachState);
+        return true;
+    }
+
+    private void CancelSkillApproach()
+    {
+        if (StateMachine?.CurrentState == SkillApproachState)
+            StateMachine.ChangeState(IdleState);
     }
 
     private IPlayerSkillCommands ResolveSkillExecutor()

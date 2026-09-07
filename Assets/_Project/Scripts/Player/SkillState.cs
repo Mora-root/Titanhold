@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class SkillState : IState
 {
     private PlayerBrain brain;
@@ -15,6 +17,14 @@ public class SkillState : IState
     public void Tick()
     {
         brain.Stop();
+
+        ITargetable target = brain.Skills?.CurrentTarget;
+        if (target != null &&
+            (!(target is Object unityObject) || unityObject != null) &&
+            target.IsTargetable && target.AimPoint != null)
+        {
+            brain.Movement.RotateTowards(target.AimPoint.position);
+        }
 
         if (brain.Skills?.IsUsingSkill != true)
         {

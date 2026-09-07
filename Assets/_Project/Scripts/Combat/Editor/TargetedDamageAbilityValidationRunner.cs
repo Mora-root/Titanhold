@@ -85,28 +85,38 @@ public static class TargetedDamageAbilityValidationRunner
 
             TargetedDamageAbilitySnapshot ability = Snapshot(
                 1 << ObstacleLayer);
-            Assert(!ability.CanCommit(new AbilityUseContext(source.transform, null)),
+            Assert(ability.EvaluateCommit(new AbilityUseContext(
+                       source.transform,
+                       null)).Status == AbilityCommitStatus.MissingTarget,
                 "Targeted ability accepted a missing target.");
             Assert(!ability.CanCommit(new AbilityUseContext(
                        source.transform,
                        source.AddComponent<ValidationTarget>())),
                 "Targeted ability accepted its own actor.");
-            Assert(!ability.CanCommit(new AbilityUseContext(
+            Assert(ability.EvaluateCommit(new AbilityUseContext(
                        source.transform,
-                       target)),
+                       target)).Status == AbilityCommitStatus.Obstructed,
                 "Targeted ability ignored an obstruction.");
 
             obstacle.transform.position = Vector3.forward * 5f;
             Physics.SyncTransforms();
+            Assert(ability.EvaluateCommit(new AbilityUseContext(
+                       source.transform,
+                       target)).Status == AbilityCommitStatus.NeedsFacing,
+                "Targeted ability did not request facing before commit.");
+            source.transform.rotation = Quaternion.LookRotation(Vector3.right);
             Assert(ability.CanCommit(new AbilityUseContext(
                        source.transform,
                        target)),
                 "Targeted ability rejected a reachable selected target.");
             targetObject.transform.position = Vector3.right * 2.01f;
             Physics.SyncTransforms();
-            Assert(!ability.CanCommit(new AbilityUseContext(
+            AbilityCommitEvaluation outOfRange = ability.EvaluateCommit(
+                new AbilityUseContext(
                        source.transform,
-                       target)),
+                       target));
+            Assert(outOfRange.Status == AbilityCommitStatus.OutOfRange &&
+                   outOfRange.CanReposition,
                 "Targeted ability committed outside its use range.");
         }
         finally
@@ -195,6 +205,7 @@ public static class TargetedDamageAbilityValidationRunner
             2f,
             1.5f,
             obstructionMask,
+            45f,
             "Attack");
     }
 

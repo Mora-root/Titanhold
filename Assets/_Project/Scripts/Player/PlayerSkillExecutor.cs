@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Titanhold.Combat;
+using Titanhold.Combat.Abilities;
 using UnityEngine;
 
 public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
@@ -19,6 +20,7 @@ public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
     private bool effectReleased;
 
     public bool IsUsingSkill { get; private set; }
+    public ITargetable CurrentTarget => null;
     public CombatActorReference ActorReference
     {
         get
@@ -36,6 +38,18 @@ public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
         resource = GetComponent<PlayerResource>();
         animator = GetComponentInChildren<PlayerAnimator>();
         EnsureActorReference();
+    }
+
+    public PlayerSkillUseEvaluation EvaluateSkillSlot(
+        int slotIndex,
+        ITargetable selectedTarget)
+    {
+        return slotIndex == 0 && skill1 != null &&
+               isActiveAndEnabled && !IsUsingSkill
+            ? new PlayerSkillUseEvaluation(
+                PlayerSkillUseStatus.Ready,
+                AbilityCommitStatus.Ready)
+            : PlayerSkillUseEvaluation.Invalid;
     }
 
     public bool TryUseSkill1()
