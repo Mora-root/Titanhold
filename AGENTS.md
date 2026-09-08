@@ -152,9 +152,10 @@ request this follow-up.
 
 `TimedStackingStatEffectService` aggregates stacks by effect and combat source,
 refreshes one shared expiry, enforces the cap, and replaces one sourced stat
-modifier atomically. `TimedStackingStatEffectReceiver` is the Unity adapter but is
-not connected to actor prefabs yet. Cross-player/global co-op cap rules are not
-defined.
+modifier atomically. `TimedStackingStatEffectReceiver` is connected with an
+explicit `CharacterStats` reference on the four active enemy prefabs. Their stat
+configs remain unset, so authored health continues using `Health` fallback values
+and base Armor remains zero. Cross-player/global co-op cap rules are not defined.
 
 Warrior starter set:
 

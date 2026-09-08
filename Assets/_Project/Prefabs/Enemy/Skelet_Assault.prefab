@@ -2023,6 +2023,8 @@ GameObject:
   - component: {fileID: 7481046352988135249}
   - component: {fileID: 8340508975817900304}
   - component: {fileID: 4085242749801964553}
+  - component: {fileID: 1513321409044725797}
+  - component: {fileID: 6214056082135569328}
   m_Layer: 6
   m_Name: Skelet_Assault
   m_TagString: Untagged
@@ -2248,7 +2250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 80
-  characterStats: {fileID: 0}
+  characterStats: {fileID: 1513321409044725797}
   playerExperience: {fileID: 0}
 --- !u!114 &8340508975817900304
 MonoBehaviour:
@@ -2262,9 +2264,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2feaf1beeaae88478fbf8c06456815d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRewardSource
-  deathNotifier: {fileID: 0}
-  playerExperience: {fileID: 0}
-  experienceAmount: 10
+  runExperienceAmount: 10
 --- !u!114 &4085242749801964553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2277,6 +2277,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44c6866cf7d13314d8aae984656352c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AssaultAggroTargetProvider
+--- !u!114 &1513321409044725797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855277042537611891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddaf28df8e66919459fab5f5028b34e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStats
+  config: {fileID: 0}
+--- !u!114 &6214056082135569328
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855277042537611891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9f5b321d9323d4eb5d4836cf3e8a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
+  characterStats: {fileID: 1513321409044725797}
 --- !u!1 &8889227867030874782
 GameObject:
   m_ObjectHideFlags: 0

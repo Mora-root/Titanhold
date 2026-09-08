@@ -89,6 +89,8 @@ GameObject:
   - component: {fileID: 1040181501328955608}
   - component: {fileID: -205623181956118352}
   - component: {fileID: 7038126752417281716}
+  - component: {fileID: 5815885090962592449}
+  - component: {fileID: 2153624913778169560}
   m_Layer: 6
   m_Name: Skelet_Warrior
   m_TagString: Untagged
@@ -201,6 +203,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 150
+  characterStats: {fileID: 5815885090962592449}
+  playerExperience: {fileID: 0}
 --- !u!114 &1579262022494268083
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -341,9 +345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2feaf1beeaae88478fbf8c06456815d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRewardSource
-  deathNotifier: {fileID: 0}
-  playerExperience: {fileID: 0}
-  experienceAmount: 15
+  runExperienceAmount: 15
 --- !u!114 &7038126752417281716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,10 +356,36 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 25551e1b4e2cd074181e4575042b9a6a, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRunContributionSource
   threatAmount: 15
   instabilityPoints: 1
+--- !u!114 &5815885090962592449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359619510584615181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddaf28df8e66919459fab5f5028b34e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStats
+  config: {fileID: 0}
+--- !u!114 &2153624913778169560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359619510584615181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9f5b321d9323d4eb5d4836cf3e8a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
+  characterStats: {fileID: 5815885090962592449}
 --- !u!1 &367243314010356462
 GameObject:
   m_ObjectHideFlags: 0

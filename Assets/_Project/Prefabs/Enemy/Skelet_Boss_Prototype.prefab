@@ -1364,6 +1364,8 @@ GameObject:
   - component: {fileID: 495639201290888554}
   - component: {fileID: 433460971192330890}
   - component: {fileID: 7774114282432054051}
+  - component: {fileID: 5534403092225814762}
+  - component: {fileID: 4912805404088949667}
   m_Layer: 6
   m_Name: Skelet_Boss_Prototype
   m_TagString: Untagged
@@ -1589,7 +1591,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
   maxHealth: 400
-  characterStats: {fileID: 0}
+  characterStats: {fileID: 5534403092225814762}
   playerExperience: {fileID: 0}
 --- !u!114 &433460971192330890
 MonoBehaviour:
@@ -1603,9 +1605,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2feaf1beeaae88478fbf8c06456815d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRewardSource
-  deathNotifier: {fileID: 0}
-  playerExperience: {fileID: 0}
-  experienceAmount: 10
+  runExperienceAmount: 10
 --- !u!114 &7774114282432054051
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1618,6 +1618,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44c6866cf7d13314d8aae984656352c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AssaultAggroTargetProvider
+--- !u!114 &5534403092225814762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5185197498381238768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddaf28df8e66919459fab5f5028b34e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterStats
+  config: {fileID: 0}
+--- !u!114 &4912805404088949667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5185197498381238768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9f5b321d9323d4eb5d4836cf3e8a86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
+  characterStats: {fileID: 5534403092225814762}
 --- !u!1 &5562823209461037179
 GameObject:
   m_ObjectHideFlags: 0
