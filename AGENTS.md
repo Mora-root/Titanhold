@@ -54,6 +54,9 @@ them as legacy/future activity code unless explicitly requested.
 - Assault scaling multiplies the current round snapshot by the locked Rift
   Instability snapshot; never compound previous runtime values.
 - Out-of-combat enemy regeneration is not implemented yet.
+- `EnemyDefinition`/`EnemyDefinitionCatalog` provide the all-or-nothing central
+  enemy-balance registry and immutable base-stat snapshots. No definition assets
+  or runtime spawn integration are connected yet.
 
 ## Session, Progression, and Economy
 
