@@ -259,6 +259,7 @@ public class PlayerBrain : MonoBehaviour
             return false;
         }
 
+        AcceptSkillMovementOwnership();
         Stop();
         ChangeToSkill();
         return true;
@@ -288,9 +289,47 @@ public class PlayerBrain : MonoBehaviour
             return false;
         }
 
+        AcceptSkillMovementOwnership();
         if (StateMachine.CurrentState != SkillApproachState)
             StateMachine.ChangeState(SkillApproachState);
         return true;
+    }
+
+    public bool TryApplyPostAbilityAction()
+    {
+        if (Skills == null ||
+            !Skills.TryTakePostAbilityAction(
+                out PlayerPostAbilityAction action))
+        {
+            return false;
+        }
+
+        // Commands issued while the ability was executing own the next action.
+        if (skillCommandBuffer.HasPendingCommand || HasMoveTarget)
+            return false;
+
+        ITargetable target = action.PrimaryTarget;
+        if (action.Policy !=
+                Titanhold.Combat.Abilities.PostAbilityActionPolicy
+                    .ContinueBasicAttackOnPrimaryTarget ||
+            target == null ||
+            !target.IsTargetable ||
+            target.AimPoint == null ||
+            target is not ISelectable selectable ||
+            !selectable.IsSelectable)
+        {
+            return false;
+        }
+
+        ActionSelection = selectable;
+        ChangeToApproach();
+        return true;
+    }
+
+    private void AcceptSkillMovementOwnership()
+    {
+        Input?.ClearAll();
+        ClearActionSelection();
     }
 
     private void CancelSkillApproach()

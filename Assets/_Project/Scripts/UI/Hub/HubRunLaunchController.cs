@@ -17,18 +17,12 @@ namespace Titanhold.UI.Hub
         [SerializeField] private string characterId = "character:warrior";
         [SerializeField]
         private string characterArchetypeId = "archetype:warrior";
-        [SerializeField] private string startingAbilityId = "ability:spin";
+        [SerializeField] private string startingAbilityId = string.Empty;
         [SerializeField] private string difficultyId = "difficulty:prototype";
         [SerializeField] private string runSceneName = "SampleScene";
 
         private bool launchInProgress;
         private string pendingRunSessionId = string.Empty;
-        private RunStartReadinessService pendingReadiness;
-        private bool readinessSubscribed;
-
-        public event Action<string, string>
-            StartingAbilitySelectionRequired;
-
         public bool HasRequiredReferences => view != null && sessionHost != null;
         public HubRunPreparationView View => view;
         public GameSessionRuntimeHost SessionHost => sessionHost;
@@ -38,9 +32,6 @@ namespace Titanhold.UI.Hub
         public string StartingAbilityId => startingAbilityId;
         public string DifficultyId => difficultyId;
         public string RunSceneName => runSceneName;
-        public bool IsWaitingForStartingAbility =>
-            launchInProgress && pendingReadiness != null &&
-            !pendingReadiness.IsSealed;
 
 #if UNITY_EDITOR
         public void ConfigureForEditor(
@@ -75,11 +66,6 @@ namespace Titanhold.UI.Hub
             if (view != null)
                 view.StartRequested += HandleStartRequested;
 
-            if (launchInProgress && pendingReadiness != null &&
-                pendingReadiness.IsSealed)
-            {
-                BeginRunSceneLoad();
-            }
         }
 
         private void OnDisable()
@@ -91,11 +77,6 @@ namespace Titanhold.UI.Hub
         private void Start()
         {
             TryResolveSessionHost();
-        }
-
-        private void OnDestroy()
-        {
-            UnsubscribeReadiness();
         }
 
         private void HandleStartRequested()
@@ -134,47 +115,17 @@ namespace Titanhold.UI.Hub
             launchInProgress = true;
             pendingRunSessionId = result.RunSessionId;
             view.SetStartInteractable(false);
-            if (!sessionHost.Runtime.TryGetActiveRunStartReadiness(
-                    result.RunSessionId,
-                    out pendingReadiness))
-            {
-                TryCancelPendingLaunch(
-                    "RUN PREPARATION FAILED",
-                    "Active run start readiness is unavailable.");
-                return;
-            }
-
-            if (pendingReadiness.IsSealed)
-            {
-                BeginRunSceneLoad();
-                return;
-            }
-
-            pendingReadiness.ReadinessSealed += HandleReadinessSealed;
-            readinessSubscribed = true;
-            view.SetStatus("CHOOSE STARTING ABILITY");
-            StartingAbilitySelectionRequired?.Invoke(
-                result.RunSessionId,
-                playerId);
-        }
-
-        private void HandleReadinessSealed()
-        {
-            if (isActiveAndEnabled)
-                BeginRunSceneLoad();
+            BeginRunSceneLoad();
         }
 
         private void BeginRunSceneLoad()
         {
-            if (!launchInProgress || pendingRunSessionId.Length == 0 ||
-                pendingReadiness == null || !pendingReadiness.IsSealed)
+            if (!launchInProgress || pendingRunSessionId.Length == 0)
             {
                 return;
             }
 
             string runSessionId = pendingRunSessionId;
-            UnsubscribeReadiness();
-            pendingReadiness = null;
             view.SetStatus("LOADING RUN...");
             StartCoroutine(LoadRunScene(runSessionId));
         }
@@ -218,8 +169,6 @@ namespace Titanhold.UI.Hub
                 return false;
 
             string runSessionId = pendingRunSessionId;
-            UnsubscribeReadiness();
-            pendingReadiness = null;
             if (runSessionId.Length > 0)
             {
                 GameSessionCommandResult cancel =
@@ -244,16 +193,6 @@ namespace Titanhold.UI.Hub
             pendingRunSessionId = string.Empty;
             view.SetStartInteractable(true);
             view.SetStatus(status);
-        }
-
-        private void UnsubscribeReadiness()
-        {
-            if (readinessSubscribed && pendingReadiness != null)
-            {
-                pendingReadiness.ReadinessSealed -= HandleReadinessSealed;
-            }
-
-            readinessSubscribed = false;
         }
 
         private static int CreateRunSeed()

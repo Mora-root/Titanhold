@@ -23,7 +23,8 @@ namespace Titanhold.Session
             RunExperienceCurve runExperienceCurve = null,
             int runAbilitySlotCount =
                 RunAbilityLoadoutService.DefaultAbilitySlotCount,
-            IRunStartingAbilityPoolResolver startingAbilityPools = null)
+            IRunStartingAbilityPoolResolver startingAbilityPools = null,
+            IRunCombatResourceLoadoutResolver combatResourceLoadouts = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
@@ -40,6 +41,7 @@ namespace Titanhold.Session
             CharacterSnapshots = new CharacterSnapshotService();
             AccountCrystals = new AccountCrystalWallet();
             StartingAbilityPools = startingAbilityPools;
+            CombatResourceLoadouts = combatResourceLoadouts;
             GameSession.StateChanged += HandleGameSessionStateChanged;
         }
 
@@ -49,6 +51,7 @@ namespace Titanhold.Session
         public RunConclusionRewardPolicy ConclusionRewards { get; }
         public IItemDefinitionResolver ItemDefinitions { get; }
         public IRunStartingAbilityPoolResolver StartingAbilityPools { get; }
+        public IRunCombatResourceLoadoutResolver CombatResourceLoadouts { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunCombatResourceService ActiveRunCombatResources
@@ -417,6 +420,10 @@ namespace Titanhold.Session
                         $"for combat resources: {resourceRegistration.Error}.");
                 }
 
+                RegisterParticipantCombatResources(
+                    combatResources,
+                    participant);
+
                 RunAbilityLoadoutResult abilityRegistration =
                     abilityLoadout.TryRegisterParticipant(identity);
                 if (!abilityRegistration.Success)
@@ -529,6 +536,42 @@ namespace Titanhold.Session
             ActiveRunStartingAbilitySelectionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunStartingAbilitySelection);
+        }
+
+        private void RegisterParticipantCombatResources(
+            RunCombatResourceService combatResources,
+            RunParticipantSelection participant)
+        {
+            if (CombatResourceLoadouts == null)
+                return;
+
+            if (!CombatResourceLoadouts.TryResolve(
+                    participant.CharacterArchetypeId,
+                    out RunCombatResourceLoadout loadout))
+            {
+                throw new InvalidOperationException(
+                    $"No combat resource loadout is configured for character " +
+                    $"archetype '{participant.CharacterArchetypeId}'.");
+            }
+
+            for (int i = 0; i < loadout.Resources.Count; i++)
+            {
+                RunCombatResourceDefinition resource = loadout.Resources[i];
+                RunCombatResourceResult registration =
+                    combatResources.TryRegisterResource(
+                        participant.PlayerId,
+                        resource.ResourceId,
+                        resource.Maximum,
+                        resource.Initial);
+                if (!registration.Success)
+                {
+                    throw new InvalidOperationException(
+                        $"Combat resource '{resource.ResourceId}' from " +
+                        $"loadout '{loadout.LoadoutId}' could not be " +
+                        $"registered for participant " +
+                        $"'{participant.PlayerId}': {registration.Error}.");
+                }
+            }
         }
 
         private static int CreateStartingChoiceSeed(

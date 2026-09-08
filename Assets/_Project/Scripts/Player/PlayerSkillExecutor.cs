@@ -177,6 +177,13 @@ public class PlayerSkillExecutor : MonoBehaviour, IPlayerSkillCommands
         ClearCurrentSkill();
     }
 
+    public bool TryTakePostAbilityAction(
+        out PlayerPostAbilityAction action)
+    {
+        action = default;
+        return false;
+    }
+
     private void ClearCurrentSkill()
     {
         IsUsingSkill = false;

@@ -28,6 +28,9 @@ public class SkillState : IState
 
         if (brain.Skills?.IsUsingSkill != true)
         {
+            if (brain.TryApplyPostAbilityAction())
+                return;
+
             brain.ChangeToIdle();
         }
     }

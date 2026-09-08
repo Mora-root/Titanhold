@@ -50,7 +50,10 @@ public static class ConeDamageAbilityValidationRunner
                    snapshot.SecondaryDamageMultiplier == 0.3f &&
                    snapshot.UseRange == 2.5f &&
                    snapshot.ConeAngle == 120f &&
-                   snapshot.OnHitEffect == null,
+                   snapshot.OnHitEffect == null &&
+                   snapshot.PostActionPolicy ==
+                       PostAbilityActionPolicy
+                           .ContinueBasicAttackOnPrimaryTarget,
                 "Valid Cleave definition did not create a clean damage snapshot.");
 
             data.FindProperty("damageMultiplier").floatValue = 4f;

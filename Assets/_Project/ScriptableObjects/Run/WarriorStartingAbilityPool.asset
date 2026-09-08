@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 702d8ce19af0e5b4e9574b37e3332886, type: 3}
+  m_Name: WarriorStartingAbilityPool
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunStartingAbilityPoolDefinition
+  poolId: starting-pool:warrior
+  characterArchetypeId: archetype:warrior
+  abilityDefinitions:
+  - {fileID: 11400000, guid: 9b63db11fced5174e96ffa17ee706fa4, type: 2}
+  - {fileID: 11400000, guid: 73de60b98fd5dcf449102ddb15f6f8fa, type: 2}
+  - {fileID: 11400000, guid: be09518beee326d4aa16bd1b42af48df, type: 2}

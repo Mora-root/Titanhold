@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2d0334abaca2ca428b5fe9ad5b5d9ef, type: 3}
+  m_Name: Cleave
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Abilities.ConeDamageAbilityDefinition
+  abilityId: ability:cleave
+  displayName: Cleave
+  description: Strike the selected target for full damage and other enemies in a
+    forward cone for 30% damage. Does not generate Rage.
+  icon: {fileID: 0}
+  resourceCost: 20
+  cooldown: 3
+  windUp: 0.23333333
+  recovery: 0.30000004
+  damageMultiplier: 1.5
+  secondaryDamageMultiplier: 0.3
+  useRange: 1.5
+  coneAngle: 120
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 64
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 1
+  maximumUseAngle: 45
+  animatorTrigger: Attack
+  onHitEffect:
+    enabled: 0
+    effectId: effect:crushing-strike-armor-break
+    statType: 10
+    modifierType: 1
+    valuePerStack: -5
+    maximumStacks: 5
+    duration: 8
+  sourceResourceGain:
+    enabled: 0
+    resourceId: resource:rage
+    amount: 0

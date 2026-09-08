@@ -51,7 +51,10 @@ public static class TargetedDamageAbilityValidationRunner
                    snapshot.UseRange == 2f &&
                    snapshot.ReleaseRange == 3f &&
                    snapshot.OnHitEffect?.EffectId ==
-                   "effect:armor-break",
+                   "effect:armor-break" &&
+                   snapshot.PostActionPolicy ==
+                       PostAbilityActionPolicy
+                           .ContinueBasicAttackOnPrimaryTarget,
                 "Valid targeted definition did not create its snapshot.");
 
             data.FindProperty("damageMultiplier").floatValue = 4f;

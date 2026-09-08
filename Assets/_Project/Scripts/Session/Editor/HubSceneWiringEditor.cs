@@ -24,6 +24,10 @@ namespace Titanhold.Session.Editor
             "Assets/_Project/ScriptableObjects/Items/ItemDefinitionCatalog.asset";
         private const string AbilityCatalogPath =
             "Assets/_Project/ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset";
+        private const string StartingAbilityPoolCatalogPath =
+            "Assets/_Project/ScriptableObjects/Run/StartingAbilityPoolCatalog.asset";
+        private const string CombatResourceLoadoutCatalogPath =
+            "Assets/_Project/ScriptableObjects/Run/CombatResourceLoadoutCatalog.asset";
         private const string RunProgressionPath =
             "Assets/_Project/ScriptableObjects/Run/RunProgression_Prototype.asset";
         private const string ConclusionRewardsPath =
@@ -152,7 +156,7 @@ namespace Titanhold.Session.Editor
                     "player:local",
                     "character:warrior",
                     "archetype:warrior",
-                    "ability:spin",
+                    string.Empty,
                     "difficulty:prototype",
                     "SampleScene");
                 EditorUtility.SetDirty(controller);
@@ -239,12 +243,21 @@ namespace Titanhold.Session.Editor
             GameObject root = new("GameSessionRoot");
             GameSessionRuntimeHost host =
                 root.AddComponent<GameSessionRuntimeHost>();
+            RunStartingAbilityPoolCatalog startingAbilityPools =
+                AssetDatabase.LoadAssetAtPath<RunStartingAbilityPoolCatalog>(
+                    StartingAbilityPoolCatalogPath);
+            RunCombatResourceLoadoutCatalog combatResourceLoadouts =
+                AssetDatabase.LoadAssetAtPath<
+                    RunCombatResourceLoadoutCatalog>(
+                    CombatResourceLoadoutCatalogPath);
             host.ConfigureForEditor(
                 catalog,
                 abilityCatalog,
-                null,
+                startingAbilityPools,
                 runProgression,
                 conclusionRewards);
+            host.ConfigureCombatResourceLoadoutsForEditor(
+                combatResourceLoadouts);
             EditorUtility.SetDirty(host);
             EditorSceneManager.MarkSceneDirty(root.scene);
             return host;
@@ -471,7 +484,7 @@ namespace Titanhold.Session.Editor
                 "player:local",
                 "character:warrior",
                 "archetype:warrior",
-                "ability:spin",
+                string.Empty,
                 "difficulty:prototype",
                 "SampleScene");
             EditorUtility.SetDirty(launchController);
@@ -710,13 +723,20 @@ namespace Titanhold.Session.Editor
                     "Session root has no valid ability catalog reference.");
             }
 
-            if (host.StartingAbilityPools != null &&
-                (!host.StartingAbilityPools.IsValid ||
-                 host.StartingAbilityPools.AbilityCatalog !=
-                    host.AbilityDefinitions))
+            if (host.StartingAbilityPools == null ||
+                !host.StartingAbilityPools.IsValid ||
+                host.StartingAbilityPools.AbilityCatalog !=
+                    host.AbilityDefinitions)
             {
                 throw new InvalidOperationException(
                     "Session root has invalid starting ability pool wiring.");
+            }
+
+            if (host.CombatResourceLoadouts == null ||
+                !host.CombatResourceLoadouts.IsValid)
+            {
+                throw new InvalidOperationException(
+                    "Session root has invalid combat resource loadout wiring.");
             }
 
             if (host.RunProgression == null ||
@@ -777,7 +797,7 @@ namespace Titanhold.Session.Editor
                 launchController.CharacterId != "character:warrior" ||
                 launchController.CharacterArchetypeId !=
                     "archetype:warrior" ||
-                launchController.StartingAbilityId != "ability:spin" ||
+                launchController.StartingAbilityId.Length != 0 ||
                 launchController.DifficultyId != "difficulty:prototype" ||
                 launchController.RunSceneName != "SampleScene")
             {

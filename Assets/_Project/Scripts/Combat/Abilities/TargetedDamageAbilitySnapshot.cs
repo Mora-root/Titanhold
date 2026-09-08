@@ -75,6 +75,8 @@ namespace Titanhold.Combat.Abilities
         public int ObstructionMask { get; }
         public float MaximumUseAngle { get; }
         public string AnimatorTrigger { get; }
+        public PostAbilityActionPolicy PostActionPolicy =>
+            PostAbilityActionPolicy.ContinueBasicAttackOnPrimaryTarget;
         public TimedStackingStatEffectDefinition OnHitEffect { get; }
         public AbilitySourceResourceGain SourceResourceGain { get; }
 

@@ -15,7 +15,25 @@ public interface IPlayerSkillCommands
         ITargetable selectedTarget);
     bool TryUseSkillSlot(int slotIndex);
     bool TryUseSkillSlot(int slotIndex, ITargetable selectedTarget);
+    bool TryTakePostAbilityAction(out PlayerPostAbilityAction action);
     void CancelCurrentSkill();
+}
+
+public readonly struct PlayerPostAbilityAction
+{
+    public PlayerPostAbilityAction(
+        PostAbilityActionPolicy policy,
+        ITargetable primaryTarget)
+    {
+        Policy = policy;
+        PrimaryTarget = primaryTarget;
+    }
+
+    public PostAbilityActionPolicy Policy { get; }
+    public ITargetable PrimaryTarget { get; }
+    public bool IsValid =>
+        Policy != PostAbilityActionPolicy.None &&
+        PrimaryTarget != null;
 }
 
 public enum PlayerSkillUseStatus

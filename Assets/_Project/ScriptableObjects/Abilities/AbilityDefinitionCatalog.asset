@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: AbilityDefinitionCatalog
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Abilities.AbilityDefinitionCatalog
   definitions:
+  - {fileID: 11400000, guid: be09518beee326d4aa16bd1b42af48df, type: 2}
+  - {fileID: 11400000, guid: 73de60b98fd5dcf449102ddb15f6f8fa, type: 2}
+  - {fileID: 11400000, guid: 9b63db11fced5174e96ffa17ee706fa4, type: 2}
   - {fileID: 11400000, guid: 29500030244fb3641a43e9aaf7fddb5c, type: 2}

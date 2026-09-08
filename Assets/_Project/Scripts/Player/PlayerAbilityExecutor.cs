@@ -23,6 +23,7 @@ public sealed class PlayerAbilityExecutor :
     private AbilitySlotDefinitionResolver abilitySlots;
     private ICombatResourceGateway localSourceResourceGateway;
     private ICombatResourceGateway sourceResourceGateway;
+    private PlayerPostAbilityAction pendingPostAbilityAction;
 
     public bool IsUsingSkill => execution?.CurrentExecution != null;
     public ITargetable CurrentTarget => currentTarget;
@@ -117,6 +118,7 @@ public sealed class PlayerAbilityExecutor :
 
             currentAbility = ability;
             currentTarget = selectedTarget;
+            pendingPostAbilityAction = default;
             playerAnimator.PlaySkill(ability.AnimatorTrigger);
         }
 
@@ -204,14 +206,22 @@ public sealed class PlayerAbilityExecutor :
         // Report subscribers can cancel the cast; retain the original id so a
         // subsequent execution cannot accidentally be finished by this tick.
         if (execution.TryFinish(active.ExecutionId, now).Success)
-            ClearCurrentAbility();
+            CompleteCurrentAbility();
+    }
+
+    public bool TryTakePostAbilityAction(
+        out PlayerPostAbilityAction action)
+    {
+        action = pendingPostAbilityAction;
+        pendingPostAbilityAction = default;
+        return action.IsValid;
     }
 
     public void CancelCurrentSkill()
     {
         if (IsUsingSkill && execution.TryCancel(
                 execution.CurrentExecution.ExecutionId, Time.timeAsDouble).Success)
-            ClearCurrentAbility();
+            ClearCurrentAbility(clearPostAction: true);
     }
 
     private void OnDisable() => CancelCurrentSkill();
@@ -236,10 +246,26 @@ public sealed class PlayerAbilityExecutor :
                (definition = resolved as IRuntimeAbilityDefinition) != null;
     }
 
-    private void ClearCurrentAbility()
+    private void CompleteCurrentAbility()
+    {
+        if (currentAbility != null &&
+            currentAbility.PostActionPolicy != PostAbilityActionPolicy.None &&
+            currentTarget != null)
+        {
+            pendingPostAbilityAction = new PlayerPostAbilityAction(
+                currentAbility.PostActionPolicy,
+                currentTarget);
+        }
+
+        ClearCurrentAbility(clearPostAction: false);
+    }
+
+    private void ClearCurrentAbility(bool clearPostAction)
     {
         currentAbility = null;
         currentTarget = null;
+        if (clearPostAction)
+            pendingPostAbilityAction = default;
     }
 
     private sealed class ResourceGateway : IAbilityResourceGateway

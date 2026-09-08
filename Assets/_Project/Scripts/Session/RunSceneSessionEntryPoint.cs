@@ -128,14 +128,31 @@ namespace Titanhold.Session
                 return;
             }
 
-            GameSessionCommandResult activation =
-                runtime.GameSession.TryActivateRun(descriptor.RunSessionId);
-            if (!activation.Success)
+            if (!runtime.TryGetActiveRunStartReadiness(
+                    descriptor.RunSessionId,
+                    out RunStartReadinessService readiness))
             {
                 RejectEntry(
                     runtime,
                     descriptor,
-                    $"Could not activate run: {activation.Error}.");
+                    "Run session has no starting readiness roster.");
+                return;
+            }
+
+            // An unseeded run is fully restored and bound in the run scene, but
+            // remains a transition until its in-run starting choice is sealed.
+            if (readiness.IsSealed)
+            {
+                GameSessionCommandResult activation =
+                    runtime.GameSession.TryActivateRun(
+                        descriptor.RunSessionId);
+                if (!activation.Success)
+                {
+                    RejectEntry(
+                        runtime,
+                        descriptor,
+                        $"Could not activate run: {activation.Error}.");
+                }
             }
         }
 

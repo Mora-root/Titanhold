@@ -88,6 +88,7 @@ namespace Titanhold.Combat.Abilities
     {
         AbilityExecutionDefinition Execution { get; }
         string AnimatorTrigger { get; }
+        PostAbilityActionPolicy PostActionPolicy { get; }
 
         bool CanCommit(AbilityUseContext context);
 
@@ -95,5 +96,13 @@ namespace Titanhold.Combat.Abilities
             AbilityUseContext context,
             AbilityExecutionSnapshot execution,
             double releasedAt);
+    }
+
+    // A semantic combat follow-up, independent from targeting/input tags.
+    // Explicit commands issued during the ability always take precedence.
+    public enum PostAbilityActionPolicy
+    {
+        None,
+        ContinueBasicAttackOnPrimaryTarget
     }
 }

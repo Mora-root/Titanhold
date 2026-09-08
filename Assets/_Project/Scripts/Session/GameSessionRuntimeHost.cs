@@ -11,6 +11,8 @@ namespace Titanhold.Session
         [SerializeField] private AbilityDefinitionCatalog abilityDefinitions;
         [SerializeField]
         private RunStartingAbilityPoolCatalog startingAbilityPools;
+        [SerializeField]
+        private RunCombatResourceLoadoutCatalog combatResourceLoadouts;
         [SerializeField] private RunProgressionDefinition runProgression;
         [SerializeField]
         private RunConclusionRewardDefinition conclusionRewards;
@@ -23,6 +25,8 @@ namespace Titanhold.Session
         public AbilityDefinitionCatalog AbilityDefinitions => abilityDefinitions;
         public RunStartingAbilityPoolCatalog StartingAbilityPools =>
             startingAbilityPools;
+        public RunCombatResourceLoadoutCatalog CombatResourceLoadouts =>
+            combatResourceLoadouts;
         public RunProgressionDefinition RunProgression => runProgression;
         public RunConclusionRewardDefinition ConclusionRewards =>
             conclusionRewards;
@@ -40,6 +44,12 @@ namespace Titanhold.Session
             startingAbilityPools = abilityPools;
             runProgression = progression;
             conclusionRewards = rewards;
+        }
+
+        public void ConfigureCombatResourceLoadoutsForEditor(
+            RunCombatResourceLoadoutCatalog loadouts)
+        {
+            combatResourceLoadouts = loadouts;
         }
 #endif
 
@@ -112,6 +122,18 @@ namespace Titanhold.Session
                 return;
             }
 
+            if (combatResourceLoadouts != null &&
+                !combatResourceLoadouts.IsValid)
+            {
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} has invalid combat " +
+                    $"resource loadouts: " +
+                    combatResourceLoadouts.ValidationError,
+                    combatResourceLoadouts);
+                enabled = false;
+                return;
+            }
+
             if (runProgression == null || !runProgression.IsValid)
             {
                 Debug.LogError(
@@ -140,7 +162,8 @@ namespace Titanhold.Session
                 itemDefinitions,
                 rewardPolicy,
                 runExperienceCurve: runProgression.BuildCurve(),
-                startingAbilityPools: startingAbilityPools);
+                startingAbilityPools: startingAbilityPools,
+                combatResourceLoadouts: combatResourceLoadouts);
             activeHost = this;
             DontDestroyOnLoad(gameObject);
         }

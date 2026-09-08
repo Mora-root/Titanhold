@@ -34,6 +34,8 @@ namespace Titanhold.Combat.Abilities
         public float Radius { get; }
         public int TargetMask { get; }
         public string AnimatorTrigger { get; }
+        public PostAbilityActionPolicy PostActionPolicy =>
+            PostAbilityActionPolicy.None;
         public AbilitySourceResourceGain SourceResourceGain { get; }
 
         public bool CanCommit(AbilityUseContext context)

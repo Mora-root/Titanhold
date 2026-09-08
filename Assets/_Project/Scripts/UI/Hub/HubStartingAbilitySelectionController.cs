@@ -39,22 +39,12 @@ namespace Titanhold.UI.Hub
         {
             if (view != null)
                 view.OptionSelected += HandleOptionSelected;
-            if (launchController != null)
-            {
-                launchController.StartingAbilitySelectionRequired +=
-                    HandleSelectionRequired;
-            }
         }
 
         private void OnDisable()
         {
             if (view != null)
                 view.OptionSelected -= HandleOptionSelected;
-            if (launchController != null)
-            {
-                launchController.StartingAbilitySelectionRequired -=
-                    HandleSelectionRequired;
-            }
 
             ClearPresentation();
         }

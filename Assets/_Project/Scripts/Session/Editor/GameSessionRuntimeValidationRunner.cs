@@ -36,12 +36,15 @@ namespace Titanhold.Session.Editor
 
                 IRunStartingAbilityPoolResolver startingPools =
                     CreateStartingPools();
+                IRunCombatResourceLoadoutResolver combatResourceLoadouts =
+                    CreateCombatResourceLoadouts();
                 GameSessionRuntime runtime = new(
                     catalog,
                     CreateRewardPolicy(),
                     runExperienceCurve:
                         new RunExperienceCurve(new[] { 10, 20 }),
-                    startingAbilityPools: startingPools);
+                    startingAbilityPools: startingPools,
+                    combatResourceLoadouts: combatResourceLoadouts);
                 int snapshotChangeCount = 0;
                 runtime.CharacterSnapshotChanged += (_, _) =>
                     snapshotChangeCount++;
@@ -133,13 +136,15 @@ namespace Titanhold.Session.Editor
                        runState.Experience == 5,
                     "Run transition did not create participant progression.");
                 Assert(runtime.TryGetActiveRunCombatResources(
-                           begin.RunSessionId,
-                           out RunCombatResourceService combatResources) &&
+                       begin.RunSessionId,
+                       out RunCombatResourceService combatResources) &&
                        combatResources.ParticipantCount == 1 &&
-                       combatResources.TryRegisterResource(
+                       combatResources.TryGetResource(
                            "player:local",
                            "resource:rage",
-                           8f).Success &&
+                           out CombatResourceSnapshot rage) &&
+                       rage.Maximum == 8f &&
+                       rage.Current == 0f &&
                        combatResources.TryCreateParticipantGateway(
                            "player:local",
                            out ICombatResourceGateway resourceGateway) &&
@@ -577,6 +582,29 @@ namespace Titanhold.Session.Editor
                        out string poolError),
                 $"Could not prepare starting pools: {poolError}");
             return pools;
+        }
+
+        private static IRunCombatResourceLoadoutResolver
+            CreateCombatResourceLoadouts()
+        {
+            Assert(RunCombatResourceLoadoutRegistry.TryCreate(
+                       new[]
+                       {
+                           new RunCombatResourceLoadout(
+                               "combat-resources:warrior",
+                               "archetype:warrior",
+                               new[]
+                               {
+                                   new RunCombatResourceDefinition(
+                                       "resource:rage",
+                                       8f,
+                                       0f)
+                               })
+                       },
+                       out RunCombatResourceLoadoutRegistry loadouts,
+                       out string error),
+                $"Could not prepare combat resource loadouts: {error}");
+            return loadouts;
         }
 
         private static void Destroy(UnityEngine.Object instance)

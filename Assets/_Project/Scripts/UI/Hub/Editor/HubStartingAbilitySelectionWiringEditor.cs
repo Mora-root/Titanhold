@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using Titanhold.UI.Run;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -12,6 +13,8 @@ namespace Titanhold.UI.Hub.Editor
     {
         private const string HubScenePath =
             "Assets/_Project/Scenes/HubScene.unity";
+        private const string RunScenePath =
+            "Assets/_Project/Scenes/SampleScene.unity";
 
         private static readonly Color OverlayColor =
             new(0.008f, 0.012f, 0.02f, 0.94f);
@@ -24,34 +27,37 @@ namespace Titanhold.UI.Hub.Editor
         private static readonly Color MutedTextColor =
             new(0.62f, 0.67f, 0.74f, 1f);
 
-        [MenuItem("Tools/Titanhold/Install Starting Ability Selection UI")]
+        [MenuItem("Tools/Titanhold/Install In-Run Starting Ability Selection UI")]
         public static void Install()
         {
             try
             {
                 RequireEditMode("installation");
                 RequireCleanOpenScene();
+                RemoveHubSelectionUi();
+
                 Scene scene = EditorSceneManager.OpenScene(
-                    HubScenePath,
+                    RunScenePath,
                     OpenSceneMode.Single);
                 if (UnityEngine.Object.FindAnyObjectByType<
                         HubStartingAbilitySelectionView>(
                         FindObjectsInactive.Include) != null)
                 {
                     ValidateInternal();
-                    Debug.Log("Starting Ability Selection UI is already installed.");
+                    EditorSceneManager.OpenScene(
+                        HubScenePath,
+                        OpenSceneMode.Single);
+                    Debug.Log(
+                        "In-Run Starting Ability Selection UI is already installed.");
                     return;
                 }
 
                 Canvas canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>(
                     FindObjectsInactive.Include);
-                HubRunLaunchController launchController =
-                    UnityEngine.Object.FindAnyObjectByType<
-                        HubRunLaunchController>(FindObjectsInactive.Include);
-                if (canvas == null || launchController == null)
+                if (canvas == null)
                 {
                     throw new InvalidOperationException(
-                        "Hub Canvas or run launch controller is missing.");
+                        "Run scene Canvas is missing.");
                 }
 
                 GameObject uiRoot = CreateUiObject(
@@ -60,8 +66,8 @@ namespace Titanhold.UI.Hub.Editor
                 Stretch(uiRoot.GetComponent<RectTransform>());
                 HubStartingAbilitySelectionView view =
                     uiRoot.AddComponent<HubStartingAbilitySelectionView>();
-                HubStartingAbilitySelectionController controller =
-                    uiRoot.AddComponent<HubStartingAbilitySelectionController>();
+                RunStartingAbilitySelectionController controller =
+                    uiRoot.AddComponent<RunStartingAbilitySelectionController>();
 
                 GameObject overlay = CreateUiObject(
                     "SelectionOverlay",
@@ -89,7 +95,7 @@ namespace Titanhold.UI.Hub.Editor
                 CreateText(
                     panel.transform,
                     "Subtitle",
-                    "This ability occupies your first run slot.",
+                    "Choose your first ability to begin the run.",
                     17f,
                     FontStyles.Normal,
                     new Vector2(0f, 205f),
@@ -129,17 +135,24 @@ namespace Titanhold.UI.Hub.Editor
                     names,
                     descriptions,
                     icons);
-                controller.ConfigureForEditor(view, launchController);
+                controller.ConfigureForEditor(
+                    view,
+                    "player:local",
+                    "HubScene");
                 overlay.SetActive(false);
 
                 EditorUtility.SetDirty(view);
                 EditorUtility.SetDirty(controller);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
-                    throw new InvalidOperationException("Could not save Hub scene.");
+                    throw new InvalidOperationException("Could not save run scene.");
 
                 ValidateInternal();
-                Debug.Log("Starting Ability Selection UI installed.");
+                EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+                ValidateHubSelectionUiRemoved();
+                Debug.Log("In-Run Starting Ability Selection UI installed.");
             }
             catch (Exception exception)
             {
@@ -148,21 +161,49 @@ namespace Titanhold.UI.Hub.Editor
             }
         }
 
-        [MenuItem("Tools/Titanhold/Validate Starting Ability Selection UI Wiring")]
+        [MenuItem("Tools/Titanhold/Install Starting Ability Selection UI")]
+        public static void InstallCompatibilityAlias()
+        {
+            Install();
+        }
+
+        [MenuItem("Tools/Titanhold/Validate In-Run Starting Ability Selection UI Wiring")]
         public static void Validate()
         {
             try
             {
                 RequireEditMode("validation");
+                RequireCleanOpenScene();
+                string previousScenePath = SceneManager.GetActiveScene().path;
+                EditorSceneManager.OpenScene(
+                    HubScenePath,
+                    OpenSceneMode.Single);
+                ValidateHubSelectionUiRemoved();
+                EditorSceneManager.OpenScene(
+                    RunScenePath,
+                    OpenSceneMode.Single);
                 ValidateInternal();
+                if (!string.IsNullOrWhiteSpace(previousScenePath) &&
+                    previousScenePath != RunScenePath)
+                {
+                    EditorSceneManager.OpenScene(
+                        previousScenePath,
+                        OpenSceneMode.Single);
+                }
                 Debug.Log(
-                    "Starting Ability Selection UI wiring validation passed.");
+                    "In-Run Starting Ability Selection UI wiring validation passed.");
             }
             catch (Exception exception)
             {
                 Debug.LogError(
                     $"Starting Ability Selection UI wiring validation failed: {exception}");
             }
+        }
+
+        [MenuItem("Tools/Titanhold/Validate Starting Ability Selection UI Wiring")]
+        public static void ValidateCompatibilityAlias()
+        {
+            Validate();
         }
 
         private static void CreateOptionCard(
@@ -237,43 +278,84 @@ namespace Titanhold.UI.Hub.Editor
         private static void ValidateInternal()
         {
             Scene scene = SceneManager.GetActiveScene();
-            if (scene.path != HubScenePath)
-                throw new InvalidOperationException($"Open '{HubScenePath}'.");
+            if (scene.path != RunScenePath)
+                throw new InvalidOperationException($"Open '{RunScenePath}'.");
 
             HubStartingAbilitySelectionView[] views =
                 UnityEngine.Object.FindObjectsByType<
                     HubStartingAbilitySelectionView>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
-            HubStartingAbilitySelectionController[] controllers =
+                    FindObjectsInactive.Include);
+            RunStartingAbilitySelectionController[] controllers =
                 UnityEngine.Object.FindObjectsByType<
-                    HubStartingAbilitySelectionController>(
-                    FindObjectsInactive.Include,
-                    FindObjectsSortMode.None);
-            HubRunLaunchController launchController =
-                UnityEngine.Object.FindAnyObjectByType<
-                    HubRunLaunchController>(FindObjectsInactive.Include);
+                    RunStartingAbilitySelectionController>(
+                    FindObjectsInactive.Include);
             Canvas canvas = UnityEngine.Object.FindAnyObjectByType<Canvas>(
                 FindObjectsInactive.Include);
             if (views.Length != 1 || controllers.Length != 1 ||
-                launchController == null || canvas == null)
+                canvas == null)
             {
                 throw new InvalidOperationException(
                     "Starting selection UI components are missing or duplicated.");
             }
 
             HubStartingAbilitySelectionView view = views[0];
-            HubStartingAbilitySelectionController controller = controllers[0];
+            RunStartingAbilitySelectionController controller = controllers[0];
             if (!view.HasRequiredReferences ||
                 view.SelectionRoot == null ||
                 view.SelectionRoot.activeSelf ||
                 !view.transform.IsChildOf(canvas.transform) ||
                 !controller.HasRequiredReferences ||
                 controller.View != view ||
-                controller.LaunchController != launchController)
+                controller.PlayerId != "player:local" ||
+                controller.HubSceneName != "HubScene")
             {
                 throw new InvalidOperationException(
                     "Starting selection UI references are invalid.");
+            }
+        }
+
+        private static void RemoveHubSelectionUi()
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                HubScenePath,
+                OpenSceneMode.Single);
+            HubStartingAbilitySelectionView[] views =
+                UnityEngine.Object.FindObjectsByType<
+                    HubStartingAbilitySelectionView>(
+                    FindObjectsInactive.Include);
+            if (views.Length == 0)
+                return;
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                HubStartingAbilitySelectionView view = views[i];
+                if (view != null)
+                    UnityEngine.Object.DestroyImmediate(view.gameObject);
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+            {
+                throw new InvalidOperationException(
+                    "Could not remove starting selection UI from Hub scene.");
+            }
+        }
+
+        private static void ValidateHubSelectionUiRemoved()
+        {
+            Scene scene = SceneManager.GetActiveScene();
+            if (scene.path != HubScenePath)
+                throw new InvalidOperationException($"Open '{HubScenePath}'.");
+
+            if (UnityEngine.Object.FindAnyObjectByType<
+                    HubStartingAbilitySelectionView>(
+                    FindObjectsInactive.Include) != null ||
+                UnityEngine.Object.FindAnyObjectByType<
+                    HubStartingAbilitySelectionController>(
+                    FindObjectsInactive.Include) != null)
+            {
+                throw new InvalidOperationException(
+                    "Legacy starting selection UI still exists in Hub scene.");
             }
         }
 

@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdaac287d3a49a04a8831ffe49204d3c, type: 3}
+  m_Name: HeavyStrike
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Abilities.TargetedDamageAbilityDefinition
+  abilityId: ability:heavy-strike
+  displayName: Heavy Strike
+  description: A powerful single-target strike. Generates 1 Rage on hit.
+  icon: {fileID: 0}
+  resourceCost: 20
+  cooldown: 3
+  windUp: 0.23333333
+  recovery: 0.30000004
+  damageMultiplier: 2.5
+  useRange: 1.5
+  releaseRangeMultiplier: 1.5
+  obstructionMask:
+    serializedVersion: 2
+    m_Bits: 1
+  maximumUseAngle: 45
+  animatorTrigger: Attack
+  onHitEffect:
+    enabled: 0
+    effectId: effect:crushing-strike-armor-break
+    statType: 10
+    modifierType: 1
+    valuePerStack: -5
+    maximumStacks: 5
+    duration: 8
+  sourceResourceGain:
+    enabled: 1
+    resourceId: resource:rage
+    amount: 1

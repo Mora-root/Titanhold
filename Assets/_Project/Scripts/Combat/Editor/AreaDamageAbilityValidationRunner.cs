@@ -47,7 +47,9 @@ public static class AreaDamageAbilityValidationRunner
                        new AbilityActorSnapshot(40f),
                        out IRuntimeAbilitySnapshot runtimeSnapshot) &&
                    runtimeSnapshot is AreaDamageAbilitySnapshot runtimeArea &&
-                   runtimeArea.Damage == 160f,
+                   runtimeArea.Damage == 160f &&
+                   runtimeArea.PostActionPolicy ==
+                       PostAbilityActionPolicy.None,
                 "Runtime contract did not preserve the area snapshot.");
             Assert(!definition.TryCreateSnapshot(float.PositiveInfinity, out _) &&
                    !definition.TryCreateSnapshot(float.MaxValue, out _), "Invalid/overflowing damage was accepted.");

@@ -105,12 +105,16 @@ Starter selection rules:
   character-archetype pool;
 - successful selection grants/assigns the ability and confirms readiness;
 - changing confirmed slot zero revokes readiness until it is confirmed again;
-- Hub loads the run only after the readiness roster is sealed;
+- Hub creates the run transition immediately; the run scene activates only after
+  its readiness roster is sealed;
 - presentation preserves rolled order and never rerolls or mutates the offer;
 - the view emits only an option index; coordinator/domain services own validation.
 
-The Hub still seeds `ability:spin`, so the wired three-card overlay remains dormant.
-Concrete starter pool/catalog assets are not connected to `HubScene` yet.
+The Hub does not seed an ability. It loads `SampleScene` in the transition phase;
+the in-run start gate pauses solo simulation and suppresses local gameplay input
+while the wired three-card overlay is open. Selecting one option seals readiness,
+activates the run, closes the overlay, and starts the first round. The warrior
+starter pool and catalogs are connected through the persistent host in `HubScene`.
 
 ## Combat and Abilities
 
@@ -124,6 +128,13 @@ never authorize effects on the replacement path.
 Player skill commands capture the explicitly selected target when input is issued,
 including while buffered behind another action. Runtime definitions implement the
 shared `IRuntimeAbilityDefinition`/`IRuntimeAbilitySnapshot` contract.
+
+An accepted skill command owns movement: it clears the previously stored manual
+destination, while an invalid command leaves movement untouched. Runtime ability
+snapshots carry a semantic post-action policy. Targeted and cone attacks continue
+basic attacks against their surviving primary target after recovery; a newer
+buffered skill or manual movement command takes precedence. Area attacks do not
+request this follow-up.
 
 - `AreaDamageAbilityDefinition`: self-centred multi-target release.
 - `TargetedDamageAbilityDefinition`: requires a live non-self target; commit checks
@@ -145,18 +156,21 @@ modifier atomically. `TimedStackingStatEffectReceiver` is the Unity adapter but 
 not connected to actor prefabs yet. Cross-player/global co-op cap rules are not
 defined.
 
-Planned warrior starter set:
+Warrior starter set:
 
-- Heavy Strike: one target, generates Rage;
-- Crushing Strike (`ability:crushing-strike`): lower damage, applies five possible
-  stacks of `-8%` armor with an eight-second shared duration;
+- Heavy Strike (`ability:heavy-strike`): one target, `1.5x` damage, generates one
+  Rage;
+- Crushing Strike (`ability:crushing-strike`): `1.0x` damage, generates one Rage,
+  and applies five possible stacks of `-5%` armor with an eight-second shared
+  duration;
 - Cleave: full damage to the selected target, 30% to other forward-sector targets,
   and no Rage generation.
 
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation
-exist. A concrete Rage definition, balance/decay, external generation, and UI are
-not implemented yet.
+exist. The warrior starts each run with `0/8` Rage through its archetype resource
+loadout. Rage decay, external generation (such as taking damage), and UI are not
+implemented yet.
 
 `SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled
