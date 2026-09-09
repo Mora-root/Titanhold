@@ -46,14 +46,18 @@ public class EnemyAttackState : IState
             brain.ChangeToChase();
             return;
         }
-        float angle = Vector3.Angle(
-             brain.transform.forward,
-            (target.AimPoint.position - brain.transform.position)
-);
+        Vector3 direction =
+            target.AimPoint.position - brain.transform.position;
+        direction.y = 0f;
+        Vector3 forward = brain.transform.forward;
+        forward.y = 0f;
+        bool isFacing = direction.sqrMagnitude <= 0.0001f ||
+                        forward.sqrMagnitude <= 0.0001f ||
+                        Vector3.Angle(forward, direction) <= attackAngle;
 
         brain.Movement.RotateTowards(target.AimPoint.position);
 
-        if (angle <= attackAngle && brain.CanAttack())
+        if (isFacing && brain.CanAttack())
         {
             brain.Attack(target);
         }
