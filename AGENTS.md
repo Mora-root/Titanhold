@@ -55,7 +55,9 @@ them as legacy/future activity code unless explicitly requested.
   Instability snapshot; never compound previous runtime values.
 - Out-of-combat enemy regeneration is not implemented yet.
 - `EnemyDefinition`/`EnemyDefinitionCatalog` provide the all-or-nothing central
-  enemy-balance registry and immutable base-stat snapshots. No definition assets
+  enemy-balance registry and immutable base-stat snapshots. The application
+  service and optional `EnemyBaseStatsReceiver` can feed CharacterStats, combat,
+  movement, and detection without changing legacy fallbacks. No definition assets
   or runtime spawn integration are connected yet.
 
 ## Session, Progression, and Economy

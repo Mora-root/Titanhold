@@ -5,6 +5,13 @@ public class EnemySensor : MonoBehaviour
     [SerializeField] private float aggroRange = 10f;
     [SerializeField] private LayerMask mask;
 
+    public float DetectionRange => aggroRange;
+
+    internal void SetDetectionRange(float detectionRange)
+    {
+        aggroRange = detectionRange;
+    }
+
     public ITargetable GetTarget()
     {
         Collider[] hits = Physics.OverlapSphere(transform.position, aggroRange, mask);

@@ -8,6 +8,9 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private float damage = 10f;
 
     private float encounterDamageMultiplier = 1f;
+    private CharacterStats definitionStats;
+    private float definitionBaseAttacksPerSecond = 1f;
+    private bool usesDefinitionStats;
 
     private float lastAttackTime;
     private float multiplierDamageRadius = 3f;
@@ -20,12 +23,44 @@ public class EnemyCombat : MonoBehaviour
     private bool isAttacking;
     public bool IsAttacking => isAttacking;
 
-    public float AttackRange => attackRange;
+    public float AttacksPerSecond
+    {
+        get
+        {
+            float baseRate = usesDefinitionStats
+                ? definitionBaseAttacksPerSecond
+                : GetLegacyBaseAttacksPerSecond();
+            return Mathf.Max(
+                0.01f,
+                baseRate * GetAttackSpeedMultiplier());
+        }
+    }
+    public float CurrentAttackCooldown => usesDefinitionStats
+        ? 1f / AttacksPerSecond
+        : attackCooldown;
+    public float AttackRange
+    {
+        get
+        {
+            if (!usesDefinitionStats)
+                return attackRange;
+
+            return Mathf.Max(
+                0.01f,
+                definitionStats.GetValue(StatType.AttackRange));
+        }
+    }
     public float Damage
     {
         get
         {
-            double scaled = (double)damage * encounterDamageMultiplier;
+            float baseDamage = usesDefinitionStats
+                ? Mathf.Max(
+                    0f,
+                    definitionStats.GetValue(StatType.Damage))
+                : damage;
+            double scaled =
+                (double)baseDamage * encounterDamageMultiplier;
             return scaled >= float.MaxValue
                 ? float.MaxValue
                 : (float)scaled;
@@ -42,7 +77,16 @@ public class EnemyCombat : MonoBehaviour
     // Check kd
     public bool CanAttack()
     {
-        return Time.time >= lastAttackTime + attackCooldown;
+        return Time.time >= lastAttackTime + CurrentAttackCooldown;
+    }
+
+    internal void UseDefinitionStats(
+        CharacterStats configuredStats,
+        float baseAttacksPerSecond)
+    {
+        definitionStats = configuredStats;
+        definitionBaseAttacksPerSecond = baseAttacksPerSecond;
+        usesDefinitionStats = true;
     }
 
     public bool TrySetEncounterDamageMultiplier(float multiplier)
@@ -100,5 +144,20 @@ public class EnemyCombat : MonoBehaviour
     {
         isAttacking = false;
         currentExecutionId = default;
+    }
+
+    private float GetLegacyBaseAttacksPerSecond()
+    {
+        return attackCooldown > 0f ? 1f / attackCooldown : 1f;
+    }
+
+    private float GetAttackSpeedMultiplier()
+    {
+        if (!usesDefinitionStats)
+            return 1f;
+
+        float attackSpeed =
+            definitionStats.GetValue(StatType.AttackSpeed);
+        return Mathf.Max(0.01f, attackSpeed / 100f);
     }
 }

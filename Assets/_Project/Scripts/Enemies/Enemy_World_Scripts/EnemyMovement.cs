@@ -1,4 +1,3 @@
-using GLTFast.Schema;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -6,9 +5,17 @@ public class EnemyMovement : MonoBehaviour, IMovable
 {
     private NavMeshAgent agent;
     private EnemyAnimator animator;
+    private CharacterStats definitionStats;
     private float rotationSpeed = 10f;
+    private bool usesDefinitionStats;
 
     public bool IsMoving => agent.velocity.sqrMagnitude > 0.01f;
+    public float MovementSpeed => usesDefinitionStats
+        ? Mathf.Max(0f, definitionStats.GetValue(StatType.MoveSpeed))
+        : agent != null
+            ? agent.speed
+            : 0f;
+    public float RotationSpeed => rotationSpeed;
 
     private void Awake()
     {
@@ -29,8 +36,19 @@ public class EnemyMovement : MonoBehaviour, IMovable
 
     public void Tick()
     {
+        SyncMovementSpeed();
         UpdateRotation();
         animator.SetSpeed(agent.velocity.magnitude);
+    }
+
+    internal void UseDefinitionStats(
+        CharacterStats configuredStats,
+        float configuredRotationSpeed)
+    {
+        definitionStats = configuredStats;
+        rotationSpeed = configuredRotationSpeed;
+        usesDefinitionStats = true;
+        SyncMovementSpeed();
     }
 
     public void MoveTo(Vector3 position)
@@ -57,5 +75,15 @@ public class EnemyMovement : MonoBehaviour, IMovable
             lookRotation,
             Time.deltaTime * rotationSpeed
         );
+    }
+
+    private void SyncMovementSpeed()
+    {
+        if (!usesDefinitionStats || agent == null)
+            return;
+
+        float targetSpeed = MovementSpeed;
+        if (!Mathf.Approximately(agent.speed, targetSpeed))
+            agent.speed = targetSpeed;
     }
 }
