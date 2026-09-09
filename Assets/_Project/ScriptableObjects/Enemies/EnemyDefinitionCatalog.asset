@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd1ce25bd1c4ac34da2baae382bf13ad, type: 3}
+  m_Name: EnemyDefinitionCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyDefinitionCatalog
+  definitions:
+  - {fileID: 11400000, guid: 3fce3edb24c6da54faadca5638d6fa80, type: 2}
+  - {fileID: 11400000, guid: 85ca93f6d9e89754fa4131897e5a4e7b, type: 2}
+  - {fileID: 11400000, guid: 23b4516a2efc7214686e167ebf010de4, type: 2}
+  - {fileID: 11400000, guid: c5f81c2199c46e548b5360503c0fe11d, type: 2}

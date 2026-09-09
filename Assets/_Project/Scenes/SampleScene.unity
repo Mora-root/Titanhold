@@ -21663,6 +21663,7 @@ MonoBehaviour:
   assaultDamageBonusPerLevel: 0.05
   regularRoundCount: 3
   startingRound: 1
+  enemyDefinitionCatalog: {fileID: 11400000, guid: c8745ff01a4df7543aa5d8fe820423b9, type: 2}
 --- !u!4 &1489734143
 Transform:
   m_ObjectHideFlags: 0

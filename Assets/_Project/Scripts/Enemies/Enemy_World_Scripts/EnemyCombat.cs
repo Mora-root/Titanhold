@@ -127,7 +127,7 @@ public class EnemyCombat : MonoBehaviour
         );
 
         // Damage radius
-        if (distance > attackRange * multiplierDamageRadius)
+        if (distance > AttackRange * multiplierDamageRadius)
             return;
         var damageable = currentTarget.AimPoint.GetComponentInParent<IDamageable>();
         DamageRequest request = new DamageRequest(

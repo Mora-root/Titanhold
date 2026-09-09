@@ -73,6 +73,24 @@ public sealed class PlayerAbilityExecutor :
         AbilityCommitEvaluation evaluation =
             abilityDefinition.EvaluateUse(
                 new AbilityUseContext(transform, selectedTarget));
+        if (!abilityDefinition.TryCreateExecutionDefinition(
+                out AbilityExecutionDefinition executionDefinition))
+        {
+            return PlayerSkillUseEvaluation.Invalid;
+        }
+
+        AbilityExecutionError availability =
+            execution.EvaluateCommitAvailability(
+                executionDefinition,
+                Time.timeAsDouble);
+        if (availability != AbilityExecutionError.None)
+        {
+            return new PlayerSkillUseEvaluation(
+                PlayerSkillUseStatus.Invalid,
+                evaluation.Status,
+                availability);
+        }
+
         if (evaluation.IsReady)
         {
             return new PlayerSkillUseEvaluation(
@@ -272,6 +290,8 @@ public sealed class PlayerAbilityExecutor :
     {
         private readonly PlayerResource resource;
         public ResourceGateway(PlayerResource resource) => this.resource = resource;
+        public bool CanSpend(float amount) =>
+            resource != null && resource.CanSpend(amount);
         public bool TrySpend(float amount) => resource != null && resource.TrySpend(amount);
     }
 }

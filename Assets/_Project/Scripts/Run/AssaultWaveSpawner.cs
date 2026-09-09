@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Titanhold.Combat;
+using Titanhold.Enemies;
 using UnityEngine;
 
 namespace Titanhold.Run
@@ -196,6 +197,28 @@ namespace Titanhold.Run
                 CombatActorKind.Enemy);
             EnemyDeathNotifier notifier =
                 enemyObject.GetComponentInChildren<EnemyDeathNotifier>(true);
+            EnemyDefinitionInitializationResult initialization =
+                EnemyDefinitionInstanceInitializer.TryInitialize(
+                    enemyObject,
+                    runFlowRuntime.EnemyDefinitions);
+            if (!initialization.Success)
+            {
+                AssaultWaveSpawnFailureReason failureReason =
+                    initialization.Error ==
+                        EnemyDefinitionInitializationError.MissingBinding
+                        ? AssaultWaveSpawnFailureReason.MissingDefinitionBinding
+                        : AssaultWaveSpawnFailureReason.DefinitionInitializationRejected;
+                failure = new AssaultWaveSpawnFailure(
+                    sequenceNumber,
+                    failureReason,
+                    enemyObject,
+                    enemy,
+                    default,
+                    definitionInitializationResult: initialization);
+                Destroy(enemyObject);
+                return false;
+            }
+
             Health health = enemyObject.GetComponentInChildren<Health>(true);
             EnemyCombat combat =
                 enemyObject.GetComponentInChildren<EnemyCombat>(true);

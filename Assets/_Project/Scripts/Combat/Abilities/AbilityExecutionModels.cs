@@ -2,6 +2,11 @@ namespace Titanhold.Combat.Abilities
 {
     public interface IAbilityResourceGateway
     {
+        // Preflight must never mutate the balance or notify observers. Commit
+        // repeats the check through TrySpend because availability can change
+        // between command acceptance and execution.
+        bool CanSpend(float amount);
+
         // A rejected spend must leave the resource unchanged. Implementations must
         // defer observer notifications until the enclosing ability command returns,
         // so observers see both the committed cast and its resource cost together.

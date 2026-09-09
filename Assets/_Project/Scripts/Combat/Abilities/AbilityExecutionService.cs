@@ -29,6 +29,35 @@ namespace Titanhold.Combat.Abilities
         public AbilityExecutionPhase Phase { get; private set; }
         public AbilityExecutionSnapshot CurrentExecution { get; private set; }
 
+        public AbilityExecutionError EvaluateCommitAvailability(
+            AbilityExecutionDefinition definition,
+            double now)
+        {
+            if (isCommitting)
+                return AbilityExecutionError.ReentrantCommand;
+            if (definition == null)
+                return AbilityExecutionError.InvalidDefinition;
+            if (!IsValidTime(now))
+                return AbilityExecutionError.InvalidTime;
+            if (CurrentExecution != null)
+                return AbilityExecutionError.Busy;
+            if (cooldownEnds.TryGetValue(
+                    definition.AbilityId,
+                    out double readyAt) &&
+                now < readyAt)
+            {
+                return AbilityExecutionError.OnCooldown;
+            }
+
+            if (definition.ResourceCost <= 0f)
+                return AbilityExecutionError.None;
+            if (resources == null)
+                return AbilityExecutionError.MissingResourceGateway;
+            return resources.CanSpend(definition.ResourceCost)
+                ? AbilityExecutionError.None
+                : AbilityExecutionError.InsufficientResource;
+        }
+
         public AbilityExecutionResult TryCommit(
             CombatExecutionId executionId,
             AbilityExecutionDefinition definition,
@@ -44,10 +73,11 @@ namespace Titanhold.Combat.Abilities
                 return Fail(AbilityExecutionError.InvalidTime);
             if (committedExecutions.Contains(executionId))
                 return Fail(AbilityExecutionError.DuplicateExecution);
-            if (CurrentExecution != null)
-                return Fail(AbilityExecutionError.Busy);
-            if (cooldownEnds.TryGetValue(definition.AbilityId, out double readyAt) && now < readyAt)
-                return Fail(AbilityExecutionError.OnCooldown);
+
+            AbilityExecutionError availability =
+                EvaluateCommitAvailability(definition, now);
+            if (availability != AbilityExecutionError.None)
+                return Fail(availability);
 
             double releaseAt = now + definition.WindUp;
             double finishAt = releaseAt + definition.Recovery;
@@ -55,9 +85,6 @@ namespace Titanhold.Combat.Abilities
             if (!AbilityExecutionDefinition.IsNonNegativeFinite(finishAt) ||
                 !AbilityExecutionDefinition.IsNonNegativeFinite(cooldownEnd))
                 return Fail(AbilityExecutionError.InvalidTime);
-            if (definition.ResourceCost > 0f && resources == null)
-                return Fail(AbilityExecutionError.MissingResourceGateway);
-
             AbilityExecutionSnapshot execution = new(
                 executionId, Actor, definition, now, releaseAt, finishAt);
 

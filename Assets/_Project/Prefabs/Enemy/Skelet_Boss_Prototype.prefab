@@ -1366,6 +1366,8 @@ GameObject:
   - component: {fileID: 7774114282432054051}
   - component: {fileID: 5534403092225814762}
   - component: {fileID: 4912805404088949667}
+  - component: {fileID: 7096132455237744851}
+  - component: {fileID: 3747690942273098486}
   m_Layer: 6
   m_Name: Skelet_Boss_Prototype
   m_TagString: Untagged
@@ -1644,6 +1646,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
   characterStats: {fileID: 5534403092225814762}
+--- !u!114 &7096132455237744851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5185197498381238768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282e6dad3272be64683bf3a881181bb1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyBaseStatsReceiver
+  characterStats: {fileID: 5534403092225814762}
+  health: {fileID: 495639201290888554}
+  combat: {fileID: 6158762841584567178}
+  movement: {fileID: 876833789224482046}
+  sensor: {fileID: 1348334792723723478}
+--- !u!114 &3747690942273098486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5185197498381238768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cbd693f3d6e2d94c81e14e6851b7d5a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyDefinitionBinding
+  enemyId: enemy:skeleton-boss-prototype
+  baseStatsReceiver: {fileID: 7096132455237744851}
 --- !u!1 &5562823209461037179
 GameObject:
   m_ObjectHideFlags: 0

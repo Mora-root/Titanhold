@@ -358,19 +358,19 @@ namespace Titanhold.Session.Editor
             ValidateTargetedAbility(
                 heavy,
                 HeavyStrikeAbilityId,
-                expectedDamage: 150f,
+                expectedDamage: 250f,
                 expectArmorBreak: false);
             ValidateTargetedAbility(
                 crushing,
                 CrushingStrikeAbilityId,
-                expectedDamage: 100f,
+                expectedDamage: 150f,
                 expectArmorBreak: true);
             if (!cleave.TryCreateSnapshot(
                     100f,
                     out ConeDamageAbilitySnapshot cleaveSnapshot) ||
                 cleave.AbilityId != CleaveAbilityId ||
-                !Approximately(cleaveSnapshot.PrimaryDamage, 100f) ||
-                !Approximately(cleaveSnapshot.SecondaryDamage, 30f) ||
+                !Approximately(cleaveSnapshot.PrimaryDamage, 150f) ||
+                !Approximately(cleaveSnapshot.SecondaryDamage, 45f) ||
                 cleaveSnapshot.SourceResourceGain.IsValid ||
                 cleaveSnapshot.TargetMask != EnemyMask ||
                 cleaveSnapshot.Execution.Cooldown != 3d)

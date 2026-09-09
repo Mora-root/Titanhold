@@ -29,7 +29,8 @@ namespace Titanhold.Combat.Editor
             ValidateTimeAndConfiguration();
             ValidateInstantFreeAbility();
             ValidateReentrantResourceGateway();
-            return "Ability execution foundation validation passed (7 scenarios).";
+            ValidateReadOnlyCommitAvailability();
+            return "Ability execution foundation validation passed (8 scenarios).";
         }
 
         private static void ValidateLifecycleAndCooldownSnapshot()
@@ -204,6 +205,43 @@ namespace Titanhold.Combat.Editor
                 "Reentrant command replaced or charged the outer cast.");
         }
 
+        private static void ValidateReadOnlyCommitAvailability()
+        {
+            TestResources resources = new(4f);
+            AbilityExecutionService service = CreatePlayer(resources);
+            AbilityExecutionDefinition definition = CreateDefinition();
+            Assert(service.EvaluateCommitAvailability(definition, 0d) ==
+                       AbilityExecutionError.InsufficientResource &&
+                   resources.Amount == 4f &&
+                   resources.SpendCount == 0,
+                "Resource preflight mutated an insufficient balance.");
+
+            resources.Amount = 20f;
+            Assert(service.EvaluateCommitAvailability(definition, 0d) ==
+                       AbilityExecutionError.None &&
+                   resources.Amount == 20f &&
+                   resources.SpendCount == 0,
+                "Successful resource preflight mutated the balance.");
+
+            CombatExecutionId executionId = new("cast:preflight");
+            Success(service.TryCommit(executionId, definition, 0d));
+            Assert(service.EvaluateCommitAvailability(definition, 0d) ==
+                       AbilityExecutionError.Busy,
+                "Preflight ignored an active execution.");
+            Success(service.TryRelease(executionId, 0.5d));
+            Success(service.TryFinish(executionId, 0.75d));
+            Assert(service.EvaluateCommitAvailability(definition, 1d) ==
+                       AbilityExecutionError.OnCooldown,
+                "Preflight ignored the actor-local cooldown.");
+
+            AbilityExecutionService withoutResources = CreatePlayer(null);
+            Assert(withoutResources.EvaluateCommitAvailability(
+                       definition,
+                       0d) ==
+                       AbilityExecutionError.MissingResourceGateway,
+                "Preflight accepted a paid ability without a resource gateway.");
+        }
+
         private static AbilityExecutionDefinition CreateDefinition(string id = "ability:test")
         {
             return new AbilityExecutionDefinition(id, 10f, 5d, 0.5d, 0.25d);
@@ -246,6 +284,11 @@ namespace Titanhold.Combat.Editor
             public float Amount { get; set; }
             public int SpendCount { get; private set; }
             public Action DuringSpend { get; set; }
+
+            public bool CanSpend(float amount)
+            {
+                return amount <= Amount;
+            }
 
             public bool TrySpend(float amount)
             {

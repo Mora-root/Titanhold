@@ -79,6 +79,9 @@ namespace Titanhold.Combat.Abilities
     {
         AbilityCommitEvaluation EvaluateUse(AbilityUseContext context);
 
+        bool TryCreateExecutionDefinition(
+            out AbilityExecutionDefinition execution);
+
         bool TryCreateRuntimeSnapshot(
             AbilityActorSnapshot actor,
             out IRuntimeAbilitySnapshot snapshot);

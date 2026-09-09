@@ -47,20 +47,27 @@ public readonly struct PlayerSkillUseEvaluation
 {
     public PlayerSkillUseEvaluation(
         PlayerSkillUseStatus status,
-        AbilityCommitStatus commitStatus)
+        AbilityCommitStatus commitStatus,
+        AbilityExecutionError executionError =
+            AbilityExecutionError.None)
     {
         Status = status;
         CommitStatus = commitStatus;
+        ExecutionError = executionError;
     }
 
     public PlayerSkillUseStatus Status { get; }
     public AbilityCommitStatus CommitStatus { get; }
+    public AbilityExecutionError ExecutionError { get; }
     public bool IsReady => Status == PlayerSkillUseStatus.Ready;
     public bool RequiresReposition =>
         Status == PlayerSkillUseStatus.RequiresReposition;
 
     public static PlayerSkillUseEvaluation Invalid =>
-        new(PlayerSkillUseStatus.Invalid, AbilityCommitStatus.InvalidDefinition);
+        new(
+            PlayerSkillUseStatus.Invalid,
+            AbilityCommitStatus.InvalidDefinition,
+            AbilityExecutionError.InvalidDefinition);
 }
 
 public interface IPlayerAbilitySlotBinding

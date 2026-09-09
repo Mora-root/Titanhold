@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Titanhold.Enemies;
 using Titanhold.Run;
 using UnityEngine;
 using UnityEngine.AI;
@@ -94,6 +95,12 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
             return false;
         }
 
+        if (!TryInitializeDefinition(createdEnemy))
+        {
+            Destroy(createdEnemy);
+            return false;
+        }
+
         if (!TryApplyCurrentRoundScaling(createdEnemy, restoreFullHealth: true))
         {
             Destroy(createdEnemy);
@@ -103,6 +110,25 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
         aliveEnemies.Add(notifier);
         notifier.Died += HandleEnemyDied;
         return true;
+    }
+
+    private bool TryInitializeDefinition(GameObject enemyObject)
+    {
+        EnemyDefinitionInitializationResult result =
+            EnemyDefinitionInstanceInitializer.TryInitialize(
+                enemyObject,
+                runFlowRuntime != null
+                    ? runFlowRuntime.EnemyDefinitions
+                    : null);
+        if (result.Success)
+            return true;
+
+        Debug.LogError(
+            $"Could not initialize exploration enemy '{enemyObject.name}' " +
+            $"from definition '{result.EnemyId}': {result.Error} " +
+            $"({result.ApplicationError}).",
+            this);
+        return false;
     }
 
     private void HandleRunFlowStateChanged(RunFlowState state)

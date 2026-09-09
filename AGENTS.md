@@ -59,8 +59,11 @@ them as legacy/future activity code unless explicitly requested.
   service and optional `EnemyBaseStatsReceiver` can feed CharacterStats, combat,
   movement, and detection without changing legacy fallbacks.
   `EnemyDefinitionInitializationService` resolves a strict stable id before any
-  mutation; `EnemyDefinitionBinding` is the local prefab adapter. No definition
-  assets, prefab bindings, or runtime spawn integration are connected yet.
+  mutation; `EnemyDefinitionBinding` is the local prefab adapter. Four active
+  enemy definitions and their catalog are wired through `RunFlowRuntime`.
+  Authored scene enemies initialize once at run-scene start; dynamic exploration,
+  assault, and boss enemies initialize immediately after instantiation and before
+  round/instability scaling. Missing bindings or definitions fail the spawn.
 
 ## Session, Progression, and Economy
 
@@ -128,9 +131,11 @@ starter pool and catalogs are connected through the persistent host in `HubScene
 `AbilityExecutionService` is plain C# for one-release abilities: actor-local
 cooldowns, immutable commit snapshots, explicit simulation time, and execution-id
 checked release/finish/cancellation. Resource gateways reject unaffordable spends
-without mutation and defer notifications until the enclosing command returns.
-Resource and cooldown commit only when execution actually starts. Animation events
-never authorize effects on the replacement path.
+without mutation and defer notifications until the enclosing command returns. A
+read-only availability preflight rejects insufficient resource and active cooldown
+before skill approach; the actual commit atomically rechecks and spends. Resource
+and cooldown commit only when execution actually starts. Animation events never
+authorize effects on the replacement path.
 
 Player skill commands capture the explicitly selected target when input is issued,
 including while buffered behind another action. Runtime definitions implement the
@@ -166,13 +171,13 @@ and base Armor remains zero. Cross-player/global co-op cap rules are not defined
 
 Warrior starter set:
 
-- Heavy Strike (`ability:heavy-strike`): one target, `1.5x` damage, generates one
+- Heavy Strike (`ability:heavy-strike`): one target, `2.5x` damage, generates one
   Rage;
-- Crushing Strike (`ability:crushing-strike`): `1.0x` damage, generates one Rage,
+- Crushing Strike (`ability:crushing-strike`): `1.5x` damage, generates one Rage,
   and applies five possible stacks of `-5%` armor with an eight-second shared
   duration;
-- Cleave: full damage to the selected target, 30% to other forward-sector targets,
-  and no Rage generation.
+- Cleave: `1.5x` damage to the selected target, 30% of that damage to other
+  forward-sector targets, and no Rage generation.
 
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation

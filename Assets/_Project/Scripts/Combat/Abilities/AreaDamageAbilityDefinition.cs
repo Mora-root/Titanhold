@@ -38,6 +38,26 @@ namespace Titanhold.Combat.Abilities
                     : AbilityCommitStatus.MissingSource);
         }
 
+        public bool TryCreateExecutionDefinition(
+            out AbilityExecutionDefinition execution)
+        {
+            try
+            {
+                execution = new AbilityExecutionDefinition(
+                    abilityId,
+                    resourceCost,
+                    cooldown,
+                    windUp,
+                    recovery);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                execution = null;
+                return false;
+            }
+        }
+
         public bool TryCreateSnapshot(float baseDamage, out AreaDamageAbilitySnapshot snapshot)
         {
             snapshot = null;
@@ -45,17 +65,21 @@ namespace Titanhold.Combat.Abilities
                 !AbilityExecutionDefinition.IsNonNegativeFinite(damageMultiplier))
                 return false;
 
+            AbilitySourceResourceGain resourceGain = default;
+            if (sourceResourceGain != null &&
+                !sourceResourceGain.TryCreate(out resourceGain))
+            {
+                return false;
+            }
+
+            if (!TryCreateExecutionDefinition(
+                    out AbilityExecutionDefinition execution))
+            {
+                return false;
+            }
+
             try
             {
-                AbilitySourceResourceGain resourceGain = default;
-                if (sourceResourceGain != null &&
-                    !sourceResourceGain.TryCreate(out resourceGain))
-                {
-                    return false;
-                }
-
-                AbilityExecutionDefinition execution = new(
-                    abilityId, resourceCost, cooldown, windUp, recovery);
                 snapshot = new AreaDamageAbilitySnapshot(execution,
                     baseDamage * damageMultiplier, radius, targetMask.value,
                     animatorTrigger, resourceGain);
@@ -63,6 +87,7 @@ namespace Titanhold.Combat.Abilities
             }
             catch (ArgumentException)
             {
+                snapshot = null;
                 return false;
             }
         }

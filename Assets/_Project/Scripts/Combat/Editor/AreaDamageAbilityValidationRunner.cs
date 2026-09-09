@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Titanhold.Combat;
 using Titanhold.Combat.Abilities;
 using UnityEditor;
@@ -16,7 +17,8 @@ public static class AreaDamageAbilityValidationRunner
             ValidateResourceCommit();
             ValidateAreaRelease();
             ValidateExecutorSelection();
-            Debug.Log("Area damage ability validation passed (4 scenarios).");
+            ValidateExecutorAvailabilityPreflight();
+            Debug.Log("Area damage ability validation passed (5 scenarios).");
         }
         catch (Exception exception)
         {
@@ -199,6 +201,69 @@ public static class AreaDamageAbilityValidationRunner
         }
     }
 
+    private static void ValidateExecutorAvailabilityPreflight()
+    {
+        GameObject owner = TemporaryObject("Ability_AvailabilityPreflight");
+        AreaDamageAbilityDefinition definition =
+            ScriptableObject.CreateInstance<AreaDamageAbilityDefinition>();
+        owner.SetActive(false);
+        try
+        {
+            owner.AddComponent<Animator>();
+            owner.AddComponent<PlayerAnimator>();
+            PlayerResource resource = owner.AddComponent<PlayerResource>();
+            PlayerAbilityExecutor executor =
+                owner.AddComponent<PlayerAbilityExecutor>();
+
+            SerializedObject abilityData = new(definition);
+            abilityData.FindProperty("abilityId").stringValue =
+                "ability:availability-preflight";
+            abilityData.FindProperty("targetMask").intValue = 1;
+            abilityData.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject executorData = new(executor);
+            executorData.FindProperty("skill1").objectReferenceValue =
+                definition;
+            executorData.ApplyModifiedPropertiesWithoutUndo();
+
+            owner.SetActive(true);
+            typeof(PlayerAbilityExecutor)
+                .GetMethod(
+                    "Awake",
+                    BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.Invoke(executor, null);
+            resource.RestoreFull();
+            Assert(resource.TrySpend(resource.CurrentResource),
+                "Could not prepare an empty resource balance.");
+            PlayerSkillUseEvaluation unavailable =
+                executor.EvaluateSkillSlot(0, null);
+            Assert(unavailable.Status == PlayerSkillUseStatus.Invalid &&
+                   unavailable.ExecutionError ==
+                       AbilityExecutionError.InsufficientResource &&
+                   Mathf.Approximately(resource.CurrentResource, 0f),
+                $"Executor accepted or misclassified an unaffordable skill: " +
+                $"status={unavailable.Status}, " +
+                $"commit={unavailable.CommitStatus}, " +
+                $"execution={unavailable.ExecutionError}, " +
+                $"resource={resource.CurrentResource}.");
+
+            resource.RestoreFull();
+            PlayerSkillUseEvaluation available =
+                executor.EvaluateSkillSlot(0, null);
+            Assert(available.IsReady &&
+                   available.ExecutionError == AbilityExecutionError.None &&
+                   Mathf.Approximately(
+                       resource.CurrentResource,
+                       resource.MaxResource),
+                "Read-only executor preflight spent or rejected an affordable skill.");
+        }
+        finally
+        {
+            Object.DestroyImmediate(owner);
+            Object.DestroyImmediate(definition);
+        }
+    }
+
     private static GameObject TemporaryObject(string name) => new(name) { hideFlags = HideFlags.DontSave };
     private static CombatActorReference Actor() => new("player:ability-validation", CombatActorKind.Player);
     private static void Assert(bool condition, string message)
@@ -210,6 +275,7 @@ public static class AreaDamageAbilityValidationRunner
     {
         private readonly PlayerResource resource;
         public ResourceGateway(PlayerResource resource) => this.resource = resource;
+        public bool CanSpend(float amount) => resource.CanSpend(amount);
         public bool TrySpend(float amount) => resource.TrySpend(amount);
     }
 }

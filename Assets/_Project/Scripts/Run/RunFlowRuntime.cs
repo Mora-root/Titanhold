@@ -1,4 +1,5 @@
 using System;
+using Titanhold.Enemies;
 using UnityEngine;
 
 namespace Titanhold.Run
@@ -15,6 +16,7 @@ namespace Titanhold.Run
         [SerializeField, Min(0f)] private float assaultDamageBonusPerLevel = 0.05f;
         [SerializeField, Min(1)] private int regularRoundCount = 3;
         [SerializeField, Min(1)] private int startingRound = 1;
+        [SerializeField] private EnemyDefinitionCatalog enemyDefinitionCatalog;
 
         private RunFlowService service;
         private ExplorationKillApplicationService killApplication;
@@ -68,12 +70,19 @@ namespace Titanhold.Run
         }
 
         public RunFlowState State => Service.State;
+        public EnemyDefinitionCatalog EnemyDefinitions =>
+            enemyDefinitionCatalog;
 
         public event Action<RunFlowState> StateChanged;
 
         private void Awake()
         {
             EnsureInitialized();
+        }
+
+        private void Start()
+        {
+            InitializeAuthoredEnemyDefinitions();
         }
 
         private void OnDestroy()
@@ -104,6 +113,49 @@ namespace Titanhold.Run
             assaultEncounter = new AssaultEncounterApplicationService(service);
             assaultReward = new AssaultRewardApplicationService(service);
             service.StateChanged += HandleStateChanged;
+        }
+
+        private void InitializeAuthoredEnemyDefinitions()
+        {
+            if (enemyDefinitionCatalog == null ||
+                !enemyDefinitionCatalog.IsValid)
+            {
+                string error = enemyDefinitionCatalog != null
+                    ? enemyDefinitionCatalog.ValidationError
+                    : "catalog is missing";
+                Debug.LogError(
+                    $"Could not initialize authored enemies: {error}.",
+                    this);
+                return;
+            }
+
+            GameObject[] roots = gameObject.scene.GetRootGameObjects();
+            for (int rootIndex = 0; rootIndex < roots.Length; rootIndex++)
+            {
+                EnemyDefinitionBinding[] bindings =
+                    roots[rootIndex]
+                        .GetComponentsInChildren<EnemyDefinitionBinding>(true);
+                for (int bindingIndex = 0;
+                     bindingIndex < bindings.Length;
+                     bindingIndex++)
+                {
+                    EnemyDefinitionBinding binding = bindings[bindingIndex];
+                    if (binding.HasInitialized)
+                        continue;
+
+                    EnemyDefinitionInitializationResult result =
+                        binding.TryInitialize(enemyDefinitionCatalog);
+                    if (!result.Success)
+                    {
+                        Debug.LogError(
+                            $"Could not initialize authored enemy " +
+                            $"'{binding.gameObject.name}' from definition " +
+                            $"'{binding.EnemyId}': {result.Error} " +
+                            $"({result.ApplicationError}).",
+                            binding);
+                    }
+                }
+            }
         }
 
         private void HandleStateChanged(RunFlowState state)

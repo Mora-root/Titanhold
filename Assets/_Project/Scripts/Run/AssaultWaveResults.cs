@@ -1,4 +1,5 @@
 using Titanhold.Combat;
+using Titanhold.Enemies;
 using UnityEngine;
 
 namespace Titanhold.Run
@@ -75,6 +76,8 @@ namespace Titanhold.Run
 
     public enum AssaultWaveSpawnFailureReason
     {
+        MissingDefinitionBinding,
+        DefinitionInitializationRejected,
         ScalingRejected,
         MissingTargetProvider,
         TargetProviderRejectedRegistry,
@@ -91,7 +94,9 @@ namespace Titanhold.Run
             GameObject enemyObject,
             CombatActorReference enemy,
             AssaultEnemyRegistryResult registryResult,
-            AssaultEnemyScalingResult scalingResult = default)
+            AssaultEnemyScalingResult scalingResult = default,
+            EnemyDefinitionInitializationResult
+                definitionInitializationResult = default)
         {
             SequenceNumber = sequenceNumber;
             Reason = reason;
@@ -99,6 +104,8 @@ namespace Titanhold.Run
             Enemy = enemy;
             RegistryResult = registryResult;
             ScalingResult = scalingResult;
+            DefinitionInitializationResult =
+                definitionInitializationResult;
         }
 
         public int SequenceNumber { get; }
@@ -107,5 +114,7 @@ namespace Titanhold.Run
         public CombatActorReference Enemy { get; }
         public AssaultEnemyRegistryResult RegistryResult { get; }
         public AssaultEnemyScalingResult ScalingResult { get; }
+        public EnemyDefinitionInitializationResult
+            DefinitionInitializationResult { get; }
     }
 }

@@ -2025,6 +2025,8 @@ GameObject:
   - component: {fileID: 4085242749801964553}
   - component: {fileID: 1513321409044725797}
   - component: {fileID: 6214056082135569328}
+  - component: {fileID: 6757645107225190683}
+  - component: {fileID: 414961827355551117}
   m_Layer: 6
   m_Name: Skelet_Assault
   m_TagString: Untagged
@@ -2303,6 +2305,37 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
   characterStats: {fileID: 1513321409044725797}
+--- !u!114 &6757645107225190683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855277042537611891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282e6dad3272be64683bf3a881181bb1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyBaseStatsReceiver
+  characterStats: {fileID: 1513321409044725797}
+  health: {fileID: 7481046352988135249}
+  combat: {fileID: 8515301751245139492}
+  movement: {fileID: 3810054571297143981}
+  sensor: {fileID: 2653550005808094299}
+--- !u!114 &414961827355551117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8855277042537611891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cbd693f3d6e2d94c81e14e6851b7d5a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyDefinitionBinding
+  enemyId: enemy:skeleton-assault
+  baseStatsReceiver: {fileID: 6757645107225190683}
 --- !u!1 &8889227867030874782
 GameObject:
   m_ObjectHideFlags: 0

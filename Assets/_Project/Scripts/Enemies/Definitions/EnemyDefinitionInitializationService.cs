@@ -8,6 +8,8 @@ namespace Titanhold.Enemies
         InvalidEnemyId,
         MissingResolver,
         DefinitionNotFound,
+        MissingEnemyObject,
+        MissingBinding,
         MissingReceiver,
         BaseStatsApplicationFailed
     }

@@ -208,7 +208,9 @@ namespace Titanhold.Enemies.Editor
             binding.ConfigureForEditor(archetype.EnemyId, receiver);
 
             EnemyDefinitionInitializationResult result =
-                binding.TryInitialize(resolver);
+                EnemyDefinitionInstanceInitializer.TryInitialize(
+                    gameObject,
+                    resolver);
 
             Assert(result.Success &&
                    binding.HasInitialized &&

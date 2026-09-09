@@ -46,6 +46,26 @@ namespace Titanhold.Combat.Abilities
                 maximumUseAngle);
         }
 
+        public bool TryCreateExecutionDefinition(
+            out AbilityExecutionDefinition execution)
+        {
+            try
+            {
+                execution = new AbilityExecutionDefinition(
+                    abilityId,
+                    resourceCost,
+                    cooldown,
+                    windUp,
+                    recovery);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+                execution = null;
+                return false;
+            }
+        }
+
         public bool TryCreateSnapshot(
             float baseDamage,
             out TargetedDamageAbilitySnapshot snapshot)
@@ -79,14 +99,14 @@ namespace Titanhold.Combat.Abilities
                 return false;
             }
 
+            if (!TryCreateExecutionDefinition(
+                    out AbilityExecutionDefinition execution))
+            {
+                return false;
+            }
+
             try
             {
-                AbilityExecutionDefinition execution = new(
-                    abilityId,
-                    resourceCost,
-                    cooldown,
-                    windUp,
-                    recovery);
                 snapshot = new TargetedDamageAbilitySnapshot(
                     execution,
                     (float)damage,
@@ -101,6 +121,7 @@ namespace Titanhold.Combat.Abilities
             }
             catch (ArgumentException)
             {
+                snapshot = null;
                 return false;
             }
         }

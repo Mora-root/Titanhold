@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e239006df7fbae741ba890fdfd93c1ae, type: 3}
+  m_Name: Enemy_Skelet
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyDefinition
+  enemyId: enemy:skeleton
+  prefab: {fileID: 2618309436736559858, guid: d9d0f217f7873fc478b450cf2d26bb8c, type: 3}
+  maximumHealth: 80
+  armor: 0
+  baseDamage: 15
+  attacksPerSecond: 1
+  attackRange: 1.4
+  movementSpeed: 3
+  rotationSpeed: 10
+  detectionRange: 8
