@@ -25,6 +25,11 @@ them as legacy/future activity code unless explicitly requested.
 - Filling the meter locks it at maximum and creates a persistent manual portal.
   Further eligible exploration kills keep their ordinary rewards and add Rift
   Instability; the portal snapshots that instability when the player enters.
+- Exploration enemies select only explicitly registered run participants through
+  `ExplorationTargetRegistry`; their retained target remains mutable and is
+  reselected when it becomes invalid or leaves detection range. Spawn zones bind
+  dynamic enemies without per-enemy scene searches. `EnemySensor` is a bounded
+  non-allocating fallback for legacy or temporarily unbound content.
 - Assault enemies immediately pursue an eligible participant. Their target is
   mutable for future aggro, taunts, death, disconnects, and reselection.
 - Assault enemies grant experience but no item loot, exploration threat, or run
@@ -69,6 +74,9 @@ them as legacy/future activity code unless explicitly requested.
 
 - The first-build meta layer is the UI-only `HubScene`, not the legacy camp in
   `SampleScene`. It owns preparation, difficulty selection, and run results.
+- The internal Windows Player is a resizable 1280×720 window. Hub exposes an
+  application quit command; `InternalWindowsBuildEditor` creates the ignored
+  Development Build under `Builds/InternalWindows/`.
 - `GameSessionService` is the outer scene-independent lifecycle around
   `RunFlowService`. `GameSessionRuntimeHost` is the persistent Unity adapter;
   discover it once at scene entry rather than exposing a global singleton.
@@ -217,7 +225,8 @@ Current assets:
 
 - scenes: `Scenes/HubScene.unity`, `Scenes/SampleScene.unity`;
 - enemies: `Prefabs/Enemy/Skelet_Assault.prefab`,
-  `Prefabs/Enemy/Skelet_Boss_Prototype.prefab`;
+  `Prefabs/Enemy/Skelet_Boss_Prototype.prefab`; exploration targeting is wired on
+  `Prefabs/Enemy/Skelet.prefab` and `Prefabs/Enemy/Skelet_Warrior.prefab`;
 - run prefabs: `Prefabs/Run/AssaultRewardChest.prefab`,
   `Prefabs/Run/AssaultReturnPortal.prefab`;
 - UI: `Prefabs/UI/RunCompletionUI.prefab`, `Prefabs/UI/RunPauseUI.prefab`;
@@ -281,7 +290,8 @@ After code changes, recompile and run the narrowest applicable Unity checks:
   Spin Ability Play Mode smoke test from saved `SampleScene`;
 - run: assault arena/target selection, Round Enemy Scaling, Assault Enemy Scaling,
   Assault Reward and wiring, Boss Encounter Wiring, Run Completion UI Wiring, Run
-  Pause Wiring, and the Run Flow Play Mode smoke test as relevant.
+  Pause Wiring, Exploration Target Selection/Wiring, and the Run Flow Play Mode
+  smoke test as relevant.
 
 Use the Console/MCP and `Tools/Titanhold/...` validators. Run broader smoke tests
 only when their integration boundary changed. Restore `HubScene` after Play Mode

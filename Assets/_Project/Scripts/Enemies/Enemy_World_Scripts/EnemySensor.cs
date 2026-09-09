@@ -2,8 +2,12 @@ using UnityEngine;
 
 public class EnemySensor : MonoBehaviour
 {
+    private const int MaxDetectedColliders = 32;
+
     [SerializeField] private float aggroRange = 10f;
     [SerializeField] private LayerMask mask;
+
+    private readonly Collider[] hits = new Collider[MaxDetectedColliders];
 
     public float DetectionRange => aggroRange;
 
@@ -14,13 +18,19 @@ public class EnemySensor : MonoBehaviour
 
     public ITargetable GetTarget()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, aggroRange, mask);
+        int hitCount = Physics.OverlapSphereNonAlloc(
+            transform.position,
+            aggroRange,
+            hits,
+            mask);
 
         ITargetable best = null;
-        float bestDist = float.MaxValue;
+        float bestDistanceSqr = float.MaxValue;
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = hits[i];
+            hits[i] = null;
             var target = hit.GetComponentInParent<ITargetable>();
 
             if (target == null || !target.IsTargetable)
@@ -30,15 +40,13 @@ public class EnemySensor : MonoBehaviour
             if (target.AimPoint.root == transform)
                 continue;
 
-            float dist = Vector3.Distance(
-                transform.position,
-                target.AimPoint.position
-            );
+            float distanceSqr =
+                (target.AimPoint.position - transform.position).sqrMagnitude;
 
-            if (dist < bestDist)
+            if (distanceSqr < bestDistanceSqr)
             {
                 best = target;
-                bestDist = dist;
+                bestDistanceSqr = distanceSqr;
             }
         }
 

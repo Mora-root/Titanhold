@@ -93,6 +93,7 @@ GameObject:
   - component: {fileID: 2153624913778169560}
   - component: {fileID: 3784174222518761256}
   - component: {fileID: 1055255807275557788}
+  - component: {fileID: 434977462678639713}
   m_Layer: 6
   m_Name: Skelet_Warrior
   m_TagString: Untagged
@@ -175,7 +176,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b7a05a851e823248965a610cf911c84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBrain
-  targetProviderBehaviour: {fileID: 0}
+  targetProviderBehaviour: {fileID: 434977462678639713}
   gameplayCollider: {fileID: 0}
 --- !u!114 &4596193373654978105
 MonoBehaviour:
@@ -419,6 +420,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.EnemyDefinitionBinding
   enemyId: enemy:skeleton-warrior
   baseStatsReceiver: {fileID: 3784174222518761256}
+--- !u!114 &434977462678639713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 359619510584615181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e41063409b13e15458c83a07e0d31d75, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::ExplorationAggroTargetProvider
+  localAggroSensor: {fileID: 560198448802788730}
 --- !u!1 &367243314010356462
 GameObject:
   m_ObjectHideFlags: 0

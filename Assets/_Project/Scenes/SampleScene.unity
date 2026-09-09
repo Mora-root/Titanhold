@@ -21600,6 +21600,8 @@ GameObject:
   - component: {fileID: 1489734149}
   - component: {fileID: 1489734150}
   - component: {fileID: 1489734151}
+  - component: {fileID: 1489734153}
+  - component: {fileID: 1489734152}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -21809,6 +21811,32 @@ MonoBehaviour:
   rewardTable: {fileID: 11400000, guid: 62bfa0c533d55844f8b0b3acbc4d83ac, type: 2}
   chestPrefab: {fileID: 2518920992569897903, guid: 2b490e2487f569445bb07adc7d0f7f13, type: 3}
   spawnPoint: {fileID: 1082403958}
+--- !u!114 &1489734152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6cba26cc74ab1ae4889293a08f720ae5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.ExplorationTargetRosterController
+  sessionEntryPoint: {fileID: 407419260}
+  targetRegistry: {fileID: 1489734153}
+--- !u!114 &1489734153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 236537fef8300cb41aa6573c03d6ca6e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Enemies.ExplorationTargetRegistry
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0

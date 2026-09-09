@@ -17,7 +17,7 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
     [SerializeField] private RunFlowRuntime runFlowRuntime;
 
     private readonly HashSet<EnemyDeathNotifier> aliveEnemies = new HashSet<EnemyDeathNotifier>();
-    private readonly List<Coroutine> respawnCoroutines = new List<Coroutine>();
+    private readonly HashSet<RespawnOperation> respawnOperations = new();
     private readonly EnemyScalingApplicator scalingApplicator = new EnemyScalingApplicator();
     private int appliedRound;
 
@@ -55,15 +55,15 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
         aliveEnemies.Clear();
 
-        foreach (Coroutine coroutine in respawnCoroutines)
+        foreach (RespawnOperation operation in respawnOperations)
         {
-            if (coroutine != null)
+            if (operation.Coroutine != null)
             {
-                StopCoroutine(coroutine);
+                StopCoroutine(operation.Coroutine);
             }
         }
 
-        respawnCoroutines.Clear();
+        respawnOperations.Clear();
     }
 
     private void FillToMaxAlive()
@@ -106,6 +106,16 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
             Destroy(createdEnemy);
             return false;
         }
+
+        ExplorationAggroTargetProvider targetProvider =
+            createdEnemy.GetComponentInChildren<
+                ExplorationAggroTargetProvider>(true);
+        ExplorationTargetRegistry targetRegistry =
+            runFlowRuntime != null
+                ? runFlowRuntime.GetComponent<ExplorationTargetRegistry>()
+                : null;
+        if (targetProvider != null && targetRegistry != null)
+            targetProvider.Bind(targetRegistry);
 
         aliveEnemies.Add(notifier);
         notifier.Died += HandleEnemyDied;
@@ -200,16 +210,29 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
     private void StartRespawnTimer()
     {
-        Coroutine coroutine = StartCoroutine(RespawnAfterDelay());
-        respawnCoroutines.Add(coroutine);
+        RespawnOperation operation = new();
+        respawnOperations.Add(operation);
+        operation.Coroutine = StartCoroutine(RespawnAfterDelay(operation));
     }
 
-    private IEnumerator RespawnAfterDelay()
+    private IEnumerator RespawnAfterDelay(RespawnOperation operation)
     {
         if (respawnDelay > 0f)
             yield return new WaitForSeconds(respawnDelay);
 
-        SpawnEnemy();
+        try
+        {
+            SpawnEnemy();
+        }
+        finally
+        {
+            respawnOperations.Remove(operation);
+        }
+    }
+
+    private sealed class RespawnOperation
+    {
+        public Coroutine Coroutine { get; set; }
     }
 
     private void OnDrawGizmosSelected()
