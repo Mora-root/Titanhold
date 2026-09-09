@@ -1,5 +1,11 @@
 namespace Titanhold.Enemies
 {
+    public interface IEnemyArchetypeReceiver
+    {
+        EnemyBaseStatsApplicationResult TryApply(
+            EnemyArchetype archetype);
+    }
+
     public interface IEnemyBaseStatsGateway
     {
         bool IsReady { get; }

@@ -57,8 +57,10 @@ them as legacy/future activity code unless explicitly requested.
 - `EnemyDefinition`/`EnemyDefinitionCatalog` provide the all-or-nothing central
   enemy-balance registry and immutable base-stat snapshots. The application
   service and optional `EnemyBaseStatsReceiver` can feed CharacterStats, combat,
-  movement, and detection without changing legacy fallbacks. No definition assets
-  or runtime spawn integration are connected yet.
+  movement, and detection without changing legacy fallbacks.
+  `EnemyDefinitionInitializationService` resolves a strict stable id before any
+  mutation; `EnemyDefinitionBinding` is the local prefab adapter. No definition
+  assets, prefab bindings, or runtime spawn integration are connected yet.
 
 ## Session, Progression, and Economy
 

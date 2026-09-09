@@ -3,7 +3,9 @@ using UnityEngine;
 namespace Titanhold.Enemies
 {
     [DisallowMultipleComponent]
-    public sealed class EnemyBaseStatsReceiver : MonoBehaviour
+    public sealed class EnemyBaseStatsReceiver :
+        MonoBehaviour,
+        IEnemyArchetypeReceiver
     {
         [SerializeField] private CharacterStats characterStats;
         [SerializeField] private Health health;
