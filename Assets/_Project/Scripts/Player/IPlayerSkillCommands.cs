@@ -86,6 +86,14 @@ public interface IPlayerCombatResourceBinding
     bool TryClearCombatResourceBinding();
 }
 
+public interface IPlayerAbilityCooldownSource
+{
+    bool TryGetAbilityCooldown(
+        int slotIndex,
+        double simulationTime,
+        out AbilityCooldownSnapshot cooldown);
+}
+
 public static class PlayerSkillCommands
 {
     public static IPlayerSkillCommands Resolve(GameObject participant)

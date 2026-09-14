@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class PlayerBrain : MonoBehaviour
 {
-    private const int Skill1SlotIndex = 0;
-
     public PlayerInput Input { get; private set; }
     public PlayerMovement Movement { get; private set; }
     public PlayerTargeting Targeting { get; private set; }
@@ -124,11 +122,11 @@ public class PlayerBrain : MonoBehaviour
     {
         PlayerInputIntent intent = Input.CurrentIntent;
 
-        if (intent.Skill1Pressed)
+        if (intent.HasSkillCommand)
         {
             PlayerSkillCommand command =
                 new PlayerSkillCommand(
-                    Skill1SlotIndex,
+                    intent.SkillSlotIndex,
                     TargetSelection.CurrentSelection as ITargetable);
             if (Combat.IsAttacking || Skills?.IsUsingSkill == true)
             {

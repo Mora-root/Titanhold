@@ -39,6 +39,34 @@ namespace Titanhold.Combat.Abilities
         ReentrantCommand
     }
 
+    public readonly struct AbilityCooldownSnapshot
+    {
+        public AbilityCooldownSnapshot(
+            string abilityId,
+            double duration,
+            double remaining)
+        {
+            AbilityId = abilityId ?? string.Empty;
+            Duration = duration;
+            Remaining = remaining;
+        }
+
+        public string AbilityId { get; }
+        public double Duration { get; }
+        public double Remaining { get; }
+        public bool IsCoolingDown => Remaining > 0d;
+        public double NormalizedRemaining => Duration > 0d
+            ? System.Math.Min(
+                1d,
+                System.Math.Max(0d, Remaining / Duration))
+            : 0d;
+        public bool IsValid =>
+            !string.IsNullOrWhiteSpace(AbilityId) &&
+            AbilityExecutionDefinition.IsNonNegativeFinite(Duration) &&
+            AbilityExecutionDefinition.IsNonNegativeFinite(Remaining) &&
+            Remaining <= Duration;
+    }
+
     public sealed class AbilityExecutionSnapshot
     {
         internal AbilityExecutionSnapshot(

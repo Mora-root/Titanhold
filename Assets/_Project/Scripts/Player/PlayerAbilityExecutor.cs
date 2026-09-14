@@ -8,7 +8,8 @@ public sealed class PlayerAbilityExecutor :
     MonoBehaviour,
     IPlayerSkillCommands,
     IPlayerAbilitySlotBinding,
-    IPlayerCombatResourceBinding
+    IPlayerCombatResourceBinding,
+    IPlayerAbilityCooldownSource
 {
     [SerializeField] private AreaDamageAbilityDefinition skill1;
 
@@ -186,6 +187,24 @@ public sealed class PlayerAbilityExecutor :
 
         sourceResourceGateway = localSourceResourceGateway;
         return true;
+    }
+
+    public bool TryGetAbilityCooldown(
+        int slotIndex,
+        double simulationTime,
+        out AbilityCooldownSnapshot cooldown)
+    {
+        cooldown = default;
+        return execution != null &&
+               TryResolveAbility(
+                   slotIndex,
+                   out IRuntimeAbilityDefinition ability) &&
+               ability.TryCreateExecutionDefinition(
+                   out AbilityExecutionDefinition definition) &&
+               execution.TryGetCooldown(
+                   definition,
+                   simulationTime,
+                   out cooldown);
     }
 
     private void Update()

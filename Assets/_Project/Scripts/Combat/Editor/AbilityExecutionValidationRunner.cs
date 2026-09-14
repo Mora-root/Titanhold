@@ -30,7 +30,8 @@ namespace Titanhold.Combat.Editor
             ValidateInstantFreeAbility();
             ValidateReentrantResourceGateway();
             ValidateReadOnlyCommitAvailability();
-            return "Ability execution foundation validation passed (8 scenarios).";
+            ValidateReadOnlyCooldownSnapshot();
+            return "Ability execution foundation validation passed (9 scenarios).";
         }
 
         private static void ValidateLifecycleAndCooldownSnapshot()
@@ -240,6 +241,53 @@ namespace Titanhold.Combat.Editor
                        0d) ==
                        AbilityExecutionError.MissingResourceGateway,
                 "Preflight accepted a paid ability without a resource gateway.");
+        }
+
+        private static void ValidateReadOnlyCooldownSnapshot()
+        {
+            TestResources resources = new(20f);
+            AbilityExecutionService service = CreatePlayer(resources);
+            AbilityExecutionDefinition definition = CreateDefinition();
+            Assert(service.TryGetCooldown(
+                       definition,
+                       0d,
+                       out AbilityCooldownSnapshot ready) &&
+                   ready.IsValid &&
+                   !ready.IsCoolingDown &&
+                   ready.Remaining == 0d &&
+                   ready.NormalizedRemaining == 0d,
+                "An unused ability did not expose a ready cooldown snapshot.");
+
+            Success(service.TryCommit(
+                new CombatExecutionId("cast:presentation"),
+                definition,
+                10d));
+            Assert(service.TryGetCooldown(
+                       definition,
+                       12d,
+                       out AbilityCooldownSnapshot active) &&
+                   active.IsValid &&
+                   active.IsCoolingDown &&
+                   active.Duration == 5d &&
+                   active.Remaining == 3d &&
+                   active.NormalizedRemaining == 0.6d,
+                "Committed cooldown did not expose its actor-local remaining time.");
+            Assert(service.TryGetCooldown(
+                       definition,
+                       20d,
+                       out AbilityCooldownSnapshot expired) &&
+                   !expired.IsCoolingDown &&
+                   expired.Remaining == 0d,
+                "Expired cooldown was not presented as ready.");
+            Assert(!service.TryGetCooldown(
+                       null,
+                       20d,
+                       out _) &&
+                   !service.TryGetCooldown(
+                       definition,
+                       double.NaN,
+                       out _),
+                "Invalid cooldown queries were accepted.");
         }
 
         private static AbilityExecutionDefinition CreateDefinition(string id = "ability:test")

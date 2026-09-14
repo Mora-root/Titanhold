@@ -149,6 +149,10 @@ Player skill commands capture the explicitly selected target when input is issue
 including while buffered behind another action. Runtime definitions implement the
 shared `IRuntimeAbilityDefinition`/`IRuntimeAbilitySnapshot` contract.
 
+The run combat HUD is a passive session-backed view of the five-slot participant
+loadout, combat resource, and read-only actor-local cooldown snapshots. Numeric
+keys 1–5 emit generic slot-index commands; UI never owns gameplay state.
+
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
 snapshots carry a semantic post-action policy. Targeted and cone attacks continue

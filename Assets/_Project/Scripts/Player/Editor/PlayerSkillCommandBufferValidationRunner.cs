@@ -14,6 +14,20 @@ public static class PlayerSkillCommandBufferValidationRunner
                 "New skill command buffer is not empty.");
             Assert(!default(PlayerSkillCommand).IsValid,
                 "Default skill command is valid.");
+            Assert(!PlayerInputIntent.Empty.HasSkillCommand &&
+                   PlayerInputIntent.Empty.SkillSlotIndex == -1,
+                "Empty input intent contains a skill command.");
+            PlayerInputIntent fifthSlotIntent = new(
+                Vector3.zero,
+                false,
+                false,
+                false,
+                false,
+                false,
+                4);
+            Assert(fifthSlotIntent.HasSkillCommand &&
+                   fifthSlotIntent.SkillSlotIndex == 4,
+                "Input intent did not preserve a generic ability slot command.");
             Assert(!buffer.TryBuffer(new PlayerSkillCommand(-1)),
                 "Invalid skill command was buffered.");
 

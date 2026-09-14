@@ -58,6 +58,35 @@ namespace Titanhold.Combat.Abilities
                 : AbilityExecutionError.InsufficientResource;
         }
 
+        public bool TryGetCooldown(
+            AbilityExecutionDefinition definition,
+            double now,
+            out AbilityCooldownSnapshot cooldown)
+        {
+            cooldown = default;
+            if (definition == null ||
+                !AbilityExecutionDefinition.IsNonNegativeFinite(now))
+            {
+                return false;
+            }
+
+            double remaining = 0d;
+            if (cooldownEnds.TryGetValue(
+                    definition.AbilityId,
+                    out double readyAt) &&
+                readyAt > now)
+            {
+                remaining = readyAt - now;
+            }
+
+            remaining = Math.Min(remaining, definition.Cooldown);
+            cooldown = new AbilityCooldownSnapshot(
+                definition.AbilityId,
+                definition.Cooldown,
+                remaining);
+            return cooldown.IsValid;
+        }
+
         public AbilityExecutionResult TryCommit(
             CombatExecutionId executionId,
             AbilityExecutionDefinition definition,

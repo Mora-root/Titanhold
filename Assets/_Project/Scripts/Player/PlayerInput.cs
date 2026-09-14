@@ -13,7 +13,7 @@ public class PlayerInput : MonoBehaviour
     public bool RightClicked { get; private set; }
     public bool IsDragging { get; private set; }
     public bool IsHolding { get; private set; }
-    public bool Skill1Pressed { get; private set; }
+    public int PressedSkillSlotIndex { get; private set; } = -1;
     public PlayerInputIntent CurrentIntent { get; private set; }
     public bool GameplayInputEnabled { get; private set; } = true;
 
@@ -58,13 +58,13 @@ public class PlayerInput : MonoBehaviour
 
         LeftClicked = false;
         RightClicked = false;
-        Skill1Pressed = Input.GetKeyDown(KeyCode.Alpha1);
+        PressedSkillSlotIndex = ReadPressedSkillSlotIndex();
 
         if (IsPointerOverUi())
         {
             LeftClicked = false;
             RightClicked = false;
-            Skill1Pressed = false;
+            PressedSkillSlotIndex = -1;
             IsHolding = false;
             IsDragging = false;
             CancelRightClickGesture();
@@ -180,7 +180,7 @@ public class PlayerInput : MonoBehaviour
         RightClicked = false;
         IsDragging = false;
         IsHolding = false;
-        Skill1Pressed = false;
+        PressedSkillSlotIndex = -1;
         holdTimer = 0f;
         CancelRightClickGesture();
     }
@@ -207,8 +207,24 @@ public class PlayerInput : MonoBehaviour
             RightClicked,
             IsDragging,
             IsHolding,
-            Skill1Pressed
+            PressedSkillSlotIndex
         );
+    }
+
+    private static int ReadPressedSkillSlotIndex()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            return 0;
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+            return 1;
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+            return 2;
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+            return 3;
+        if (Input.GetKeyDown(KeyCode.Alpha5))
+            return 4;
+
+        return -1;
     }
 
     private void OnValidate()

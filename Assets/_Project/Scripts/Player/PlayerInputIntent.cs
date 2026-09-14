@@ -2,7 +2,14 @@ using UnityEngine;
 
 public readonly struct PlayerInputIntent
 {
-    public static PlayerInputIntent Empty => new(Vector3.zero, false, false, false, false, false, false);
+    public static PlayerInputIntent Empty => new(
+        Vector3.zero,
+        false,
+        false,
+        false,
+        false,
+        false,
+        -1);
 
     public Vector3 TargetPosition { get; }
     public bool HasMoveTarget { get; }
@@ -10,7 +17,8 @@ public readonly struct PlayerInputIntent
     public bool RightClicked { get; }
     public bool IsDragging { get; }
     public bool IsHolding { get; }
-    public bool Skill1Pressed { get; }
+    public int SkillSlotIndex { get; }
+    public bool HasSkillCommand => SkillSlotIndex >= 0;
 
     public PlayerInputIntent(
         Vector3 targetPosition,
@@ -19,7 +27,7 @@ public readonly struct PlayerInputIntent
         bool rightClicked,
         bool isDragging,
         bool isHolding,
-        bool skill1Pressed)
+        int skillSlotIndex)
     {
         TargetPosition = targetPosition;
         HasMoveTarget = hasMoveTarget;
@@ -27,6 +35,6 @@ public readonly struct PlayerInputIntent
         RightClicked = rightClicked;
         IsDragging = isDragging;
         IsHolding = isHolding;
-        Skill1Pressed = skill1Pressed;
+        SkillSlotIndex = skillSlotIndex;
     }
 }
