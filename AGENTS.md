@@ -52,6 +52,10 @@ them as legacy/future activity code unless explicitly requested.
 
 ### Scaling
 
+- `RunRoundBalanceSnapshot` and its resolver are the plain-C# boundary for
+  per-round meter, enemy-stat, and RunXP multipliers. The current scene still uses
+  the compatible constant-meter/linear-stat fallback until an authored table is
+  approved and wired.
 - Round one uses authored base values. Each completed round adds `+20%` maximum
   health and `+10%` damage to later-round enemies.
 - Living exploration enemies are rescaled and restored to their new full health

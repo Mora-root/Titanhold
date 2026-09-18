@@ -12,7 +12,8 @@ namespace Titanhold.Run
             float assaultHealthBonusPerLevel,
             float assaultDamageBonusPerLevel,
             int regularRoundCount = 3,
-            int startingRound = 1)
+            int startingRound = 1,
+            IRunRoundBalanceResolver roundBalance = null)
         {
             if (!IsFinitePositive(maxThreat))
                 throw new ArgumentOutOfRangeException(nameof(maxThreat));
@@ -38,7 +39,6 @@ namespace Titanhold.Run
             if (startingRound <= 0 || startingRound > regularRoundCount + 1)
                 throw new ArgumentOutOfRangeException(nameof(startingRound));
 
-            MaxThreat = maxThreat;
             InstabilityPointsPerLevel = instabilityPointsPerLevel;
             EnemyHealthBonusPerRound = enemyHealthBonusPerRound;
             EnemyDamageBonusPerRound = enemyDamageBonusPerRound;
@@ -46,6 +46,32 @@ namespace Titanhold.Run
             AssaultDamageBonusPerLevel = assaultDamageBonusPerLevel;
             RegularRoundCount = regularRoundCount;
             StartingRound = startingRound;
+            RoundBalance = roundBalance ??
+                new LinearRunRoundBalanceResolver(
+                    maxThreat,
+                    enemyHealthBonusPerRound,
+                    enemyDamageBonusPerRound);
+
+            int round = startingRound;
+            while (true)
+            {
+                if (!RoundBalance.TryResolve(
+                        round,
+                        out RunRoundBalanceSnapshot snapshot))
+                {
+                    throw new ArgumentException(
+                        $"Round balance is missing round {round}.",
+                        nameof(roundBalance));
+                }
+
+                if (round == startingRound)
+                    MaxThreat = snapshot.MaxThreat;
+
+                if (round == FinalRoundNumber)
+                    break;
+
+                round++;
+            }
         }
 
         public float MaxThreat { get; }
@@ -57,6 +83,7 @@ namespace Titanhold.Run
         public int RegularRoundCount { get; }
         public int FinalRoundNumber => RegularRoundCount + 1;
         public int StartingRound { get; }
+        public IRunRoundBalanceResolver RoundBalance { get; }
 
         public static RunFlowConfiguration CreateVerticalSliceDefaults()
         {

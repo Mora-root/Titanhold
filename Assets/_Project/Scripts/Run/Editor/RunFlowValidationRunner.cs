@@ -25,6 +25,7 @@ namespace Titanhold.Run.Editor
         public static string RunValidation()
         {
             ValidateConfiguration();
+            ValidateConfigurableRoundBalance();
             ValidateAtomicThreatBatch();
             ValidateInstabilityProgression();
             ValidateInvalidBatchIsAtomic();
@@ -33,6 +34,77 @@ namespace Titanhold.Run.Editor
             ValidateTerminalState();
 
             return "Run Flow foundation validation passed.";
+        }
+
+        private static void ValidateConfigurableRoundBalance()
+        {
+            RunRoundBalanceSnapshot[] entries =
+            {
+                new RunRoundBalanceSnapshot(1, 120f, 1f, 1f, 1f),
+                new RunRoundBalanceSnapshot(2, 150f, 1.2f, 1.1f, 1.2f),
+                new RunRoundBalanceSnapshot(3, 200f, 1.4f, 1.2f, 1.4f),
+                new RunRoundBalanceSnapshot(4, 250f, 1.6f, 1.3f, 1.6f)
+            };
+            Assert(
+                RunRoundBalanceTable.TryCreate(
+                    entries,
+                    out RunRoundBalanceTable table,
+                    out string error),
+                $"Valid round balance table was rejected: {error}");
+
+            RunFlowConfiguration configuration = new RunFlowConfiguration(
+                100f,
+                10,
+                0.2f,
+                0.1f,
+                0.1f,
+                0.05f,
+                regularRoundCount: 3,
+                roundBalance: table);
+            RunFlowService service = new RunFlowService(configuration);
+
+            AssertApproximately(configuration.MaxThreat, 120f,
+                "Authored starting Threat configuration");
+            AssertApproximately(service.State.MaxThreat, 120f,
+                "Authored round-one Threat");
+            AssertApproximately(service.State.ExperienceMultiplier, 1f,
+                "Authored round-one XP multiplier");
+
+            CompleteCurrentEncounter(service);
+            Assert(service.TryBeginReturnToExploration().Success,
+                "Authored balance return transition was rejected.");
+            Assert(service.TryResumeExploration().Success,
+                "Authored balance could not advance to round two.");
+            AssertApproximately(service.State.MaxThreat, 150f,
+                "Authored round-two Threat");
+            AssertApproximately(service.State.RoundScaling.HealthMultiplier, 1.2f,
+                "Authored round-two health multiplier");
+            AssertApproximately(service.State.ExperienceMultiplier, 1.2f,
+                "Authored round-two XP multiplier");
+
+            RunRoundBalanceSnapshot[] duplicateEntries =
+            {
+                entries[0],
+                entries[0]
+            };
+            Assert(
+                !RunRoundBalanceTable.TryCreate(
+                    duplicateEntries,
+                    out _,
+                    out _),
+                "Duplicate round balance entries were accepted.");
+
+            AssertThrows<ArgumentException>(
+                () => new RunFlowConfiguration(
+                    100f,
+                    10,
+                    0.2f,
+                    0.1f,
+                    0.1f,
+                    0.05f,
+                    regularRoundCount: 4,
+                    roundBalance: table),
+                "A round balance table missing the final round was accepted.");
         }
 
         private static void ValidateConfiguration()
@@ -204,6 +276,8 @@ namespace Titanhold.Run.Editor
                 "Round-two health multiplier");
             AssertApproximately(service.State.RoundScaling.DamageMultiplier, 1.10f,
                 "Round-two damage multiplier");
+            AssertApproximately(service.State.ExperienceMultiplier, 1f,
+                "Legacy round-two XP multiplier");
             AssertApproximately(service.State.CurrentThreat, 0f, "Threat did not reset for next cycle");
             Assert(service.State.RiftInstability.Points == 0,
                 "Rift Instability did not reset for next cycle.");

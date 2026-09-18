@@ -6,24 +6,24 @@ namespace Titanhold.Run
     {
         internal RunFlowState(
             RunFlowConfiguration configuration,
-            EnemyScalingSnapshot roundScaling)
+            RunRoundBalanceSnapshot roundBalance)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            MaxThreat = configuration.MaxThreat;
             FinalRoundNumber = configuration.FinalRoundNumber;
-            RoundNumber = configuration.StartingRound;
             Phase = RunPhase.Exploration;
             RiftInstability = new RiftInstabilityState(configuration.InstabilityPointsPerLevel);
-            RoundScaling = roundScaling;
-            AssaultScaling = AssaultScalingSnapshot.NoneForRound(roundScaling.RoundNumber);
+            ApplyRoundBalance(roundBalance);
+            AssaultScaling = AssaultScalingSnapshot.NoneForRound(RoundNumber);
         }
 
         public RunPhase Phase { get; private set; }
         public int RoundNumber { get; private set; }
         public float CurrentThreat { get; private set; }
-        public float MaxThreat { get; }
+        public float MaxThreat => RoundBalance.MaxThreat;
+        public float ExperienceMultiplier =>
+            RoundBalance.ExperienceMultiplier;
         public int FinalRoundNumber { get; }
         public bool IsTerminal =>
             Phase == RunPhase.Completed ||
@@ -37,7 +37,9 @@ namespace Titanhold.Run
         public bool CanReturnToExploration =>
             CurrentEncounterKind == RunEncounterKind.AssaultWave;
         public RiftInstabilityState RiftInstability { get; }
-        public EnemyScalingSnapshot RoundScaling { get; private set; }
+        public RunRoundBalanceSnapshot RoundBalance { get; private set; }
+        public EnemyScalingSnapshot RoundScaling =>
+            RoundBalance.EnemyScaling;
         public AssaultScalingSnapshot AssaultScaling { get; private set; }
 
         internal float AddThreat(float amount)
@@ -61,16 +63,20 @@ namespace Titanhold.Run
             AssaultScaling = snapshot;
         }
 
-        internal void BeginNextRound(EnemyScalingSnapshot roundScaling)
+        internal void BeginNextRound(RunRoundBalanceSnapshot roundBalance)
         {
-            if (RoundNumber < int.MaxValue)
-                RoundNumber++;
-
             CurrentThreat = 0f;
             RiftInstability.Reset();
-            RoundScaling = roundScaling;
-            AssaultScaling = AssaultScalingSnapshot.NoneForRound(roundScaling.RoundNumber);
+            ApplyRoundBalance(roundBalance);
+            AssaultScaling = AssaultScalingSnapshot.NoneForRound(RoundNumber);
             Phase = RunPhase.Exploration;
+        }
+
+        private void ApplyRoundBalance(
+            RunRoundBalanceSnapshot roundBalance)
+        {
+            RoundBalance = roundBalance;
+            RoundNumber = roundBalance.RoundNumber;
         }
     }
 }

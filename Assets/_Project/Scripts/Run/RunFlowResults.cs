@@ -9,6 +9,7 @@ namespace Titanhold.Run
         NoApplicableContribution,
         NotFinalEncounter,
         FinalEncounterCompleted,
+        RoundBalanceUnavailable,
         TerminalState
     }
 

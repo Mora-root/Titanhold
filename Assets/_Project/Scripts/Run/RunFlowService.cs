@@ -6,19 +6,26 @@ namespace Titanhold.Run
     public sealed class RunFlowService
     {
         private readonly AssaultScalingCalculator assaultScalingCalculator;
-        private readonly RoundScalingCalculator roundScalingCalculator;
+        private readonly IRunRoundBalanceResolver roundBalance;
 
         public RunFlowService(RunFlowConfiguration configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            roundScalingCalculator = new RoundScalingCalculator(
-                configuration.EnemyHealthBonusPerRound,
-                configuration.EnemyDamageBonusPerRound);
+            roundBalance = configuration.RoundBalance;
+            if (!roundBalance.TryResolve(
+                    configuration.StartingRound,
+                    out RunRoundBalanceSnapshot startingBalance))
+            {
+                throw new ArgumentException(
+                    "Starting round balance is unavailable.",
+                    nameof(configuration));
+            }
+
             State = new RunFlowState(
                 configuration,
-                roundScalingCalculator.CreateSnapshot(configuration.StartingRound));
+                startingBalance);
             assaultScalingCalculator = new AssaultScalingCalculator(
                 configuration.AssaultHealthBonusPerLevel,
                 configuration.AssaultDamageBonusPerLevel);
@@ -113,7 +120,16 @@ namespace Titanhold.Run
             int nextRound = State.RoundNumber < int.MaxValue
                 ? State.RoundNumber + 1
                 : State.RoundNumber;
-            State.BeginNextRound(roundScalingCalculator.CreateSnapshot(nextRound));
+            if (!roundBalance.TryResolve(
+                    nextRound,
+                    out RunRoundBalanceSnapshot nextBalance))
+            {
+                return RunFlowTransitionResult.Failed(
+                    RunFlowError.RoundBalanceUnavailable,
+                    State.Phase);
+            }
+
+            State.BeginNextRound(nextBalance);
             NotifyStateChanged();
             return RunFlowTransitionResult.Succeeded(previousPhase, State.Phase);
         }
