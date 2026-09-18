@@ -106,7 +106,9 @@ so retry cannot duplicate rewards.
 
 `EnemyRewardSource` is data-only. Player-attributed `CombatExecutionReport`
 batches award RunXP through `RunProgressionCombatAdapter`, which maps combat actors
-to participant ids and handles multi-target executions once. World gold pickups
+to participant ids, handles multi-target executions once, and applies the current
+round's RunXP multiplier to the summed base reward with deterministic rounding.
+World gold pickups
 credit that participant's run wallet through its progression gateway. `PlayerGold`
 is compatibility-only and must not define durable save data.
 

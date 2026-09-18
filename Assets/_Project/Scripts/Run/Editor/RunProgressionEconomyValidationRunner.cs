@@ -17,6 +17,7 @@ namespace Titanhold.Run.Editor
             {
                 ValidateRunProgression();
                 ValidateProgressionDefinition();
+                ValidateExperienceRewardCalculation();
                 ValidateCombatExperienceRouting();
                 ValidateAccountCrystals();
                 ValidateConclusionRewards();
@@ -27,6 +28,29 @@ namespace Titanhold.Run.Editor
                 Debug.LogError(
                     $"Run Progression Economy validation failed: {exception}");
             }
+        }
+
+        private static void ValidateExperienceRewardCalculation()
+        {
+            Assert(
+                RunExperienceRewardCalculator.TryCalculate(
+                    5,
+                    1.1f,
+                    out int rounded) &&
+                rounded == 6,
+                "Run experience scaling did not round midpoint rewards deterministically.");
+            Assert(
+                !RunExperienceRewardCalculator.TryCalculate(
+                    int.MaxValue,
+                    2f,
+                    out _),
+                "Run experience scaling accepted an overflowing reward.");
+            Assert(
+                !RunExperienceRewardCalculator.TryCalculate(
+                    10,
+                    float.NaN,
+                    out _),
+                "Run experience scaling accepted an invalid multiplier.");
         }
 
         private static void ValidateCombatExperienceRouting()
@@ -71,10 +95,27 @@ namespace Titanhold.Run.Editor
                     "RunProgressionValidation_Adapter");
                 RunProgressionCombatAdapter adapter =
                     adapterObject.AddComponent<RunProgressionCombatAdapter>();
+                RunFlowService rewardRunFlow = new(
+                    new RunFlowConfiguration(
+                        100f,
+                        10,
+                        0.2f,
+                        0.1f,
+                        0.1f,
+                        0.05f,
+                        regularRoundCount: 1,
+                        startingRound: 2,
+                        roundBalance:
+                            new LinearRunRoundBalanceResolver(
+                                100f,
+                                0.2f,
+                                0.1f,
+                                experienceBonusPerRound: 0.2f)));
                 Assert(adapter.TryInitialize(
                            progression,
                            new[] { binding },
-                           sessionBacked: false),
+                           sessionBacked: false,
+                           runFlow: rewardRunFlow),
                     "Could not initialize combat experience adapter.");
 
                 firstEnemy = CreateRewardTarget(
@@ -107,11 +148,11 @@ namespace Titanhold.Run.Editor
                            report,
                            out RunProgressionResult award) &&
                        award.Success &&
-                       award.ExperienceApplied == 25 &&
+                       award.ExperienceApplied == 30 &&
                        award.LevelsGained == 1 &&
                        award.State.Level == 2 &&
-                       award.State.Experience == 5,
-                    "Combat report did not award summed run experience.");
+                       award.State.Experience == 10,
+                    "Combat report did not award scaled summed run experience.");
                 Assert(!adapter.TryApplyReport(
                            binding.PlayerId,
                            playerActor,
@@ -142,7 +183,7 @@ namespace Titanhold.Run.Editor
                            rejectedReport,
                            out _) &&
                        award.State.Level == 2 &&
-                       award.State.Experience == 5,
+                       award.State.Experience == 10,
                     "Combat experience accepted a mismatched combat actor.");
 
                 pickerProxy = new GameObject(

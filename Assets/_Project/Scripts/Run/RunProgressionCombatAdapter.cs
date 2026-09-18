@@ -16,6 +16,8 @@ namespace Titanhold.Run
         private readonly List<RunProgressionParticipantGateway> participantGateways =
             new();
         private readonly List<CombatSubscription> subscriptions = new();
+        private RunFlowRuntime runFlowRuntime;
+        private RunFlowService directRunFlow;
 
         public RunProgressionService Progression { get; private set; }
         public bool IsInitialized => Progression != null;
@@ -55,6 +57,7 @@ namespace Titanhold.Run
             ClearBindings();
             Progression = null;
             IsSessionBacked = false;
+            directRunFlow = null;
             rewardedExecutions.Clear();
         }
 
@@ -70,6 +73,17 @@ namespace Titanhold.Run
             {
                 Debug.LogError(
                     $"{nameof(RunProgressionCombatAdapter)} requires a run scene session entry point.",
+                    this);
+                return false;
+            }
+
+            runFlowRuntime ??=
+                FindAnyObjectByType<RunFlowRuntime>(
+                    FindObjectsInactive.Include);
+            if (runFlowRuntime == null)
+            {
+                Debug.LogError(
+                    $"{nameof(RunProgressionCombatAdapter)} requires a run flow runtime.",
                     this);
                 return false;
             }
@@ -126,7 +140,8 @@ namespace Titanhold.Run
                 return TryInitialize(
                     sessionProgression,
                     resolved,
-                    sessionBacked: true);
+                    sessionBacked: true,
+                    runFlow: runFlowRuntime.Service);
             }
 
             RunProgressionService localProgression = new(localCurve);
@@ -159,13 +174,15 @@ namespace Titanhold.Run
             return TryInitialize(
                 localProgression,
                 bindings,
-                sessionBacked: false);
+                sessionBacked: false,
+                runFlow: runFlowRuntime.Service);
         }
 
         public bool TryInitialize(
             RunProgressionService progression,
             IReadOnlyList<RunSceneParticipantBinding> bindings,
-            bool sessionBacked)
+            bool sessionBacked,
+            RunFlowService runFlow = null)
         {
             if (IsInitialized ||
                 progression == null ||
@@ -177,11 +194,13 @@ namespace Titanhold.Run
 
             Progression = progression;
             IsSessionBacked = sessionBacked;
+            directRunFlow = runFlow;
             if (TryBindParticipants(bindings))
                 return true;
 
             Progression = null;
             IsSessionBacked = false;
+            directRunFlow = null;
             return false;
         }
 
@@ -241,9 +260,23 @@ namespace Titanhold.Run
             if (totalExperience <= 0)
                 return false;
 
+            float experienceMultiplier = directRunFlow != null
+                ? directRunFlow.State.ExperienceMultiplier
+                : 1f;
+            if (!RunExperienceRewardCalculator.TryCalculate(
+                    totalExperience,
+                    experienceMultiplier,
+                    out int scaledExperience))
+            {
+                Debug.LogError(
+                    "Run experience scaling produced an invalid reward.",
+                    this);
+                return false;
+            }
+
             result = Progression.TryGrantExperience(
                 playerId,
-                (int)totalExperience);
+                scaledExperience);
             if (!result.Success)
                 return false;
 
