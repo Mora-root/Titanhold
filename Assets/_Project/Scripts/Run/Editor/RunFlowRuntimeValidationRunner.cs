@@ -26,9 +26,65 @@ namespace Titanhold.Run.Editor
         public static string RunValidation()
         {
             ValidateExecutionReportCopiesResolutions();
+            ValidateAuthoredRoundBalanceRuntime();
             ValidateRuntimeAdapterAppliesAtomicBatch();
 
             return "Run Flow runtime validation passed.";
+        }
+
+        private static void ValidateAuthoredRoundBalanceRuntime()
+        {
+            GameObject runtimeObject = null;
+            RunRoundBalanceDefinition definition = null;
+            try
+            {
+                RunRoundBalanceEntryDefinition first = new();
+                first.ConfigureForEditor(1, 120f, 1f, 1f, 1f);
+                RunRoundBalanceEntryDefinition second = new();
+                second.ConfigureForEditor(2, 180f, 1.2f, 1.1f, 1.25f);
+                definition =
+                    ScriptableObject.CreateInstance<RunRoundBalanceDefinition>();
+                definition.ConfigureForEditor(new[] { first, second });
+
+                runtimeObject = new GameObject(
+                    "RunFlowRuntime_AuthoredBalanceValidation");
+                RunFlowRuntime runtime =
+                    runtimeObject.AddComponent<RunFlowRuntime>();
+                SerializedObject serializedRuntime = new(runtime);
+                serializedRuntime.FindProperty("regularRoundCount").intValue = 1;
+                serializedRuntime.FindProperty("roundBalanceDefinition")
+                    .objectReferenceValue = definition;
+                serializedRuntime.ApplyModifiedPropertiesWithoutUndo();
+
+                runtime.EnsureInitialized();
+                Assert(ReferenceEquals(
+                           runtime.RoundBalanceDefinition,
+                           definition),
+                    "Run runtime lost its authored round balance reference.");
+                AssertApproximately(runtime.State.MaxThreat, 120f,
+                    "Runtime authored round-one Threat");
+                AssertApproximately(runtime.State.ExperienceMultiplier, 1f,
+                    "Runtime authored round-one XP multiplier");
+
+                Assert(runtime.Service.TryRegisterExplorationKill(
+                           new ExplorationKillContribution(120f, 0)).Success,
+                    "Runtime authored round could not fill its meter.");
+                Assert(runtime.Service.TryBeginAssaultTransition().Success &&
+                       runtime.Service.TryStartAssault().Success &&
+                       runtime.Service.TryCompleteAssault().Success &&
+                       runtime.Service.TryBeginReturnToExploration().Success &&
+                       runtime.Service.TryResumeExploration().Success,
+                    "Runtime authored balance could not advance rounds.");
+                AssertApproximately(runtime.State.MaxThreat, 180f,
+                    "Runtime authored round-two Threat");
+                AssertApproximately(runtime.State.ExperienceMultiplier, 1.25f,
+                    "Runtime authored round-two XP multiplier");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(runtimeObject);
+                UnityEngine.Object.DestroyImmediate(definition);
+            }
         }
 
         private static void ValidateExecutionReportCopiesResolutions()

@@ -16,6 +16,7 @@ namespace Titanhold.Run
         [SerializeField, Min(0f)] private float assaultDamageBonusPerLevel = 0.05f;
         [SerializeField, Min(1)] private int regularRoundCount = 3;
         [SerializeField, Min(1)] private int startingRound = 1;
+        [SerializeField] private RunRoundBalanceDefinition roundBalanceDefinition;
         [SerializeField] private EnemyDefinitionCatalog enemyDefinitionCatalog;
 
         private RunFlowService service;
@@ -72,6 +73,8 @@ namespace Titanhold.Run
         public RunFlowState State => Service.State;
         public EnemyDefinitionCatalog EnemyDefinitions =>
             enemyDefinitionCatalog;
+        public RunRoundBalanceDefinition RoundBalanceDefinition =>
+            roundBalanceDefinition;
 
         public event Action<RunFlowState> StateChanged;
 
@@ -98,6 +101,20 @@ namespace Titanhold.Run
             if (service != null)
                 return;
 
+            IRunRoundBalanceResolver roundBalance = null;
+            RunRoundBalanceTable table = null;
+            if (roundBalanceDefinition != null &&
+                !roundBalanceDefinition.TryCreateTable(
+                    out table,
+                    out string balanceError))
+            {
+                throw new InvalidOperationException(
+                    $"Run round balance is invalid: {balanceError}");
+            }
+
+            if (roundBalanceDefinition != null)
+                roundBalance = table;
+
             RunFlowConfiguration configuration = new RunFlowConfiguration(
                 maxThreat,
                 instabilityPointsPerLevel,
@@ -106,7 +123,8 @@ namespace Titanhold.Run
                 assaultHealthBonusPerLevel,
                 assaultDamageBonusPerLevel,
                 regularRoundCount,
-                startingRound);
+                startingRound,
+                roundBalance);
             service = new RunFlowService(configuration);
             killApplication = new ExplorationKillApplicationService(service);
             portalEntry = new RunPortalEntryApplicationService(service);

@@ -25,6 +25,7 @@ namespace Titanhold.Run.Editor
         public static string RunValidation()
         {
             ValidateConfiguration();
+            ValidateRoundBalanceDefinition();
             ValidateConfigurableRoundBalance();
             ValidateAtomicThreatBatch();
             ValidateInstabilityProgression();
@@ -34,6 +35,50 @@ namespace Titanhold.Run.Editor
             ValidateTerminalState();
 
             return "Run Flow foundation validation passed.";
+        }
+
+        private static void ValidateRoundBalanceDefinition()
+        {
+            RunRoundBalanceDefinition definition =
+                ScriptableObject.CreateInstance<RunRoundBalanceDefinition>();
+            try
+            {
+                RunRoundBalanceEntryDefinition first = new();
+                first.ConfigureForEditor(1, 120f, 1f, 1f, 1f);
+                RunRoundBalanceEntryDefinition second = new();
+                second.ConfigureForEditor(2, 150f, 1.2f, 1.1f, 1.2f);
+                definition.ConfigureForEditor(new[] { first, second });
+
+                Assert(
+                    definition.TryCreateTable(
+                        out RunRoundBalanceTable table,
+                        out string error),
+                    $"Valid round balance definition was rejected: {error}");
+                Assert(
+                    table.TryResolve(
+                        2,
+                        out RunRoundBalanceSnapshot roundTwo),
+                    "Authored round two could not be resolved.");
+                AssertApproximately(roundTwo.MaxThreat, 150f,
+                    "Authored definition round-two Threat");
+                AssertApproximately(roundTwo.ExperienceMultiplier, 1.2f,
+                    "Authored definition round-two XP multiplier");
+
+                definition.ConfigureForEditor(new[] { first, first });
+                Assert(
+                    !definition.TryCreateTable(out _, out _),
+                    "Round balance definition accepted duplicate rounds.");
+
+                definition.ConfigureForEditor(
+                    new RunRoundBalanceEntryDefinition[] { null });
+                Assert(
+                    !definition.TryCreateTable(out _, out _),
+                    "Round balance definition accepted a null entry.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(definition);
+            }
         }
 
         private static void ValidateConfigurableRoundBalance()
