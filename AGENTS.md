@@ -153,6 +153,11 @@ The run combat HUD is a passive session-backed view of the five-slot participant
 loadout, combat resource, and read-only actor-local cooldown snapshots. Numeric
 keys 1–5 emit generic slot-index commands; UI never owns gameplay state.
 
+`RunLevelAbilitySelectionService` sequences fixed-level ability milestones over
+the shared choice/loadout services. It preserves one pending choice per participant,
+uses deterministic run/participant/milestone seeds, and queues crossed milestones
+by level without fixing their authored levels, option counts, or candidate pools.
+
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
 snapshots carry a semantic post-action policy. Targeted and cone attacks continue
@@ -194,8 +199,8 @@ Warrior starter set:
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation
 exist. The warrior starts each run with `0/8` Rage through its archetype resource
-loadout. Rage decay, external generation (such as taking damage), and UI are not
-implemented yet.
+loadout. Rage decay and external generation (such as taking damage) are not
+implemented yet; the run combat HUD now displays the bound Rage state.
 
 `SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled
