@@ -53,6 +53,7 @@ namespace Titanhold.Run.Editor
             Assert(
                 RunAbilityUnlockSchedule.TryCreate(
                     "schedule:warrior",
+                    "archetype:warrior",
                     new[] { levelThree, levelTwo },
                     out RunAbilityUnlockSchedule schedule,
                     out _),
@@ -169,21 +170,25 @@ namespace Titanhold.Run.Editor
             Assert(
                 !RunAbilityUnlockSchedule.TryCreate(
                     "schedule:duplicate-level",
+                    "archetype:warrior",
                     new[] { first, duplicateLevel },
                     out _,
                     out _) &&
                 !RunAbilityUnlockSchedule.TryCreate(
                     "schedule:duplicate-slot",
+                    "archetype:warrior",
                     new[] { first, duplicateSlot },
                     out _,
                     out _) &&
                 !RunAbilityUnlockSchedule.TryCreate(
                     "schedule:invalid-pool",
+                    "archetype:warrior",
                     new[] { invalidPool },
                     out _,
                     out _) &&
                 !RunAbilityUnlockSchedule.TryCreate(
                     " schedule:whitespace ",
+                    "archetype:warrior",
                     new[] { first },
                     out _,
                     out _),

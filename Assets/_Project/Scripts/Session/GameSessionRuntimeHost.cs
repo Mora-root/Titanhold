@@ -13,6 +13,8 @@ namespace Titanhold.Session
         private RunStartingAbilityPoolCatalog startingAbilityPools;
         [SerializeField]
         private RunCombatResourceLoadoutCatalog combatResourceLoadouts;
+        [SerializeField]
+        private RunAbilityUnlockScheduleCatalog abilityUnlockSchedules;
         [SerializeField] private RunProgressionDefinition runProgression;
         [SerializeField]
         private RunConclusionRewardDefinition conclusionRewards;
@@ -27,6 +29,8 @@ namespace Titanhold.Session
             startingAbilityPools;
         public RunCombatResourceLoadoutCatalog CombatResourceLoadouts =>
             combatResourceLoadouts;
+        public RunAbilityUnlockScheduleCatalog AbilityUnlockSchedules =>
+            abilityUnlockSchedules;
         public RunProgressionDefinition RunProgression => runProgression;
         public RunConclusionRewardDefinition ConclusionRewards =>
             conclusionRewards;
@@ -50,6 +54,12 @@ namespace Titanhold.Session
             RunCombatResourceLoadoutCatalog loadouts)
         {
             combatResourceLoadouts = loadouts;
+        }
+
+        public void ConfigureAbilityUnlockSchedulesForEditor(
+            RunAbilityUnlockScheduleCatalog schedules)
+        {
+            abilityUnlockSchedules = schedules;
         }
 #endif
 
@@ -134,6 +144,22 @@ namespace Titanhold.Session
                 return;
             }
 
+            if (abilityUnlockSchedules != null &&
+                (!abilityUnlockSchedules.IsValid ||
+                 abilityUnlockSchedules.AbilityCatalog != abilityDefinitions))
+            {
+                string detail = !abilityUnlockSchedules.IsValid
+                    ? abilityUnlockSchedules.ValidationError
+                    : "The ability unlock schedule catalog references a " +
+                      "different ability definition catalog.";
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} has invalid ability " +
+                    $"unlock schedules: {detail}",
+                    abilityUnlockSchedules);
+                enabled = false;
+                return;
+            }
+
             if (runProgression == null || !runProgression.IsValid)
             {
                 Debug.LogError(
@@ -163,7 +189,8 @@ namespace Titanhold.Session
                 rewardPolicy,
                 runExperienceCurve: runProgression.BuildCurve(),
                 startingAbilityPools: startingAbilityPools,
-                combatResourceLoadouts: combatResourceLoadouts);
+                combatResourceLoadouts: combatResourceLoadouts,
+                abilityUnlockSchedules: abilityUnlockSchedules);
             activeHost = this;
             DontDestroyOnLoad(gameObject);
         }

@@ -24,7 +24,8 @@ namespace Titanhold.Session
             int runAbilitySlotCount =
                 RunAbilityLoadoutService.DefaultAbilitySlotCount,
             IRunStartingAbilityPoolResolver startingAbilityPools = null,
-            IRunCombatResourceLoadoutResolver combatResourceLoadouts = null)
+            IRunCombatResourceLoadoutResolver combatResourceLoadouts = null,
+            IRunAbilityUnlockScheduleResolver abilityUnlockSchedules = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
@@ -42,6 +43,7 @@ namespace Titanhold.Session
             AccountCrystals = new AccountCrystalWallet();
             StartingAbilityPools = startingAbilityPools;
             CombatResourceLoadouts = combatResourceLoadouts;
+            AbilityUnlockSchedules = abilityUnlockSchedules;
             GameSession.StateChanged += HandleGameSessionStateChanged;
         }
 
@@ -52,6 +54,7 @@ namespace Titanhold.Session
         public IItemDefinitionResolver ItemDefinitions { get; }
         public IRunStartingAbilityPoolResolver StartingAbilityPools { get; }
         public IRunCombatResourceLoadoutResolver CombatResourceLoadouts { get; }
+        public IRunAbilityUnlockScheduleResolver AbilityUnlockSchedules { get; }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunCombatResourceService ActiveRunCombatResources
@@ -64,6 +67,8 @@ namespace Titanhold.Session
         public RunStartReadinessService ActiveRunStartReadiness { get; private set; }
         public RunStartingAbilitySelectionService
             ActiveRunStartingAbilitySelection { get; private set; }
+        public RunLevelAbilitySelectionService
+            ActiveRunLevelAbilitySelection { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
@@ -78,6 +83,8 @@ namespace Titanhold.Session
             ActiveRunStartReadinessChanged;
         public event Action<string, RunStartingAbilitySelectionService>
             ActiveRunStartingAbilitySelectionChanged;
+        public event Action<string, RunLevelAbilitySelectionService>
+            ActiveRunLevelAbilitySelectionChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -196,6 +203,26 @@ namespace Titanhold.Session
             }
 
             selection = ActiveRunStartingAbilitySelection;
+            return true;
+        }
+
+        public bool TryGetActiveRunLevelAbilitySelection(
+            string runSessionId,
+            out RunLevelAbilitySelectionService selection)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunLevelAbilitySelection == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                selection = null;
+                return false;
+            }
+
+            selection = ActiveRunLevelAbilitySelection;
             return true;
         }
 
@@ -511,6 +538,53 @@ namespace Titanhold.Session
                 }
             }
 
+            RunLevelAbilitySelectionService levelAbilitySelection = null;
+            if (AbilityUnlockSchedules != null)
+            {
+                RunAbilityUnlockParticipantPlan[] plans =
+                    new RunAbilityUnlockParticipantPlan[
+                        descriptor.Participants.Count];
+                for (int i = 0; i < descriptor.Participants.Count; i++)
+                {
+                    RunParticipantSelection participant =
+                        descriptor.Participants[i];
+                    if (!AbilityUnlockSchedules.TryResolve(
+                            participant.CharacterArchetypeId,
+                            out RunAbilityUnlockSchedule schedule))
+                    {
+                        startReadiness.Dispose();
+                        throw new InvalidOperationException(
+                            "No ability unlock schedule is configured for " +
+                            $"character archetype '{participant.CharacterArchetypeId}'.");
+                    }
+
+                    for (int milestoneIndex = 0;
+                         milestoneIndex < schedule.Milestones.Count;
+                         milestoneIndex++)
+                    {
+                        if (schedule.Milestones[milestoneIndex]
+                                .TargetSlotIndex >= runAbilitySlotCount)
+                        {
+                            startReadiness.Dispose();
+                            throw new InvalidOperationException(
+                                $"Ability unlock schedule '{schedule.ScheduleId}' " +
+                                "targets a slot outside the active run loadout.");
+                        }
+                    }
+
+                    plans[i] = new RunAbilityUnlockParticipantPlan(
+                        participant.PlayerId,
+                        i,
+                        schedule);
+                }
+
+                levelAbilitySelection = new RunLevelAbilitySelectionService(
+                    progression,
+                    abilityChoices,
+                    plans,
+                    descriptor.Seed);
+            }
+
             activeRunStateSessionId = descriptor.RunSessionId;
             ActiveRunProgression = progression;
             ActiveRunCombatResources = combatResources;
@@ -518,6 +592,7 @@ namespace Titanhold.Session
             ActiveRunAbilityChoices = abilityChoices;
             ActiveRunStartReadiness = startReadiness;
             ActiveRunStartingAbilitySelection = startingAbilitySelection;
+            ActiveRunLevelAbilitySelection = levelAbilitySelection;
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -536,6 +611,12 @@ namespace Titanhold.Session
             ActiveRunStartingAbilitySelectionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunStartingAbilitySelection);
+            if (ActiveRunLevelAbilitySelection != null)
+            {
+                ActiveRunLevelAbilitySelectionChanged?.Invoke(
+                    activeRunStateSessionId,
+                    ActiveRunLevelAbilitySelection);
+            }
         }
 
         private void RegisterParticipantCombatResources(
@@ -588,7 +669,8 @@ namespace Titanhold.Session
                 ActiveRunAbilityLoadout == null &&
                 ActiveRunAbilityChoices == null &&
                 ActiveRunStartReadiness == null &&
-                ActiveRunStartingAbilitySelection == null)
+                ActiveRunStartingAbilitySelection == null &&
+                ActiveRunLevelAbilitySelection == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
@@ -600,6 +682,9 @@ namespace Titanhold.Session
             bool hadStartReadiness = ActiveRunStartReadiness != null;
             bool hadStartingSelection =
                 ActiveRunStartingAbilitySelection != null;
+            bool hadLevelAbilitySelection =
+                ActiveRunLevelAbilitySelection != null;
+            ActiveRunLevelAbilitySelection?.Dispose();
             ActiveRunStartReadiness?.Dispose();
             ActiveRunProgression = null;
             ActiveRunCombatResources = null;
@@ -607,6 +692,7 @@ namespace Titanhold.Session
             ActiveRunAbilityChoices = null;
             ActiveRunStartReadiness = null;
             ActiveRunStartingAbilitySelection = null;
+            ActiveRunLevelAbilitySelection = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -645,6 +731,13 @@ namespace Titanhold.Session
             if (hadStartingSelection)
             {
                 ActiveRunStartingAbilitySelectionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadLevelAbilitySelection)
+            {
+                ActiveRunLevelAbilitySelectionChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }

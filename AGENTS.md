@@ -157,6 +157,8 @@ keys 1–5 emit generic slot-index commands; UI never owns gameplay state.
 the shared choice/loadout services. It preserves one pending choice per participant,
 uses deterministic run/participant/milestone seeds, and queues crossed milestones
 by level without fixing their authored levels, option counts, or candidate pools.
+`RunAbilityUnlockScheduleCatalog` is the all-or-nothing archetype resolver for
+those authored schedules; `GameSessionRuntime` owns the optional per-run service.
 
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability

@@ -91,9 +91,11 @@ namespace Titanhold.Run
 
         private RunAbilityUnlockSchedule(
             string scheduleId,
+            string characterArchetypeId,
             IReadOnlyList<RunAbilityUnlockMilestone> milestones)
         {
             ScheduleId = scheduleId;
+            CharacterArchetypeId = characterArchetypeId;
             RunAbilityUnlockMilestone[] copy =
                 new RunAbilityUnlockMilestone[milestones.Count];
             for (int i = 0; i < copy.Length; i++)
@@ -107,11 +109,13 @@ namespace Titanhold.Run
         }
 
         public string ScheduleId { get; }
+        public string CharacterArchetypeId { get; }
         public IReadOnlyList<RunAbilityUnlockMilestone> Milestones =>
             milestones;
 
         public static bool TryCreate(
             string scheduleId,
+            string characterArchetypeId,
             IReadOnlyList<RunAbilityUnlockMilestone> milestones,
             out RunAbilityUnlockSchedule schedule,
             out string error)
@@ -121,6 +125,13 @@ namespace Titanhold.Run
             if (!HasStrictId(scheduleId))
             {
                 error = "An ability unlock schedule requires a strict stable id.";
+                return false;
+            }
+
+            if (!HasStrictId(characterArchetypeId))
+            {
+                error =
+                    $"Ability unlock schedule '{scheduleId}' requires a strict character archetype id.";
                 return false;
             }
 
@@ -165,7 +176,10 @@ namespace Titanhold.Run
                 }
             }
 
-            schedule = new RunAbilityUnlockSchedule(scheduleId, milestones);
+            schedule = new RunAbilityUnlockSchedule(
+                scheduleId,
+                characterArchetypeId,
+                milestones);
             return true;
         }
 
@@ -174,6 +188,13 @@ namespace Titanhold.Run
             return !string.IsNullOrWhiteSpace(value) &&
                    string.Equals(value, value.Trim(), StringComparison.Ordinal);
         }
+    }
+
+    public interface IRunAbilityUnlockScheduleResolver
+    {
+        bool TryResolve(
+            string characterArchetypeId,
+            out RunAbilityUnlockSchedule schedule);
     }
 
     public sealed class RunAbilityUnlockParticipantPlan

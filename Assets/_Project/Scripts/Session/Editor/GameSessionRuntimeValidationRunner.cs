@@ -38,13 +38,16 @@ namespace Titanhold.Session.Editor
                     CreateStartingPools();
                 IRunCombatResourceLoadoutResolver combatResourceLoadouts =
                     CreateCombatResourceLoadouts();
+                IRunAbilityUnlockScheduleResolver abilityUnlockSchedules =
+                    CreateAbilityUnlockSchedules();
                 GameSessionRuntime runtime = new(
                     catalog,
                     CreateRewardPolicy(),
                     runExperienceCurve:
                         new RunExperienceCurve(new[] { 10, 20 }),
                     startingAbilityPools: startingPools,
-                    combatResourceLoadouts: combatResourceLoadouts);
+                    combatResourceLoadouts: combatResourceLoadouts,
+                    abilityUnlockSchedules: abilityUnlockSchedules);
                 int snapshotChangeCount = 0;
                 runtime.CharacterSnapshotChanged += (_, _) =>
                     snapshotChangeCount++;
@@ -153,24 +156,44 @@ namespace Titanhold.Session.Editor
                            "resource:rage",
                            2f),
                     "Run transition did not create participant combat resources.");
+                RunParticipantAbilityState abilityState = null;
                 Assert(runtime.TryGetActiveRunAbilityLoadout(
                            begin.RunSessionId,
                            out RunAbilityLoadoutService abilityLoadout) &&
                        abilityLoadout.ParticipantCount == 1 &&
                        abilityLoadout.TryGetParticipant(
                            "player:local",
-                           out RunParticipantAbilityState abilityState) &&
+                           out abilityState) &&
                        abilityState.HasAbility("ability:spin") &&
                        abilityState.TryGetAbilitySlot(
                            0,
                            out string startingAbilityId) &&
                        startingAbilityId == "ability:spin",
                     "Run transition did not seed the participant starting ability.");
+                RunAbilityChoiceState levelChoice = null;
                 Assert(runtime.TryGetActiveRunAbilityChoices(
                            begin.RunSessionId,
                            out RunAbilityChoiceService abilityChoices) &&
-                       abilityChoices.PendingChoiceCount == 0,
-                    "Run transition did not create participant ability choices.");
+                       abilityChoices.TryGetPendingChoice(
+                           "player:local",
+                           out levelChoice) &&
+                       levelChoice.TargetSlotIndex == 1 &&
+                       levelChoice.OfferedAbilityIds.Count == 2 &&
+                       runtime.TryGetActiveRunLevelAbilitySelection(
+                           begin.RunSessionId,
+                           out RunLevelAbilitySelectionService _),
+                    "Run level did not create its configured ability choice.");
+                string unlockedAbilityId =
+                    levelChoice.OfferedAbilityIds[0];
+                Assert(abilityChoices.TrySelectAbility(
+                           "player:local",
+                           levelChoice.ChoiceId,
+                           unlockedAbilityId).Success &&
+                       abilityState.TryGetAbilitySlot(
+                           1,
+                           out string assignedUnlockId) &&
+                       assignedUnlockId == unlockedAbilityId,
+                    "Run level ability choice did not update its target slot.");
                 Assert(runtime.TryGetActiveRunStartReadiness(
                            begin.RunSessionId,
                            out RunStartReadinessService startReadiness) &&
@@ -222,6 +245,9 @@ namespace Titanhold.Session.Editor
                            begin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunStartingAbilitySelection(
+                           begin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelAbilitySelection(
                            begin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,
@@ -461,6 +487,9 @@ namespace Titanhold.Session.Editor
                            out _) &&
                        !runtime.TryGetActiveRunStartingAbilitySelection(
                            unseededBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelAbilitySelection(
+                           unseededBegin.RunSessionId,
                            out _),
                     "Cancelling a run retained its starting selection state.");
 
@@ -605,6 +634,49 @@ namespace Titanhold.Session.Editor
                        out string error),
                 $"Could not prepare combat resource loadouts: {error}");
             return loadouts;
+        }
+
+        private static IRunAbilityUnlockScheduleResolver
+            CreateAbilityUnlockSchedules()
+        {
+            IAbilityDefinition[] definitions =
+            {
+                new TestAbilityDefinition("ability:unlock-a"),
+                new TestAbilityDefinition("ability:unlock-b"),
+                new TestAbilityDefinition("ability:unlock-c")
+            };
+            Assert(AbilityDefinitionRegistry.TryCreate(
+                       definitions,
+                       out AbilityDefinitionRegistry abilityRegistry,
+                       out string abilityError),
+                $"Could not prepare unlock abilities: {abilityError}");
+            Assert(RunAbilityUnlockSchedule.TryCreate(
+                       "ability-schedule:warrior",
+                       "archetype:warrior",
+                       new[]
+                       {
+                           new RunAbilityUnlockMilestone(
+                               2,
+                               1,
+                               2,
+                               new[]
+                               {
+                                   "ability:unlock-a",
+                                   "ability:unlock-b",
+                                   "ability:unlock-c"
+                               })
+                       },
+                       out RunAbilityUnlockSchedule schedule,
+                       out string scheduleError),
+                $"Could not prepare unlock schedule: {scheduleError}");
+            Assert(RunAbilityUnlockScheduleRegistry.TryCreate(
+                       new[] { schedule },
+                       abilityRegistry,
+                       RunAbilityLoadoutService.DefaultAbilitySlotCount,
+                       out RunAbilityUnlockScheduleRegistry schedules,
+                       out string registryError),
+                $"Could not prepare unlock schedule registry: {registryError}");
+            return schedules;
         }
 
         private static void Destroy(UnityEngine.Object instance)
