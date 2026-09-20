@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Titanhold.Run
 {
-    public enum RunLevelAbilitySelectionError
+    public enum RunLevelUpgradeSelectionError
     {
         None,
         ServiceDisposed,
@@ -13,14 +13,14 @@ namespace Titanhold.Run
         ChoiceRejected
     }
 
-    public readonly struct RunLevelAbilitySelectionResult
+    public readonly struct RunLevelUpgradeSelectionResult
     {
-        private RunLevelAbilitySelectionResult(
+        private RunLevelUpgradeSelectionResult(
             bool success,
             bool offered,
-            RunLevelAbilitySelectionError error,
-            RunAbilityChoiceState choice,
-            RunAbilityChoiceError choiceError)
+            RunLevelUpgradeSelectionError error,
+            RunUpgradeChoiceState choice,
+            RunUpgradeChoiceError choiceError)
         {
             Success = success;
             Offered = offered;
@@ -31,39 +31,39 @@ namespace Titanhold.Run
 
         public bool Success { get; }
         public bool Offered { get; }
-        public RunLevelAbilitySelectionError Error { get; }
-        public RunAbilityChoiceState Choice { get; }
-        public RunAbilityChoiceError ChoiceError { get; }
+        public RunLevelUpgradeSelectionError Error { get; }
+        public RunUpgradeChoiceState Choice { get; }
+        public RunUpgradeChoiceError ChoiceError { get; }
 
-        internal static RunLevelAbilitySelectionResult NoChange(
-            RunAbilityChoiceState choice = null)
+        internal static RunLevelUpgradeSelectionResult NoChange(
+            RunUpgradeChoiceState choice = null)
         {
-            return new RunLevelAbilitySelectionResult(
+            return new RunLevelUpgradeSelectionResult(
                 true,
                 false,
-                RunLevelAbilitySelectionError.None,
+                RunLevelUpgradeSelectionError.None,
                 choice,
-                RunAbilityChoiceError.None);
+                RunUpgradeChoiceError.None);
         }
 
-        internal static RunLevelAbilitySelectionResult OfferedChoice(
-            RunAbilityChoiceState choice)
+        internal static RunLevelUpgradeSelectionResult OfferedChoice(
+            RunUpgradeChoiceState choice)
         {
-            return new RunLevelAbilitySelectionResult(
+            return new RunLevelUpgradeSelectionResult(
                 true,
                 true,
-                RunLevelAbilitySelectionError.None,
+                RunLevelUpgradeSelectionError.None,
                 choice,
-                RunAbilityChoiceError.None);
+                RunUpgradeChoiceError.None);
         }
 
-        internal static RunLevelAbilitySelectionResult Failed(
-            RunLevelAbilitySelectionError error,
-            RunAbilityChoiceError choiceError =
-                RunAbilityChoiceError.None,
-            RunAbilityChoiceState choice = null)
+        internal static RunLevelUpgradeSelectionResult Failed(
+            RunLevelUpgradeSelectionError error,
+            RunUpgradeChoiceError choiceError =
+                RunUpgradeChoiceError.None,
+            RunUpgradeChoiceState choice = null)
         {
-            return new RunLevelAbilitySelectionResult(
+            return new RunLevelUpgradeSelectionResult(
                 false,
                 false,
                 error,
@@ -72,22 +72,22 @@ namespace Titanhold.Run
         }
     }
 
-    public sealed class RunLevelAbilitySelectionService : IDisposable
+    public sealed class RunLevelUpgradeSelectionService : IDisposable
     {
-        public const string ChoiceIdPrefix = "choice:run-level-ability";
+        public const string ChoiceIdPrefix = "choice:run-level-upgrade";
 
         private readonly RunProgressionService progression;
-        private readonly RunAbilityChoiceService choices;
-        private readonly Dictionary<string, RunAbilityUnlockParticipantPlan>
+        private readonly RunUpgradeChoiceService choices;
+        private readonly Dictionary<string, RunUpgradeUnlockParticipantPlan>
             plans = new(StringComparer.Ordinal);
         private readonly int runSeed;
         private readonly bool observeChanges;
         private bool disposed;
 
-        public RunLevelAbilitySelectionService(
+        public RunLevelUpgradeSelectionService(
             RunProgressionService progression,
-            RunAbilityChoiceService choices,
-            IReadOnlyList<RunAbilityUnlockParticipantPlan> participantPlans,
+            RunUpgradeChoiceService choices,
+            IReadOnlyList<RunUpgradeUnlockParticipantPlan> participantPlans,
             int runSeed,
             bool observeChanges = true)
         {
@@ -98,31 +98,32 @@ namespace Titanhold.Run
             if (participantPlans == null || participantPlans.Count == 0)
             {
                 throw new ArgumentException(
-                    "At least one participant ability plan is required.",
+                    "At least one participant upgrade plan is required.",
                     nameof(participantPlans));
             }
 
             for (int i = 0; i < participantPlans.Count; i++)
             {
-                RunAbilityUnlockParticipantPlan plan = participantPlans[i];
+                RunUpgradeUnlockParticipantPlan plan = participantPlans[i];
                 if (plan == null || !plan.IsValid)
                 {
                     throw new ArgumentException(
-                        $"Participant ability plan {i} is invalid.",
+                        $"Participant upgrade plan {i} is invalid.",
                         nameof(participantPlans));
                 }
 
-                if (!progression.TryGetParticipant(plan.PlayerId, out _))
+                if (!progression.TryGetParticipant(plan.PlayerId, out _) ||
+                    !choices.TryGetParticipant(plan.PlayerId, out _))
                 {
                     throw new ArgumentException(
-                        $"Progression participant '{plan.PlayerId}' is missing.",
+                        $"Participant '{plan.PlayerId}' is not registered in progression and upgrades.",
                         nameof(participantPlans));
                 }
 
                 if (!plans.TryAdd(plan.PlayerId, plan))
                 {
                     throw new ArgumentException(
-                        $"Participant '{plan.PlayerId}' has more than one ability plan.",
+                        $"Participant '{plan.PlayerId}' has more than one upgrade plan.",
                         nameof(participantPlans));
                 }
             }
@@ -136,85 +137,75 @@ namespace Titanhold.Run
             }
         }
 
-        public event Action<string, RunLevelAbilitySelectionResult>
+        public event Action<string, RunLevelUpgradeSelectionResult>
             OfferFailed;
 
-        public RunLevelAbilitySelectionResult TryOfferNext(string playerId)
+        public RunLevelUpgradeSelectionResult TryOfferNext(string playerId)
         {
             if (disposed)
             {
-                return RunLevelAbilitySelectionResult.Failed(
-                    RunLevelAbilitySelectionError.ServiceDisposed);
+                return RunLevelUpgradeSelectionResult.Failed(
+                    RunLevelUpgradeSelectionError.ServiceDisposed);
             }
 
             string normalizedPlayerId = playerId?.Trim() ?? string.Empty;
             if (normalizedPlayerId.Length == 0)
             {
-                return RunLevelAbilitySelectionResult.Failed(
-                    RunLevelAbilitySelectionError.InvalidPlayerId);
+                return RunLevelUpgradeSelectionResult.Failed(
+                    RunLevelUpgradeSelectionError.InvalidPlayerId);
             }
 
             if (!plans.TryGetValue(
                     normalizedPlayerId,
-                    out RunAbilityUnlockParticipantPlan plan))
+                    out RunUpgradeUnlockParticipantPlan plan))
             {
-                return RunLevelAbilitySelectionResult.Failed(
-                    RunLevelAbilitySelectionError.ParticipantNotConfigured);
+                return RunLevelUpgradeSelectionResult.Failed(
+                    RunLevelUpgradeSelectionError.ParticipantNotConfigured);
             }
 
-            if (!progression.TryGetParticipant(
-                    normalizedPlayerId,
-                    out RunParticipantProgressionState state))
+            if (!progression.TryGetParticipant(normalizedPlayerId, out _))
             {
-                return RunLevelAbilitySelectionResult.Failed(
-                    RunLevelAbilitySelectionError
+                return RunLevelUpgradeSelectionResult.Failed(
+                    RunLevelUpgradeSelectionError
                         .ProgressionParticipantNotFound);
             }
 
             if (choices.TryGetPendingChoice(
                     normalizedPlayerId,
-                    out RunAbilityChoiceState pending))
+                    out RunUpgradeChoiceState pending))
             {
-                return RunLevelAbilitySelectionResult.NoChange(pending);
+                return RunLevelUpgradeSelectionResult.NoChange(pending);
             }
 
             if (!TryGetNextEligibleMilestone(
                     normalizedPlayerId,
-                    out RunAbilityUnlockMilestone milestone))
+                    out RunUpgradeUnlockMilestone milestone))
             {
-                return RunLevelAbilitySelectionResult.NoChange();
+                return RunLevelUpgradeSelectionResult.NoChange();
             }
 
-            RunAbilityChoiceResult offered = choices.TryOfferChoice(
-                new RunAbilityChoiceRequest(
+            RunUpgradeChoiceResult offered = choices.TryOfferChoice(
+                new RunUpgradeChoiceRequest(
                     normalizedPlayerId,
-                    CreateChoiceId(
-                        plan.Schedule.ScheduleId,
-                        milestone),
-                    ResolveTargetSlot(
-                        normalizedPlayerId,
-                        milestone.TargetSlotIndex),
-                    milestone.CandidateAbilityIds,
+                    CreateChoiceId(plan.Schedule.ScheduleId, milestone),
+                    milestone.CandidateUpgradeIds,
                     milestone.OptionCount,
                     CreateChoiceSeed(
                         runSeed,
                         plan.ParticipantIndex,
                         milestone)));
-            if (offered.Success)
-            {
-                return RunLevelAbilitySelectionResult.OfferedChoice(
-                    offered.State);
-            }
-
-            return RunLevelAbilitySelectionResult.Failed(
-                RunLevelAbilitySelectionError.ChoiceRejected,
-                offered.Error,
-                offered.State);
+            return offered.Success
+                ? RunLevelUpgradeSelectionResult.OfferedChoice(
+                    offered.Choice)
+                : RunLevelUpgradeSelectionResult.Failed(
+                    RunLevelUpgradeSelectionError.ChoiceRejected,
+                    offered.Error,
+                    offered.Choice);
         }
 
         public bool TryGetNextEligibleMilestone(
             string playerId,
-            out RunAbilityUnlockMilestone milestone)
+            out RunUpgradeUnlockMilestone milestone)
         {
             milestone = null;
             if (disposed)
@@ -223,7 +214,7 @@ namespace Titanhold.Run
             string normalizedPlayerId = playerId?.Trim() ?? string.Empty;
             if (!plans.TryGetValue(
                     normalizedPlayerId,
-                    out RunAbilityUnlockParticipantPlan plan) ||
+                    out RunUpgradeUnlockParticipantPlan plan) ||
                 !progression.TryGetParticipant(
                     normalizedPlayerId,
                     out RunParticipantProgressionState state))
@@ -233,7 +224,7 @@ namespace Titanhold.Run
 
             for (int i = 0; i < plan.Schedule.Milestones.Count; i++)
             {
-                RunAbilityUnlockMilestone candidate =
+                RunUpgradeUnlockMilestone candidate =
                     plan.Schedule.Milestones[i];
                 if (candidate.UnlockLevel > state.Level)
                     break;
@@ -255,21 +246,9 @@ namespace Titanhold.Run
             return false;
         }
 
-        private int ResolveTargetSlot(
-            string playerId,
-            int authoredFallbackSlotIndex)
-        {
-            return choices.TryFindFirstAvailableSlot(
-                playerId,
-                minimumSlotIndex: 1,
-                out int firstAvailableSlotIndex)
-                    ? firstAvailableSlotIndex
-                    : authoredFallbackSlotIndex;
-        }
-
         public static string CreateChoiceId(
             string scheduleId,
-            RunAbilityUnlockMilestone milestone)
+            RunUpgradeUnlockMilestone milestone)
         {
             if (milestone == null)
                 return string.Empty;
@@ -278,8 +257,7 @@ namespace Titanhold.Run
             return normalizedScheduleId.Length == 0
                 ? string.Empty
                 : $"{ChoiceIdPrefix}:{normalizedScheduleId}:" +
-                  $"level:{milestone.UnlockLevel}:" +
-                  $"slot:{milestone.TargetSlotIndex}";
+                  $"level:{milestone.UnlockLevel}";
         }
 
         public static bool IsRunLevelChoiceId(string choiceId)
@@ -313,8 +291,9 @@ namespace Titanhold.Run
         }
 
         private void HandleChoiceResolved(
-            RunAbilityChoiceState choice,
-            string selectedAbilityId)
+            RunUpgradeChoiceState choice,
+            string selectedUpgradeId,
+            RunParticipantUpgradeState participant)
         {
             if (choice == null || !plans.ContainsKey(choice.PlayerId))
                 return;
@@ -324,7 +303,7 @@ namespace Titanhold.Run
 
         private void ReportFailure(
             string playerId,
-            RunLevelAbilitySelectionResult result)
+            RunLevelUpgradeSelectionResult result)
         {
             if (!result.Success)
                 OfferFailed?.Invoke(playerId, result);
@@ -333,14 +312,13 @@ namespace Titanhold.Run
         private static int CreateChoiceSeed(
             int baseSeed,
             int participantIndex,
-            RunAbilityUnlockMilestone milestone)
+            RunUpgradeUnlockMilestone milestone)
         {
             unchecked
             {
                 int seed = baseSeed;
                 seed = (seed * 397) ^ participantIndex;
                 seed = (seed * 397) ^ milestone.UnlockLevel;
-                seed = (seed * 397) ^ milestone.TargetSlotIndex;
                 return seed;
             }
         }

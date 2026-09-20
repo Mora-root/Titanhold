@@ -104,7 +104,9 @@ Lifetimes are separate:
 The run-upgrade foundation uses all-or-nothing stable-id definition catalogs and
 participant-scoped `RunUpgradeChoiceService` state. Offers are deterministic,
 contain unique options, and may select the same upgrade again in later offers to
-add another stack. It is not wired into run-level sequencing or scene UI yet.
+add another stack. `RunLevelRewardSelectionService` serializes crossed ability and
+upgrade milestones by level so only one participant choice is pending at a time.
+The coordinator is not wired into the session runtime or scene UI yet.
 
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to
