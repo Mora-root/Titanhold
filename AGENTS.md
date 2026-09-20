@@ -101,6 +101,11 @@ Lifetimes are separate:
 - per account: crystals and account-wide unlocks;
 - inventory items: ordinary crafting reagents remain stackable items.
 
+The run-upgrade foundation uses all-or-nothing stable-id definition catalogs and
+participant-scoped `RunUpgradeChoiceService` state. Offers are deterministic,
+contain unique options, and may select the same upgrade again in later offers to
+add another stack. It is not wired into run-level sequencing or scene UI yet.
+
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to
 each participant and account crystals once. Settlement survives a failed Hub load,
