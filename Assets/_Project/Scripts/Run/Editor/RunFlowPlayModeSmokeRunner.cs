@@ -105,9 +105,12 @@ namespace Titanhold.Run.Editor
                        Math.Abs(runtime.State.RoundScaling.HealthMultiplier - 1f) <= 0.0001f &&
                        Math.Abs(runtime.State.RoundScaling.DamageMultiplier - 1f) <= 0.0001f,
                     "Run Flow did not start with round-one enemy scaling.");
-                Assert(runtime.State.FinalRoundNumber == 4 &&
+                Assert(runtime.RoundBalanceDefinition != null &&
+                       runtime.RoundBalanceDefinition.Rounds.Count ==
+                           runtime.State.FinalRoundNumber &&
+                       runtime.State.FinalRoundNumber == 10 &&
                        runtime.State.CurrentEncounterKind == RunEncounterKind.AssaultWave,
-                    "Run Flow did not start on the first of three regular rounds.");
+                    "Run Flow did not start on the first of nine regular rounds.");
 
                 PlayerCombat playerCombat =
                     UnityEngine.Object.FindAnyObjectByType<PlayerCombat>();
@@ -199,7 +202,8 @@ namespace Titanhold.Run.Editor
                 experienceReward.ConfigureForEditor(100);
                 SerializedObject serializedContribution =
                     new SerializedObject(contributionSource);
-                serializedContribution.FindProperty("threatAmount").floatValue = 100f;
+                serializedContribution.FindProperty("threatAmount").floatValue =
+                    runtime.State.MaxThreat;
                 serializedContribution.ApplyModifiedPropertiesWithoutUndo();
                 Health health = temporaryEnemy.GetComponent<Health>();
                 CombatExecutionId executionId = CombatExecutionId.New();
@@ -232,7 +236,7 @@ namespace Titanhold.Run.Editor
                        progressionView.ProgressionText.text.Contains(
                            "RUN LV 2") &&
                        progressionView.ProgressionText.text.Contains(
-                           "XP 0 / 150") &&
+                           "XP 30 / 95") &&
                        progressionView.LevelUpRoot.activeSelf,
                     "Play Mode combat reward did not update the Run Progression HUD.");
                 Assert(adapter.TryApplyReport(report, out ExplorationKillApplicationResult result),

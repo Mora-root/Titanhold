@@ -12,8 +12,8 @@ namespace Titanhold.Run
 
         [SerializeField, Range(2, MaximumSupportedLevel)]
         private int maximumLevel = 20;
-        [SerializeField, Min(1)] private int baseExperienceToNextLevel = 100;
-        [SerializeField, Min(0)] private int experienceIncreasePerLevel = 50;
+        [SerializeField, Min(1)] private int baseExperienceToNextLevel = 70;
+        [SerializeField, Min(0)] private int experienceIncreasePerLevel = 25;
 
         public int MaximumLevel => maximumLevel;
         public int BaseExperienceToNextLevel => baseExperienceToNextLevel;

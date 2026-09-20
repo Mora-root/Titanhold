@@ -16,7 +16,6 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/Prefabs/Enemy/Skelet_Boss_Prototype.prefab";
         private const string BossWavePath =
             "Assets/_Project/ScriptableObjects/Run/AssaultWave_Boss_Prototype.asset";
-        private const int RegularRoundCount = 3;
         private const float BossScaleMultiplier = 1.5f;
         private const float BossHealthMultiplier = 5f;
         private const float BossDamageMultiplier = 1.5f;
@@ -131,11 +130,6 @@ namespace Titanhold.Run.Editor
             if (spawner == null)
                 throw new InvalidOperationException("AssaultWaveSpawner is missing.");
 
-            SerializedObject serializedRuntime = new SerializedObject(runtime);
-            serializedRuntime.FindProperty("regularRoundCount").intValue =
-                RegularRoundCount;
-            serializedRuntime.ApplyModifiedPropertiesWithoutUndo();
-
             SerializedObject serializedSpawner = new SerializedObject(spawner);
             serializedSpawner.FindProperty("bossWaveDefinition").objectReferenceValue =
                 bossWave;
@@ -229,14 +223,6 @@ namespace Titanhold.Run.Editor
             AssaultWaveDefinition expectedBossWave)
         {
             RunFlowRuntime runtime = RequireRuntime(scene);
-            SerializedObject serializedRuntime = new SerializedObject(runtime);
-            if (serializedRuntime.FindProperty("regularRoundCount").intValue !=
-                RegularRoundCount)
-            {
-                throw new InvalidOperationException(
-                    "Run Flow is not configured for three regular rounds.");
-            }
-
             AssaultWaveSpawner spawner = runtime.GetComponent<AssaultWaveSpawner>();
             if (spawner == null)
                 throw new InvalidOperationException("AssaultWaveSpawner is missing.");

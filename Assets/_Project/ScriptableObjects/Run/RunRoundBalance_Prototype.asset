@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed55053df53ea5d419978b2c912d1de6, type: 3}
+  m_Name: RunRoundBalance_Prototype
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunRoundBalanceDefinition
+  rounds:
+  - roundNumber: 1
+    maxThreat: 120
+    enemyHealthMultiplier: 1
+    enemyDamageMultiplier: 1
+    experienceMultiplier: 1
+  - roundNumber: 2
+    maxThreat: 150
+    enemyHealthMultiplier: 1.2
+    enemyDamageMultiplier: 1.1
+    experienceMultiplier: 1.2
+  - roundNumber: 3
+    maxThreat: 200
+    enemyHealthMultiplier: 1.4
+    enemyDamageMultiplier: 1.2
+    experienceMultiplier: 1.4
+  - roundNumber: 4
+    maxThreat: 250
+    enemyHealthMultiplier: 1.6
+    enemyDamageMultiplier: 1.3
+    experienceMultiplier: 1.6
+  - roundNumber: 5
+    maxThreat: 300
+    enemyHealthMultiplier: 1.8
+    enemyDamageMultiplier: 1.4
+    experienceMultiplier: 1.8
+  - roundNumber: 6
+    maxThreat: 350
+    enemyHealthMultiplier: 2
+    enemyDamageMultiplier: 1.5
+    experienceMultiplier: 2
+  - roundNumber: 7
+    maxThreat: 400
+    enemyHealthMultiplier: 2.2
+    enemyDamageMultiplier: 1.6
+    experienceMultiplier: 2.2
+  - roundNumber: 8
+    maxThreat: 450
+    enemyHealthMultiplier: 2.4
+    enemyDamageMultiplier: 1.7
+    experienceMultiplier: 2.4
+  - roundNumber: 9
+    maxThreat: 500
+    enemyHealthMultiplier: 2.6
+    enemyDamageMultiplier: 1.8
+    experienceMultiplier: 2.6
+  - roundNumber: 10
+    maxThreat: 500
+    enemyHealthMultiplier: 2.8
+    enemyDamageMultiplier: 1.9
+    experienceMultiplier: 2.8

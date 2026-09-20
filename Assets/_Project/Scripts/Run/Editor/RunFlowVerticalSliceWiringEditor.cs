@@ -33,7 +33,7 @@ namespace Titanhold.Run.Editor
                 }
 
                 ConfigureEnemyPrefab(SkeletonPrefabPath, 10f, 1);
-                ConfigureEnemyPrefab(WarriorPrefabPath, 15f, 1);
+                ConfigureEnemyPrefab(WarriorPrefabPath, 10f, 1);
                 ConfigureRuntimeSceneObject(scene);
 
                 AssetDatabase.SaveAssets();
@@ -52,7 +52,7 @@ namespace Titanhold.Run.Editor
             try
             {
                 ValidateEnemyPrefab(SkeletonPrefabPath, 10f, 1);
-                ValidateEnemyPrefab(WarriorPrefabPath, 15f, 1);
+                ValidateEnemyPrefab(WarriorPrefabPath, 10f, 1);
                 ValidateWavePrefabRemainsExcluded();
                 ValidateRuntimeSceneObject();
                 Debug.Log("Run Flow vertical-slice wiring validation passed.");

@@ -23182,8 +23182,9 @@ MonoBehaviour:
   enemyDamageBonusPerRound: 0.1
   assaultHealthBonusPerLevel: 0.1
   assaultDamageBonusPerLevel: 0.05
-  regularRoundCount: 3
+  regularRoundCount: 9
   startingRound: 1
+  roundBalanceDefinition: {fileID: 11400000, guid: 293d8d4635905cd4392e985f4c7fa61c, type: 2}
   enemyDefinitionCatalog: {fileID: 11400000, guid: c8745ff01a4df7543aa5d8fe820423b9, type: 2}
 --- !u!4 &1489734143
 Transform:

@@ -11,9 +11,9 @@ Current loop:
 `exploration/farming → fill run meter → manual portal → separate assault arena →
 assault encounter → intermission/reward → return to the same exploration location`
 
-There are three regular rounds. Round four includes exploration, then its portal
+There are nine regular rounds. Round ten includes exploration, then its portal
 starts the final boss. Boss victory enters final intermission; it must not create
-a return portal or advance to round five.
+a return portal or advance to round eleven.
 
 Camp defense, towers, and the legacy wave flow are outside this slice. Preserve
 them as legacy/future activity code unless explicitly requested.
@@ -54,9 +54,10 @@ them as legacy/future activity code unless explicitly requested.
 
 - `RunRoundBalanceSnapshot` and its resolver are the plain-C# boundary for
   per-round meter, enemy-stat, and RunXP multipliers.
-  `RunRoundBalanceDefinition` builds the all-or-nothing authored table. The current
-  scene still uses the compatible constant-meter/linear-stat fallback until an
-  asset is approved and wired.
+  `RunRoundBalanceDefinition` builds the all-or-nothing authored table.
+  `SampleScene` uses `RunRoundBalance_Prototype`: meter thresholds are
+  `120/150/200/250/300/350/400/450/500/500`, and RunXP scales by `+20%`
+  per round. The compatible linear fallback remains for isolated/default tests.
 - Round one uses authored base values. Each completed round adds `+20%` maximum
   health and `+10%` damage to later-round enemies.
 - Living exploration enemies are rescaled and restored to their new full health
@@ -109,6 +110,8 @@ so retry cannot duplicate rewards.
 batches award RunXP through `RunProgressionCombatAdapter`, which maps combat actors
 to participant ids, handles multi-target executions once, and applies the current
 round's RunXP multiplier to the summed base reward with deterministic rounding.
+The current prototype RunXP curve has 20 levels, requires 70 XP for level two,
+and adds 25 XP to each later level requirement.
 World gold pickups
 credit that participant's run wallet through its progression gateway. `PlayerGold`
 is compatibility-only and must not define durable save data.
@@ -250,7 +253,8 @@ Current assets:
 - UI: `Prefabs/UI/RunCompletionUI.prefab`, `Prefabs/UI/RunPauseUI.prefab`;
 - definitions: `ScriptableObjects/Run/AssaultWave_Prototype.asset`,
   `AssaultWave_Boss_Prototype.asset`, `AssaultReward_Prototype.asset`,
-  `RunConclusionRewards_Prototype.asset`;
+  `RunConclusionRewards_Prototype.asset`, `RunProgression_Prototype.asset`,
+  `RunRoundBalance_Prototype.asset`;
 - catalogs: `ScriptableObjects/Items/ItemDefinitionCatalog.asset`,
   `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`;
 - `Prefabs/Old/`: legacy only.

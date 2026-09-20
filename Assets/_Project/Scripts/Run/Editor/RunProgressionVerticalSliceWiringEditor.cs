@@ -84,8 +84,8 @@ namespace Titanhold.Run.Editor
                 ScriptableObject.CreateInstance<RunProgressionDefinition>();
             definition.ConfigureForEditor(
                 configuredMaximumLevel: 20,
-                configuredBaseExperience: 100,
-                configuredExperienceIncrease: 50);
+                configuredBaseExperience: 70,
+                configuredExperienceIncrease: 25);
             AssetDatabase.CreateAsset(definition, DefinitionPath);
             EditorUtility.SetDirty(definition);
             return definition;
@@ -159,6 +159,15 @@ namespace Titanhold.Run.Editor
             {
                 throw new InvalidOperationException(
                     "Run Progression Definition is missing or invalid.");
+            }
+
+            if (definition.MaximumLevel != 20 ||
+                definition.BaseExperienceToNextLevel != 70 ||
+                definition.ExperienceIncreasePerLevel != 25)
+            {
+                throw new InvalidOperationException(
+                    "Run Progression Definition does not match the prototype " +
+                    "20-level 70/+25 experience curve.");
             }
 
             ValidateRewardPrefabs();

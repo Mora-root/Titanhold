@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: RunProgression_Prototype
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunProgressionDefinition
   maximumLevel: 20
-  baseExperienceToNextLevel: 100
-  experienceIncreasePerLevel: 50
+  baseExperienceToNextLevel: 70
+  experienceIncreasePerLevel: 25

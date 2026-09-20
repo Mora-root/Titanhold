@@ -361,7 +361,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25551e1b4e2cd074181e4575042b9a6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyRunContributionSource
-  threatAmount: 15
+  threatAmount: 10
   instabilityPoints: 1
 --- !u!114 &5815885090962592449
 MonoBehaviour:
