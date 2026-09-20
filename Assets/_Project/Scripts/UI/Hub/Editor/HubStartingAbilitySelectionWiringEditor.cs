@@ -83,7 +83,7 @@ namespace Titanhold.UI.Hub.Editor
                     new Vector2(1160f, 610f),
                     Vector2.zero);
                 panel.AddComponent<Image>().color = PanelColor;
-                CreateText(
+                TMP_Text title = CreateText(
                     panel.transform,
                     "Title",
                     "CHOOSE YOUR STARTING ABILITY",
@@ -92,7 +92,7 @@ namespace Titanhold.UI.Hub.Editor
                     new Vector2(0f, 246f),
                     new Vector2(960f, 54f),
                     Color.white);
-                CreateText(
+                TMP_Text subtitle = CreateText(
                     panel.transform,
                     "Subtitle",
                     "Choose your first ability to begin the run.",
@@ -135,6 +135,7 @@ namespace Titanhold.UI.Hub.Editor
                     names,
                     descriptions,
                     icons);
+                view.ConfigureHeadingsForEditor(title, subtitle);
                 controller.ConfigureForEditor(
                     view,
                     "player:local",
@@ -301,6 +302,7 @@ namespace Titanhold.UI.Hub.Editor
             HubStartingAbilitySelectionView view = views[0];
             RunStartingAbilitySelectionController controller = controllers[0];
             if (!view.HasRequiredReferences ||
+                !view.HasHeadingReferences ||
                 view.SelectionRoot == null ||
                 view.SelectionRoot.activeSelf ||
                 !view.transform.IsChildOf(canvas.transform) ||

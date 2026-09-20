@@ -21954,6 +21954,7 @@ GameObject:
   - component: {fileID: 1372247510}
   - component: {fileID: 1372247512}
   - component: {fileID: 1372247511}
+  - component: {fileID: 1372247513}
   m_Layer: 5
   m_Name: StartingAbilitySelectionUI
   m_TagString: Untagged
@@ -22009,6 +22010,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Hub.HubStartingAbilitySelectionView
   selectionRoot: {fileID: 901093121}
+  titleText: {fileID: 698446973}
+  subtitleText: {fileID: 1965172527}
   statusText: {fileID: 1026680782}
   optionButtons:
   - {fileID: 535997606}
@@ -22026,6 +22029,20 @@ MonoBehaviour:
   - {fileID: 407405298}
   - {fileID: 1841532954}
   - {fileID: 793370266}
+--- !u!114 &1372247513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372247509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55ec7ea174ac10e4c8e6bbddcb121122, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Run.RunLevelAbilitySelectionController
+  view: {fileID: 1372247512}
+  playerId: player:local
 --- !u!21 &1375070014
 Material:
   serializedVersion: 8

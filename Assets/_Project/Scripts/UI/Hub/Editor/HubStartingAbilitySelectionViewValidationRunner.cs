@@ -23,6 +23,10 @@ namespace Titanhold.UI.Hub.Editor
                 viewObject.transform.SetParent(fixture.transform, false);
                 HubStartingAbilitySelectionView view =
                     viewObject.AddComponent<HubStartingAbilitySelectionView>();
+                TMP_Text title = CreateText(selectionRoot.transform, "Title");
+                TMP_Text subtitle = CreateText(
+                    selectionRoot.transform,
+                    "Subtitle");
                 TMP_Text status = CreateText(selectionRoot.transform, "Status");
                 Button[] buttons = new Button[3];
                 TMP_Text[] names = new TMP_Text[3];
@@ -48,14 +52,20 @@ namespace Titanhold.UI.Hub.Editor
                     names,
                     descriptions,
                     icons);
+                view.ConfigureHeadingsForEditor(title, subtitle);
                 view.enabled = true;
-                Assert(view.HasRequiredReferences,
+                Assert(view.HasRequiredReferences &&
+                       view.HasHeadingReferences,
                     "Complete option references were rejected.");
 
                 HubStartingAbilitySelectionModel model = CreateModel();
                 selectionRoot.SetActive(false);
                 Assert(view.TryShow(model) && selectionRoot.activeSelf,
                     "A valid starting selection was not shown.");
+                view.SetHeading("TITLE", "SUBTITLE");
+                Assert(title.text == "TITLE" &&
+                       subtitle.text == "SUBTITLE",
+                    "The view did not update its selection heading.");
                 for (int i = 0; i < model.Options.Count; i++)
                 {
                     Assert(names[i].text == model.Options[i].DisplayName &&
@@ -73,6 +83,18 @@ namespace Titanhold.UI.Hub.Editor
                 buttons[2].onClick.Invoke();
                 Assert(selectedIndex == 2,
                     "The view did not emit the selected option index.");
+
+                HubStartingAbilitySelectionModel twoOptionModel = new(
+                    model.PlayerId,
+                    "choice:two-options",
+                    new[] { model.Options[0], model.Options[1] });
+                Assert(view.TryShow(twoOptionModel) &&
+                       buttons[0].gameObject.activeSelf &&
+                       buttons[1].gameObject.activeSelf &&
+                       !buttons[2].gameObject.activeSelf,
+                    "The view did not hide its unused third option.");
+                Assert(view.TryShow(model),
+                    "The view could not restore all three options.");
 
                 view.SetInteractable(false);
                 Assert(!buttons[0].interactable &&

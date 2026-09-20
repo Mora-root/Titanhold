@@ -44,6 +44,20 @@ namespace Titanhold.Run
                    choices.Contains(normalizedChoiceId);
         }
 
+        public bool TryFindFirstAvailableSlot(
+            string playerId,
+            int minimumSlotIndex,
+            out int slotIndex)
+        {
+            slotIndex = -1;
+            return loadout.TryGetParticipant(
+                       playerId,
+                       out RunParticipantAbilityState participant) &&
+                   participant.TryFindFirstEmptySlot(
+                       minimumSlotIndex,
+                       out slotIndex);
+        }
+
         public RunAbilityChoiceResult TryOfferChoice(
             RunAbilityChoiceRequest request)
         {

@@ -8,12 +8,14 @@ namespace Titanhold.Run
     [Serializable]
     public sealed class RunAbilityUnlockMilestoneDefinition
     {
+        [SerializeField] private bool isEnabled = true;
         [SerializeField, Min(2)] private int unlockLevel = 2;
         [SerializeField, Min(1)] private int targetSlotIndex = 1;
         [SerializeField, Min(1)] private int optionCount = 3;
         [SerializeField] private ScriptableObject[] abilityDefinitions =
             Array.Empty<ScriptableObject>();
 
+        public bool IsEnabled => isEnabled;
         public int UnlockLevel => unlockLevel;
         public int TargetSlotIndex => targetSlotIndex;
         public int OptionCount => optionCount;
@@ -68,8 +70,10 @@ namespace Titanhold.Run
             int configuredUnlockLevel,
             int configuredTargetSlotIndex,
             int configuredOptionCount,
-            ScriptableObject[] configuredAbilityDefinitions)
+            ScriptableObject[] configuredAbilityDefinitions,
+            bool configuredEnabled = true)
         {
+            isEnabled = configuredEnabled;
             unlockLevel = configuredUnlockLevel;
             targetSlotIndex = configuredTargetSlotIndex;
             optionCount = configuredOptionCount;
@@ -104,8 +108,7 @@ namespace Titanhold.Run
             error = string.Empty;
             RunAbilityUnlockMilestoneDefinition[] source =
                 milestones ?? Array.Empty<RunAbilityUnlockMilestoneDefinition>();
-            RunAbilityUnlockMilestone[] runtimeMilestones =
-                new RunAbilityUnlockMilestone[source.Length];
+            List<RunAbilityUnlockMilestone> runtimeMilestones = new();
             for (int i = 0; i < source.Length; i++)
             {
                 RunAbilityUnlockMilestoneDefinition definition = source[i];
@@ -116,14 +119,19 @@ namespace Titanhold.Run
                     return false;
                 }
 
+                if (!definition.IsEnabled)
+                    continue;
+
                 if (!definition.TryCreateMilestone(
-                        out runtimeMilestones[i],
+                        out RunAbilityUnlockMilestone milestone,
                         out string milestoneError))
                 {
                     error =
                         $"Ability unlock schedule '{name}' is invalid: {milestoneError}";
                     return false;
                 }
+
+                runtimeMilestones.Add(milestone);
             }
 
             return RunAbilityUnlockSchedule.TryCreate(

@@ -4131,6 +4131,7 @@ MonoBehaviour:
   abilityDefinitions: {fileID: 11400000, guid: 19bd33069f879e041802270e54f83a20, type: 2}
   startingAbilityPools: {fileID: 11400000, guid: 5ccff0d9a90b1804f98a06c658db5425, type: 2}
   combatResourceLoadouts: {fileID: 11400000, guid: 2b03ce1bd29a14d4db595f6f02272e6a, type: 2}
+  abilityUnlockSchedules: {fileID: 11400000, guid: 87e037135d859dd47b54cc9f915683e7, type: 2}
   runProgression: {fileID: 11400000, guid: b84a95e48e538494f8d6f1fc8515f704, type: 2}
   conclusionRewards: {fileID: 11400000, guid: d17864b6e8dd0e44d976291f38dfb30a, type: 2}
 --- !u!4 &2101906913

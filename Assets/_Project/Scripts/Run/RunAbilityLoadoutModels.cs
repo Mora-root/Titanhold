@@ -79,6 +79,29 @@ namespace Titanhold.Run
             return false;
         }
 
+        public bool TryFindFirstEmptySlot(
+            int minimumSlotIndex,
+            out int slotIndex)
+        {
+            slotIndex = -1;
+            if (minimumSlotIndex < 0 ||
+                minimumSlotIndex >= abilitySlotIds.Length)
+            {
+                return false;
+            }
+
+            for (int i = minimumSlotIndex; i < abilitySlotIds.Length; i++)
+            {
+                if (!string.IsNullOrEmpty(abilitySlotIds[i]))
+                    continue;
+
+                slotIndex = i;
+                return true;
+            }
+
+            return false;
+        }
+
         internal void GrantAbility(string abilityId)
         {
             grantedAbilities.Add(abilityId);

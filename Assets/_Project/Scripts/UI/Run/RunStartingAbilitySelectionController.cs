@@ -150,6 +150,9 @@ namespace Titanhold.UI.Run
                     host.AbilityDefinitions));
             HubStartingAbilityCoordinationResult result =
                 coordinator.TryPresent(playerId);
+            view.SetHeading(
+                "CHOOSE YOUR STARTING ABILITY",
+                "Choose your first ability to begin the run.");
             if (!result.Success || !view.TryShow(result.Model))
             {
                 string detail = result.Success
@@ -165,8 +168,10 @@ namespace Titanhold.UI.Run
         {
             HubStartingAbilitySelectionModel model =
                 coordinator?.ActiveSelection;
-            if (model == null ||
-                optionIndex < 0 ||
+            if (model == null)
+                return;
+
+            if (optionIndex < 0 ||
                 optionIndex >= model.Options.Count)
             {
                 view?.SetStatus("INVALID STARTING CHOICE");

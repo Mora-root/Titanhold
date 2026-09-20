@@ -1,4 +1,7 @@
 using System;
+using Titanhold.Combat.Abilities;
+using Titanhold.UI.Hub;
+using Titanhold.UI.Run;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,8 +16,9 @@ namespace Titanhold.Run.Editor
             {
                 ValidateMilestoneSequence();
                 ValidateScheduleRules();
+                ValidatePresentation();
                 Debug.Log(
-                    "Run Level Ability Selection validation passed (2 scenarios).");
+                    "Run Level Ability Selection validation passed (3 scenarios).");
             }
             catch (Exception exception)
             {
@@ -42,12 +46,12 @@ namespace Titanhold.Run.Editor
 
             RunAbilityUnlockMilestone levelTwo = new(
                 2,
-                1,
+                3,
                 3,
                 new[] { "ability:a", "ability:b", "ability:c" });
             RunAbilityUnlockMilestone levelThree = new(
                 3,
-                2,
+                4,
                 2,
                 new[] { "ability:d", "ability:e", "ability:f" });
             Assert(
@@ -195,10 +199,100 @@ namespace Titanhold.Run.Editor
                 "Invalid ability schedules were accepted.");
         }
 
+        private static void ValidatePresentation()
+        {
+            ValidationAbilityDefinition first = new(
+                "ability:a",
+                "First ability",
+                "First description");
+            ValidationAbilityDefinition second = new(
+                "ability:b",
+                "Second ability",
+                "Second description");
+            Assert(
+                AbilityDefinitionRegistry.TryCreate(
+                    new IAbilityDefinition[] { first, second },
+                    out AbilityDefinitionRegistry registry,
+                    out _),
+                "Presentation ability registry was rejected.");
+
+            RunParticipantIdentity identity = new(
+                "player:local",
+                "character:warrior");
+            RunAbilityLoadoutService loadout = new();
+            Assert(
+                loadout.TryRegisterParticipant(identity).Success,
+                "Presentation participant registration failed.");
+            RunAbilityChoiceService choices = new(loadout);
+            RunAbilityChoiceResult offered = choices.TryOfferChoice(
+                new RunAbilityChoiceRequest(
+                    identity.PlayerId,
+                    $"{RunLevelAbilitySelectionService.ChoiceIdPrefix}:test:3",
+                    1,
+                    new[] { first.AbilityId, second.AbilityId },
+                    2,
+                    123));
+            Assert(
+                offered.Success && offered.State != null,
+                "Presentation choice could not be offered.");
+
+            RunAbilityChoiceState choice = offered.State;
+            RunLevelAbilitySelectionPresenter presenter = new(registry);
+            Assert(
+                presenter.TryBuild(
+                    choice,
+                    out HubStartingAbilitySelectionModel model,
+                    out RunLevelAbilityPresentationError error) &&
+                error == RunLevelAbilityPresentationError.None &&
+                model.PlayerId == choice.PlayerId &&
+                model.ChoiceId == choice.ChoiceId &&
+                model.Options.Count == 2 &&
+                model.Options[0].AbilityId ==
+                    choice.OfferedAbilityIds[0] &&
+                model.Options[1].AbilityId ==
+                    choice.OfferedAbilityIds[1] &&
+                HasExpectedPresentation(model.Options[0], first, second) &&
+                HasExpectedPresentation(model.Options[1], first, second),
+                "Run-level choice presentation did not preserve its options.");
+        }
+
+        private static bool HasExpectedPresentation(
+            HubStartingAbilityOption option,
+            ValidationAbilityDefinition first,
+            ValidationAbilityDefinition second)
+        {
+            ValidationAbilityDefinition expected = option.AbilityId ==
+                first.AbilityId
+                    ? first
+                    : second;
+            return option.DisplayName == expected.DisplayName &&
+                   option.Description == expected.Description;
+        }
+
         private static void Assert(bool condition, string message)
         {
             if (!condition)
                 throw new InvalidOperationException(message);
+        }
+
+        private sealed class ValidationAbilityDefinition :
+            IAbilityDefinition,
+            IAbilityPresentationDefinition
+        {
+            public ValidationAbilityDefinition(
+                string abilityId,
+                string displayName,
+                string description)
+            {
+                AbilityId = abilityId;
+                DisplayName = displayName;
+                Description = description;
+            }
+
+            public string AbilityId { get; }
+            public string DisplayName { get; }
+            public string Description { get; }
+            public Sprite Icon => null;
         }
     }
 }

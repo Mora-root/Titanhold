@@ -9,18 +9,20 @@ namespace Titanhold.UI.Hub
     [DisallowMultipleComponent]
     public sealed class HubStartingAbilitySelectionView : MonoBehaviour
     {
-        private const int OptionCount = 3;
+        private const int MaximumOptionCount = 3;
 
         [SerializeField] private GameObject selectionRoot;
+        [SerializeField] private TMP_Text titleText;
+        [SerializeField] private TMP_Text subtitleText;
         [SerializeField] private TMP_Text statusText;
         [SerializeField] private Button[] optionButtons =
-            new Button[OptionCount];
+            new Button[MaximumOptionCount];
         [SerializeField] private TMP_Text[] optionNameTexts =
-            new TMP_Text[OptionCount];
+            new TMP_Text[MaximumOptionCount];
         [SerializeField] private TMP_Text[] optionDescriptionTexts =
-            new TMP_Text[OptionCount];
+            new TMP_Text[MaximumOptionCount];
         [SerializeField] private Image[] optionIcons =
-            new Image[OptionCount];
+            new Image[MaximumOptionCount];
 
         private UnityAction[] optionCallbacks;
         private bool subscribed;
@@ -34,6 +36,8 @@ namespace Titanhold.UI.Hub
             HasCompleteArray(optionNameTexts) &&
             HasCompleteArray(optionDescriptionTexts) &&
             HasCompleteArray(optionIcons);
+        public bool HasHeadingReferences =>
+            titleText != null && subtitleText != null;
         public GameObject SelectionRoot => selectionRoot;
 
 #if UNITY_EDITOR
@@ -53,6 +57,14 @@ namespace Titanhold.UI.Hub
                 configuredOptionDescriptionTexts);
             optionIcons = CopyArray(configuredOptionIcons);
         }
+
+        public void ConfigureHeadingsForEditor(
+            TMP_Text configuredTitleText,
+            TMP_Text configuredSubtitleText)
+        {
+            titleText = configuredTitleText;
+            subtitleText = configuredSubtitleText;
+        }
 #endif
 
         private void OnEnable()
@@ -68,7 +80,8 @@ namespace Titanhold.UI.Hub
         public bool TryShow(HubStartingAbilitySelectionModel model)
         {
             if (!HasRequiredReferences || model == null ||
-                model.Options.Count != OptionCount)
+                model.Options.Count <= 0 ||
+                model.Options.Count > MaximumOptionCount)
             {
                 return false;
             }
@@ -77,8 +90,13 @@ namespace Titanhold.UI.Hub
             if (!subscribed)
                 return false;
 
-            for (int i = 0; i < OptionCount; i++)
+            for (int i = 0; i < MaximumOptionCount; i++)
             {
+                bool hasOption = i < model.Options.Count;
+                optionButtons[i].gameObject.SetActive(hasOption);
+                if (!hasOption)
+                    continue;
+
                 HubStartingAbilityOption option = model.Options[i];
                 optionNameTexts[i].text = option.DisplayName;
                 optionDescriptionTexts[i].text = option.Description;
@@ -90,6 +108,15 @@ namespace Titanhold.UI.Hub
             selectionRoot.SetActive(true);
             SetInteractable(true);
             return true;
+        }
+
+        public void SetHeading(string title, string subtitle)
+        {
+            if (titleText != null)
+                titleText.text = title ?? string.Empty;
+
+            if (subtitleText != null)
+                subtitleText.text = subtitle ?? string.Empty;
         }
 
         public void Hide()
@@ -121,8 +148,8 @@ namespace Titanhold.UI.Hub
             if (subscribed || !HasCompleteArray(optionButtons))
                 return;
 
-            optionCallbacks = new UnityAction[OptionCount];
-            for (int i = 0; i < OptionCount; i++)
+            optionCallbacks = new UnityAction[MaximumOptionCount];
+            for (int i = 0; i < MaximumOptionCount; i++)
             {
                 int optionIndex = i;
                 optionCallbacks[i] = () => HandleOptionSelected(optionIndex);
@@ -137,7 +164,7 @@ namespace Titanhold.UI.Hub
             if (!subscribed)
                 return;
 
-            for (int i = 0; i < OptionCount; i++)
+            for (int i = 0; i < MaximumOptionCount; i++)
             {
                 if (optionButtons != null && i < optionButtons.Length &&
                     optionButtons[i] != null && optionCallbacks[i] != null)
@@ -153,14 +180,21 @@ namespace Titanhold.UI.Hub
 
         private void HandleOptionSelected(int optionIndex)
         {
-            if (optionIndex >= 0 && optionIndex < OptionCount)
+            if (optionIndex >= 0 &&
+                optionIndex < MaximumOptionCount &&
+                optionButtons != null &&
+                optionIndex < optionButtons.Length &&
+                optionButtons[optionIndex] != null &&
+                optionButtons[optionIndex].gameObject.activeInHierarchy)
+            {
                 OptionSelected?.Invoke(optionIndex);
+            }
         }
 
         private static bool HasCompleteArray<T>(T[] values)
             where T : UnityEngine.Object
         {
-            if (values == null || values.Length != OptionCount)
+            if (values == null || values.Length != MaximumOptionCount)
                 return false;
 
             for (int i = 0; i < values.Length; i++)

@@ -169,6 +169,11 @@ uses deterministic run/participant/milestone seeds, and queues crossed milestone
 by level without fixing their authored levels, option counts, or candidate pools.
 `RunAbilityUnlockScheduleCatalog` is the all-or-nothing archetype resolver for
 those authored schedules; `GameSessionRuntime` owns the optional per-run service.
+The warrior schedule authors milestones at Run Levels 3/7/10/15; only level 3 is
+enabled until later ability content exists. It offers two remaining starter
+abilities and assigns the selection to the first empty non-starter slot. The
+shared 1–3 card overlay pauses solo simulation and suppresses local gameplay input
+while a run-level choice is pending.
 
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
@@ -254,9 +259,10 @@ Current assets:
 - definitions: `ScriptableObjects/Run/AssaultWave_Prototype.asset`,
   `AssaultWave_Boss_Prototype.asset`, `AssaultReward_Prototype.asset`,
   `RunConclusionRewards_Prototype.asset`, `RunProgression_Prototype.asset`,
-  `RunRoundBalance_Prototype.asset`;
+  `RunRoundBalance_Prototype.asset`, `WarriorAbilityUnlockSchedule.asset`;
 - catalogs: `ScriptableObjects/Items/ItemDefinitionCatalog.asset`,
-  `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`;
+  `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`,
+  `ScriptableObjects/Run/AbilityUnlockScheduleCatalog.asset`;
 - `Prefabs/Old/`: legacy only.
 
 Never start in imported folders including `HDRPDefaultResources`, asset packs,

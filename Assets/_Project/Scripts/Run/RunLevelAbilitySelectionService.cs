@@ -193,7 +193,9 @@ namespace Titanhold.Run
                     new RunAbilityChoiceRequest(
                         normalizedPlayerId,
                         choiceId,
-                        milestone.TargetSlotIndex,
+                        ResolveTargetSlot(
+                            normalizedPlayerId,
+                            milestone.TargetSlotIndex),
                         milestone.CandidateAbilityIds,
                         milestone.OptionCount,
                         CreateChoiceSeed(
@@ -215,6 +217,18 @@ namespace Titanhold.Run
             return RunLevelAbilitySelectionResult.NoChange();
         }
 
+        private int ResolveTargetSlot(
+            string playerId,
+            int authoredFallbackSlotIndex)
+        {
+            return choices.TryFindFirstAvailableSlot(
+                playerId,
+                minimumSlotIndex: 1,
+                out int firstAvailableSlotIndex)
+                    ? firstAvailableSlotIndex
+                    : authoredFallbackSlotIndex;
+        }
+
         public static string CreateChoiceId(
             string scheduleId,
             RunAbilityUnlockMilestone milestone)
@@ -228,6 +242,14 @@ namespace Titanhold.Run
                 : $"{ChoiceIdPrefix}:{normalizedScheduleId}:" +
                   $"level:{milestone.UnlockLevel}:" +
                   $"slot:{milestone.TargetSlotIndex}";
+        }
+
+        public static bool IsRunLevelChoiceId(string choiceId)
+        {
+            string normalizedChoiceId = choiceId?.Trim() ?? string.Empty;
+            return normalizedChoiceId.StartsWith(
+                $"{ChoiceIdPrefix}:",
+                StringComparison.Ordinal);
         }
 
         public void Dispose()

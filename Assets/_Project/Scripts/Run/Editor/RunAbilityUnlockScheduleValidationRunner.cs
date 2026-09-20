@@ -32,12 +32,19 @@ namespace Titanhold.Run.Editor
                     1,
                     2,
                     abilityAssets);
+                RunAbilityUnlockMilestoneDefinition disabledLevelSeven = new();
+                disabledLevelSeven.ConfigureForEditor(
+                    7,
+                    2,
+                    3,
+                    Array.Empty<ScriptableObject>(),
+                    configuredEnabled: false);
                 definition = ScriptableObject.CreateInstance<
                     RunAbilityUnlockScheduleDefinition>();
                 definition.ConfigureForEditor(
                     "ability-schedule:warrior",
                     "archetype:warrior",
-                    new[] { levelTwo });
+                    new[] { levelTwo, disabledLevelSeven });
                 catalog = ScriptableObject.CreateInstance<
                     RunAbilityUnlockScheduleCatalog>();
                 catalog.ConfigureForEditor(
@@ -54,7 +61,9 @@ namespace Titanhold.Run.Editor
                        schedule.Milestones.Count == 1 &&
                        schedule.Milestones[0].UnlockLevel == 2 &&
                        schedule.Milestones[0].TargetSlotIndex == 1 &&
-                       schedule.Milestones[0].OptionCount == 2,
+                       schedule.Milestones[0].OptionCount == 2 &&
+                       definition.Milestones.Count == 2 &&
+                       !definition.Milestones[1].IsEnabled,
                     "Valid ability unlock catalog did not resolve its schedule.");
 
                 catalog.ConfigureForEditor(

@@ -30,7 +30,7 @@ namespace Titanhold.UI.Hub
     {
         private readonly ReadOnlyCollection<HubStartingAbilityOption> options;
 
-        internal HubStartingAbilitySelectionModel(
+        public HubStartingAbilitySelectionModel(
             string playerId,
             string choiceId,
             IReadOnlyList<HubStartingAbilityOption> options)

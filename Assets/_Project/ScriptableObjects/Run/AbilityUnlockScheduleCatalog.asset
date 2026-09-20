@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62c70c59d9a4f8c4f93cae500eea9b4d, type: 3}
+  m_Name: AbilityUnlockScheduleCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunAbilityUnlockScheduleCatalog
+  abilityCatalog: {fileID: 11400000, guid: 19bd33069f879e041802270e54f83a20, type: 2}
+  definitions:
+  - {fileID: 11400000, guid: 0fbdcbe8ba7ac5245a4ddf0642dc325d, type: 2}
