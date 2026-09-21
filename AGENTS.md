@@ -117,6 +117,11 @@ multiply. Maximum-health changes preserve absolute current health and only clamp
 downward. `RunSceneSessionEntryPoint` binds each resolved participant's live
 `CharacterStats` to this projection and unbinds it during scene teardown or a
 rejected entry.
+`RunUpgradeHudPresenter` is a passive session-backed projection of that same
+participant upgrade state. `SampleScene` shows unique selected upgrades in a
+top-left vertical column, preserves first-selection order, and aggregates repeated
+selections as `×N`; late binding rebuilds the list from selection history. The
+disabled legacy `WaveHUD` remains untouched.
 
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to
