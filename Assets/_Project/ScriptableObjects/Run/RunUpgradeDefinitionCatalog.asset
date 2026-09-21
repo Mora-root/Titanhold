@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89c787272ebbfed4db8db0df87e1c05e, type: 3}
+  m_Name: RunUpgradeDefinitionCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunUpgradeDefinitionCatalog
+  definitions:
+  - {fileID: 11400000, guid: 48bb5c6a49f5e9348a3dff63e34cff7a, type: 2}
+  - {fileID: 11400000, guid: 0319e93d06f3d504699c26bb0f668ba6, type: 2}
+  - {fileID: 11400000, guid: c896795651011804896e9283fa6c9c83, type: 2}
+  - {fileID: 11400000, guid: 8d647768cf2fc6f4cbbda34141e17d77, type: 2}
+  - {fileID: 11400000, guid: 687c334e4e1e9f844ad028b02075d7d6, type: 2}
+  - {fileID: 11400000, guid: 2161646ae185d4d41887ddc85cb78bdc, type: 2}
+  - {fileID: 11400000, guid: 3a18612f081cd4c47ad23463de62ee75, type: 2}
+  - {fileID: 11400000, guid: 14d818a1fe3a47c4dbf06ad3af6f2c20, type: 2}

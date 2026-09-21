@@ -40,6 +40,10 @@ namespace Titanhold.Session.Editor
                     CreateCombatResourceLoadouts();
                 IRunAbilityUnlockScheduleResolver abilityUnlockSchedules =
                     CreateAbilityUnlockSchedules();
+                IRunUpgradeDefinitionResolver runUpgrades =
+                    CreateRunUpgrades();
+                IRunUpgradeUnlockScheduleResolver upgradeUnlockSchedules =
+                    CreateUpgradeUnlockSchedules(runUpgrades);
                 GameSessionRuntime runtime = new(
                     catalog,
                     CreateRewardPolicy(),
@@ -47,7 +51,9 @@ namespace Titanhold.Session.Editor
                         new RunExperienceCurve(new[] { 10, 20 }),
                     startingAbilityPools: startingPools,
                     combatResourceLoadouts: combatResourceLoadouts,
-                    abilityUnlockSchedules: abilityUnlockSchedules);
+                    abilityUnlockSchedules: abilityUnlockSchedules,
+                    runUpgrades: runUpgrades,
+                    upgradeUnlockSchedules: upgradeUnlockSchedules);
                 int snapshotChangeCount = 0;
                 runtime.CharacterSnapshotChanged += (_, _) =>
                     snapshotChangeCount++;
@@ -157,6 +163,7 @@ namespace Titanhold.Session.Editor
                            2f),
                     "Run transition did not create participant combat resources.");
                 RunParticipantAbilityState abilityState = null;
+                RunUpgradeChoiceService upgradeChoices = null;
                 Assert(runtime.TryGetActiveRunAbilityLoadout(
                            begin.RunSessionId,
                            out RunAbilityLoadoutService abilityLoadout) &&
@@ -181,7 +188,16 @@ namespace Titanhold.Session.Editor
                        levelChoice.OfferedAbilityIds.Count == 2 &&
                        runtime.TryGetActiveRunLevelAbilitySelection(
                            begin.RunSessionId,
-                           out RunLevelAbilitySelectionService _),
+                           out RunLevelAbilitySelectionService _) &&
+                       runtime.TryGetActiveRunUpgradeChoices(
+                           begin.RunSessionId,
+                           out upgradeChoices) &&
+                       runtime.TryGetActiveRunLevelUpgradeSelection(
+                           begin.RunSessionId,
+                           out RunLevelUpgradeSelectionService _) &&
+                       runtime.TryGetActiveRunLevelRewardSelection(
+                           begin.RunSessionId,
+                           out RunLevelRewardSelectionService _),
                     "Run level did not create its configured ability choice.");
                 string unlockedAbilityId =
                     levelChoice.OfferedAbilityIds[0];
@@ -194,6 +210,22 @@ namespace Titanhold.Session.Editor
                            out string assignedUnlockId) &&
                        assignedUnlockId == unlockedAbilityId,
                     "Run level ability choice did not update its target slot.");
+                Assert(progression.TryGrantExperience(
+                           "player:local",
+                           15).Success &&
+                       upgradeChoices.TryGetPendingChoice(
+                           "player:local",
+                           out RunUpgradeChoiceState upgradeChoice) &&
+                       upgradeChoice.OfferedUpgradeIds.Count == 3 &&
+                       upgradeChoices.TrySelectUpgrade(
+                           "player:local",
+                           upgradeChoice.ChoiceId,
+                           upgradeChoice.OfferedUpgradeIds[0]).Success &&
+                       upgradeChoices.TryGetParticipant(
+                           "player:local",
+                           out RunParticipantUpgradeState upgradeState) &&
+                       upgradeState.SelectionHistory.Count == 1,
+                    "Run level did not create and resolve its configured upgrade choice.");
                 Assert(runtime.TryGetActiveRunStartReadiness(
                            begin.RunSessionId,
                            out RunStartReadinessService startReadiness) &&
@@ -250,6 +282,15 @@ namespace Titanhold.Session.Editor
                        !runtime.TryGetActiveRunLevelAbilitySelection(
                            begin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunUpgradeChoices(
+                           begin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelUpgradeSelection(
+                           begin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelRewardSelection(
+                           begin.RunSessionId,
+                           out _) &&
                        runtime.AccountCrystals.Amount == 25,
                     "Cancelled run retained temporary state or cleared account currency.");
 
@@ -273,6 +314,10 @@ namespace Titanhold.Session.Editor
                 RunStartReadinessService retainedStartReadiness = null;
                 RunStartingAbilitySelectionService retainedStartingSelection =
                     null;
+                RunUpgradeChoiceService retainedUpgradeChoices = null;
+                RunLevelUpgradeSelectionService retainedUpgradeSelection =
+                    null;
+                RunLevelRewardSelectionService retainedRewardSelection = null;
                 Assert(secondBegin.Success &&
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
@@ -293,6 +338,15 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunStartingAbilitySelection(
                            secondBegin.RunSessionId,
                            out retainedStartingSelection) &&
+                       runtime.TryGetActiveRunUpgradeChoices(
+                           secondBegin.RunSessionId,
+                           out retainedUpgradeChoices) &&
+                       runtime.TryGetActiveRunLevelUpgradeSelection(
+                           secondBegin.RunSessionId,
+                           out retainedUpgradeSelection) &&
+                       runtime.TryGetActiveRunLevelRewardSelection(
+                           secondBegin.RunSessionId,
+                           out retainedRewardSelection) &&
                        retainedAbilityLoadout.TryGetParticipant(
                            "player:local",
                            out RunParticipantAbilityState secondAbilityState) &&
@@ -349,7 +403,28 @@ namespace Titanhold.Session.Editor
                                transitionStartingSelection) &&
                        ReferenceEquals(
                            retainedStartingSelection,
-                           transitionStartingSelection),
+                           transitionStartingSelection) &&
+                       runtime.TryGetActiveRunUpgradeChoices(
+                           secondBegin.RunSessionId,
+                           out RunUpgradeChoiceService
+                               transitionUpgradeChoices) &&
+                       ReferenceEquals(
+                           retainedUpgradeChoices,
+                           transitionUpgradeChoices) &&
+                       runtime.TryGetActiveRunLevelUpgradeSelection(
+                           secondBegin.RunSessionId,
+                           out RunLevelUpgradeSelectionService
+                               transitionUpgradeSelection) &&
+                       ReferenceEquals(
+                           retainedUpgradeSelection,
+                           transitionUpgradeSelection) &&
+                       runtime.TryGetActiveRunLevelRewardSelection(
+                           secondBegin.RunSessionId,
+                           out RunLevelRewardSelectionService
+                               transitionRewardSelection) &&
+                       ReferenceEquals(
+                           retainedRewardSelection,
+                           transitionRewardSelection),
                     "Hub transition cleared temporary run state before rewards could settle.");
                 Assert(runtime.GameSession.TryCancelHubTransition(
                            secondBegin.RunSessionId).Success &&
@@ -389,7 +464,28 @@ namespace Titanhold.Session.Editor
                                retriedStartingSelection) &&
                        ReferenceEquals(
                            retainedStartingSelection,
-                           retriedStartingSelection),
+                           retriedStartingSelection) &&
+                       runtime.TryGetActiveRunUpgradeChoices(
+                           secondBegin.RunSessionId,
+                           out RunUpgradeChoiceService
+                               retriedUpgradeChoices) &&
+                       ReferenceEquals(
+                           retainedUpgradeChoices,
+                           retriedUpgradeChoices) &&
+                       runtime.TryGetActiveRunLevelUpgradeSelection(
+                           secondBegin.RunSessionId,
+                           out RunLevelUpgradeSelectionService
+                               retriedUpgradeSelection) &&
+                       ReferenceEquals(
+                           retainedUpgradeSelection,
+                           retriedUpgradeSelection) &&
+                       runtime.TryGetActiveRunLevelRewardSelection(
+                           secondBegin.RunSessionId,
+                           out RunLevelRewardSelectionService
+                               retriedRewardSelection) &&
+                       ReferenceEquals(
+                           retainedRewardSelection,
+                           retriedRewardSelection),
                     "Failed Hub loading lost retryable temporary run state.");
                 Assert(runtime.GameSession.TryConcludeRun(result).Success &&
                        runtime.GameSession.TryEnterHub(
@@ -410,6 +506,15 @@ namespace Titanhold.Session.Editor
                            secondBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunStartingAbilitySelection(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunUpgradeChoices(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelUpgradeSelection(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelRewardSelection(
                            secondBegin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,
@@ -489,6 +594,15 @@ namespace Titanhold.Session.Editor
                            unseededBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunLevelAbilitySelection(
+                           unseededBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunUpgradeChoices(
+                           unseededBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelUpgradeSelection(
+                           unseededBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunLevelRewardSelection(
                            unseededBegin.RunSessionId,
                            out _),
                     "Cancelling a run retained its starting selection state.");
@@ -679,6 +793,53 @@ namespace Titanhold.Session.Editor
             return schedules;
         }
 
+        private static IRunUpgradeDefinitionResolver CreateRunUpgrades()
+        {
+            IRunUpgradeDefinition[] definitions =
+            {
+                new TestUpgradeDefinition("upgrade:damage"),
+                new TestUpgradeDefinition("upgrade:health"),
+                new TestUpgradeDefinition("upgrade:armor")
+            };
+            Assert(RunUpgradeDefinitionRegistry.TryCreate(
+                       definitions,
+                       out RunUpgradeDefinitionRegistry upgrades,
+                       out string error),
+                $"Could not prepare run upgrades: {error}");
+            return upgrades;
+        }
+
+        private static IRunUpgradeUnlockScheduleResolver
+            CreateUpgradeUnlockSchedules(
+                IRunUpgradeDefinitionResolver upgrades)
+        {
+            Assert(RunUpgradeUnlockSchedule.TryCreate(
+                       "upgrade-schedule:warrior",
+                       "archetype:warrior",
+                       new[]
+                       {
+                           new RunUpgradeUnlockMilestone(
+                               3,
+                               3,
+                               new[]
+                               {
+                                   "upgrade:damage",
+                                   "upgrade:health",
+                                   "upgrade:armor"
+                               })
+                       },
+                       out RunUpgradeUnlockSchedule schedule,
+                       out string scheduleError),
+                $"Could not prepare upgrade schedule: {scheduleError}");
+            Assert(RunUpgradeUnlockScheduleRegistry.TryCreate(
+                       new[] { schedule },
+                       upgrades,
+                       out RunUpgradeUnlockScheduleRegistry schedules,
+                       out string registryError),
+                $"Could not prepare upgrade schedule registry: {registryError}");
+            return schedules;
+        }
+
         private static void Destroy(UnityEngine.Object instance)
         {
             if (instance != null)
@@ -699,6 +860,22 @@ namespace Titanhold.Session.Editor
             }
 
             public string AbilityId { get; }
+        }
+
+        private sealed class TestUpgradeDefinition : IRunUpgradeDefinition
+        {
+            public TestUpgradeDefinition(string upgradeId)
+            {
+                UpgradeId = upgradeId;
+            }
+
+            public string UpgradeId { get; }
+
+            public bool TryValidate(out string error)
+            {
+                error = string.Empty;
+                return true;
+            }
         }
     }
 }

@@ -25,7 +25,9 @@ namespace Titanhold.Session
                 RunAbilityLoadoutService.DefaultAbilitySlotCount,
             IRunStartingAbilityPoolResolver startingAbilityPools = null,
             IRunCombatResourceLoadoutResolver combatResourceLoadouts = null,
-            IRunAbilityUnlockScheduleResolver abilityUnlockSchedules = null)
+            IRunAbilityUnlockScheduleResolver abilityUnlockSchedules = null,
+            IRunUpgradeDefinitionResolver runUpgrades = null,
+            IRunUpgradeUnlockScheduleResolver upgradeUnlockSchedules = null)
         {
             ItemDefinitions = itemDefinitions ??
                 throw new ArgumentNullException(nameof(itemDefinitions));
@@ -44,6 +46,20 @@ namespace Titanhold.Session
             StartingAbilityPools = startingAbilityPools;
             CombatResourceLoadouts = combatResourceLoadouts;
             AbilityUnlockSchedules = abilityUnlockSchedules;
+            RunUpgrades = runUpgrades;
+            UpgradeUnlockSchedules = upgradeUnlockSchedules;
+            if ((RunUpgrades == null) != (UpgradeUnlockSchedules == null))
+            {
+                throw new ArgumentException(
+                    "Run upgrade definitions and schedules must be configured together.");
+            }
+
+            if (RunUpgrades != null && AbilityUnlockSchedules == null)
+            {
+                throw new ArgumentException(
+                    "Coordinated run-level rewards require ability schedules.");
+            }
+
             GameSession.StateChanged += HandleGameSessionStateChanged;
         }
 
@@ -55,6 +71,11 @@ namespace Titanhold.Session
         public IRunStartingAbilityPoolResolver StartingAbilityPools { get; }
         public IRunCombatResourceLoadoutResolver CombatResourceLoadouts { get; }
         public IRunAbilityUnlockScheduleResolver AbilityUnlockSchedules { get; }
+        public IRunUpgradeDefinitionResolver RunUpgrades { get; }
+        public IRunUpgradeUnlockScheduleResolver UpgradeUnlockSchedules
+        {
+            get;
+        }
         public int StoredCharacterCount => characterSnapshots.Count;
         public RunProgressionService ActiveRunProgression { get; private set; }
         public RunCombatResourceService ActiveRunCombatResources
@@ -69,6 +90,15 @@ namespace Titanhold.Session
             ActiveRunStartingAbilitySelection { get; private set; }
         public RunLevelAbilitySelectionService
             ActiveRunLevelAbilitySelection { get; private set; }
+        public RunUpgradeChoiceService ActiveRunUpgradeChoices
+        {
+            get;
+            private set;
+        }
+        public RunLevelUpgradeSelectionService
+            ActiveRunLevelUpgradeSelection { get; private set; }
+        public RunLevelRewardSelectionService
+            ActiveRunLevelRewardSelection { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
@@ -85,6 +115,12 @@ namespace Titanhold.Session
             ActiveRunStartingAbilitySelectionChanged;
         public event Action<string, RunLevelAbilitySelectionService>
             ActiveRunLevelAbilitySelectionChanged;
+        public event Action<string, RunUpgradeChoiceService>
+            ActiveRunUpgradeChoicesChanged;
+        public event Action<string, RunLevelUpgradeSelectionService>
+            ActiveRunLevelUpgradeSelectionChanged;
+        public event Action<string, RunLevelRewardSelectionService>
+            ActiveRunLevelRewardSelectionChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -223,6 +259,66 @@ namespace Titanhold.Session
             }
 
             selection = ActiveRunLevelAbilitySelection;
+            return true;
+        }
+
+        public bool TryGetActiveRunUpgradeChoices(
+            string runSessionId,
+            out RunUpgradeChoiceService choices)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunUpgradeChoices == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                choices = null;
+                return false;
+            }
+
+            choices = ActiveRunUpgradeChoices;
+            return true;
+        }
+
+        public bool TryGetActiveRunLevelUpgradeSelection(
+            string runSessionId,
+            out RunLevelUpgradeSelectionService selection)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunLevelUpgradeSelection == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                selection = null;
+                return false;
+            }
+
+            selection = ActiveRunLevelUpgradeSelection;
+            return true;
+        }
+
+        public bool TryGetActiveRunLevelRewardSelection(
+            string runSessionId,
+            out RunLevelRewardSelectionService selection)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunLevelRewardSelection == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                selection = null;
+                return false;
+            }
+
+            selection = ActiveRunLevelRewardSelection;
             return true;
         }
 
@@ -538,10 +634,12 @@ namespace Titanhold.Session
                 }
             }
 
+            bool coordinatedRunLevelRewards = RunUpgrades != null;
             RunLevelAbilitySelectionService levelAbilitySelection = null;
+            RunAbilityUnlockParticipantPlan[] abilityPlans = null;
             if (AbilityUnlockSchedules != null)
             {
-                RunAbilityUnlockParticipantPlan[] plans =
+                abilityPlans =
                     new RunAbilityUnlockParticipantPlan[
                         descriptor.Participants.Count];
                 for (int i = 0; i < descriptor.Participants.Count; i++)
@@ -572,7 +670,7 @@ namespace Titanhold.Session
                         }
                     }
 
-                    plans[i] = new RunAbilityUnlockParticipantPlan(
+                    abilityPlans[i] = new RunAbilityUnlockParticipantPlan(
                         participant.PlayerId,
                         i,
                         schedule);
@@ -581,8 +679,82 @@ namespace Titanhold.Session
                 levelAbilitySelection = new RunLevelAbilitySelectionService(
                     progression,
                     abilityChoices,
-                    plans,
-                    descriptor.Seed);
+                    abilityPlans,
+                    descriptor.Seed,
+                    observeChanges: !coordinatedRunLevelRewards);
+            }
+
+            RunUpgradeChoiceService upgradeChoices = null;
+            RunLevelUpgradeSelectionService levelUpgradeSelection = null;
+            RunLevelRewardSelectionService levelRewardSelection = null;
+            if (coordinatedRunLevelRewards)
+            {
+                upgradeChoices = new RunUpgradeChoiceService(
+                    RunUpgrades,
+                    maximumParticipantCount);
+                RunUpgradeUnlockParticipantPlan[] upgradePlans =
+                    new RunUpgradeUnlockParticipantPlan[
+                        descriptor.Participants.Count];
+                string[] playerIds =
+                    new string[descriptor.Participants.Count];
+                for (int i = 0; i < descriptor.Participants.Count; i++)
+                {
+                    RunParticipantSelection participant =
+                        descriptor.Participants[i];
+                    RunParticipantIdentity identity = participantRoster[i];
+                    RunUpgradeChoiceResult registration =
+                        upgradeChoices.TryRegisterParticipant(identity);
+                    if (!registration.Success)
+                    {
+                        startReadiness.Dispose();
+                        levelAbilitySelection?.Dispose();
+                        throw new InvalidOperationException(
+                            "Validated run participant could not be registered " +
+                            $"for upgrades: {registration.Error}.");
+                    }
+
+                    if (!UpgradeUnlockSchedules.TryResolve(
+                            participant.CharacterArchetypeId,
+                            out RunUpgradeUnlockSchedule schedule))
+                    {
+                        startReadiness.Dispose();
+                        levelAbilitySelection?.Dispose();
+                        throw new InvalidOperationException(
+                            "No upgrade unlock schedule is configured for " +
+                            $"character archetype '{participant.CharacterArchetypeId}'.");
+                    }
+
+                    if (HasConflictingRewardLevels(
+                            abilityPlans[i].Schedule,
+                            schedule))
+                    {
+                        startReadiness.Dispose();
+                        levelAbilitySelection?.Dispose();
+                        throw new InvalidOperationException(
+                            $"Character archetype '{participant.CharacterArchetypeId}' has ability and upgrade rewards at the same run level.");
+                    }
+
+                    upgradePlans[i] = new RunUpgradeUnlockParticipantPlan(
+                        participant.PlayerId,
+                        i,
+                        schedule);
+                    playerIds[i] = participant.PlayerId;
+                }
+
+                levelUpgradeSelection =
+                    new RunLevelUpgradeSelectionService(
+                        progression,
+                        upgradeChoices,
+                        upgradePlans,
+                        descriptor.Seed,
+                        observeChanges: false);
+                levelRewardSelection = new RunLevelRewardSelectionService(
+                    progression,
+                    abilityChoices,
+                    upgradeChoices,
+                    levelAbilitySelection,
+                    levelUpgradeSelection,
+                    playerIds);
             }
 
             activeRunStateSessionId = descriptor.RunSessionId;
@@ -593,6 +765,9 @@ namespace Titanhold.Session
             ActiveRunStartReadiness = startReadiness;
             ActiveRunStartingAbilitySelection = startingAbilitySelection;
             ActiveRunLevelAbilitySelection = levelAbilitySelection;
+            ActiveRunUpgradeChoices = upgradeChoices;
+            ActiveRunLevelUpgradeSelection = levelUpgradeSelection;
+            ActiveRunLevelRewardSelection = levelRewardSelection;
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -617,6 +792,44 @@ namespace Titanhold.Session
                     activeRunStateSessionId,
                     ActiveRunLevelAbilitySelection);
             }
+
+            if (ActiveRunUpgradeChoices != null)
+            {
+                ActiveRunUpgradeChoicesChanged?.Invoke(
+                    activeRunStateSessionId,
+                    ActiveRunUpgradeChoices);
+                ActiveRunLevelUpgradeSelectionChanged?.Invoke(
+                    activeRunStateSessionId,
+                    ActiveRunLevelUpgradeSelection);
+                ActiveRunLevelRewardSelectionChanged?.Invoke(
+                    activeRunStateSessionId,
+                    ActiveRunLevelRewardSelection);
+            }
+        }
+
+        private static bool HasConflictingRewardLevels(
+            RunAbilityUnlockSchedule abilities,
+            RunUpgradeUnlockSchedule upgrades)
+        {
+            for (int abilityIndex = 0;
+                 abilityIndex < abilities.Milestones.Count;
+                 abilityIndex++)
+            {
+                int abilityLevel =
+                    abilities.Milestones[abilityIndex].UnlockLevel;
+                for (int upgradeIndex = 0;
+                     upgradeIndex < upgrades.Milestones.Count;
+                     upgradeIndex++)
+                {
+                    if (upgrades.Milestones[upgradeIndex].UnlockLevel ==
+                        abilityLevel)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void RegisterParticipantCombatResources(
@@ -670,7 +883,10 @@ namespace Titanhold.Session
                 ActiveRunAbilityChoices == null &&
                 ActiveRunStartReadiness == null &&
                 ActiveRunStartingAbilitySelection == null &&
-                ActiveRunLevelAbilitySelection == null)
+                ActiveRunLevelAbilitySelection == null &&
+                ActiveRunUpgradeChoices == null &&
+                ActiveRunLevelUpgradeSelection == null &&
+                ActiveRunLevelRewardSelection == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
@@ -684,6 +900,13 @@ namespace Titanhold.Session
                 ActiveRunStartingAbilitySelection != null;
             bool hadLevelAbilitySelection =
                 ActiveRunLevelAbilitySelection != null;
+            bool hadUpgradeChoices = ActiveRunUpgradeChoices != null;
+            bool hadLevelUpgradeSelection =
+                ActiveRunLevelUpgradeSelection != null;
+            bool hadLevelRewardSelection =
+                ActiveRunLevelRewardSelection != null;
+            ActiveRunLevelRewardSelection?.Dispose();
+            ActiveRunLevelUpgradeSelection?.Dispose();
             ActiveRunLevelAbilitySelection?.Dispose();
             ActiveRunStartReadiness?.Dispose();
             ActiveRunProgression = null;
@@ -693,6 +916,9 @@ namespace Titanhold.Session
             ActiveRunStartReadiness = null;
             ActiveRunStartingAbilitySelection = null;
             ActiveRunLevelAbilitySelection = null;
+            ActiveRunUpgradeChoices = null;
+            ActiveRunLevelUpgradeSelection = null;
+            ActiveRunLevelRewardSelection = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -738,6 +964,27 @@ namespace Titanhold.Session
             if (hadLevelAbilitySelection)
             {
                 ActiveRunLevelAbilitySelectionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadUpgradeChoices)
+            {
+                ActiveRunUpgradeChoicesChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadLevelUpgradeSelection)
+            {
+                ActiveRunLevelUpgradeSelectionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadLevelRewardSelection)
+            {
+                ActiveRunLevelRewardSelectionChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }

@@ -106,7 +106,11 @@ participant-scoped `RunUpgradeChoiceService` state. Offers are deterministic,
 contain unique options, and may select the same upgrade again in later offers to
 add another stack. `RunLevelRewardSelectionService` serializes crossed ability and
 upgrade milestones by level so only one participant choice is pending at a time.
-The coordinator is not wired into the session runtime or scene UI yet.
+`GameSessionRuntime` owns these services for the run and preserves them across a
+retryable Hub transition. The warrior schedule offers three global-stat choices at
+every authored non-ability level through level 20. Applying selected stat modifiers
+and presenting upgrade choices in the run scene are the next stage; UI does not own
+the pending choice or selected stacks.
 
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to
@@ -266,10 +270,14 @@ Current assets:
 - definitions: `ScriptableObjects/Run/AssaultWave_Prototype.asset`,
   `AssaultWave_Boss_Prototype.asset`, `AssaultReward_Prototype.asset`,
   `RunConclusionRewards_Prototype.asset`, `RunProgression_Prototype.asset`,
-  `RunRoundBalance_Prototype.asset`, `WarriorAbilityUnlockSchedule.asset`;
+  `RunRoundBalance_Prototype.asset`, `WarriorAbilityUnlockSchedule.asset`,
+  `WarriorUpgradeUnlockSchedule.asset`, and the eight global-stat definitions in
+  `ScriptableObjects/Run/Upgrades/`;
 - catalogs: `ScriptableObjects/Items/ItemDefinitionCatalog.asset`,
   `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`,
-  `ScriptableObjects/Run/AbilityUnlockScheduleCatalog.asset`;
+  `ScriptableObjects/Run/AbilityUnlockScheduleCatalog.asset`,
+  `ScriptableObjects/Run/RunUpgradeDefinitionCatalog.asset`, and
+  `ScriptableObjects/Run/UpgradeUnlockScheduleCatalog.asset`;
 - `Prefabs/Old/`: legacy only.
 
 Never start in imported folders including `HDRPDefaultResources`, asset packs,

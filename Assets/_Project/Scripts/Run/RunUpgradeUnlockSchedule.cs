@@ -183,4 +183,11 @@ namespace Titanhold.Run
             ParticipantIndex >= 0 &&
             Schedule != null;
     }
+
+    public interface IRunUpgradeUnlockScheduleResolver
+    {
+        bool TryResolve(
+            string characterArchetypeId,
+            out RunUpgradeUnlockSchedule schedule);
+    }
 }

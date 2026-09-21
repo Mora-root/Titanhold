@@ -15,6 +15,10 @@ namespace Titanhold.Session
         private RunCombatResourceLoadoutCatalog combatResourceLoadouts;
         [SerializeField]
         private RunAbilityUnlockScheduleCatalog abilityUnlockSchedules;
+        [SerializeField]
+        private RunUpgradeDefinitionCatalog runUpgrades;
+        [SerializeField]
+        private RunUpgradeUnlockScheduleCatalog upgradeUnlockSchedules;
         [SerializeField] private RunProgressionDefinition runProgression;
         [SerializeField]
         private RunConclusionRewardDefinition conclusionRewards;
@@ -31,6 +35,9 @@ namespace Titanhold.Session
             combatResourceLoadouts;
         public RunAbilityUnlockScheduleCatalog AbilityUnlockSchedules =>
             abilityUnlockSchedules;
+        public RunUpgradeDefinitionCatalog RunUpgrades => runUpgrades;
+        public RunUpgradeUnlockScheduleCatalog UpgradeUnlockSchedules =>
+            upgradeUnlockSchedules;
         public RunProgressionDefinition RunProgression => runProgression;
         public RunConclusionRewardDefinition ConclusionRewards =>
             conclusionRewards;
@@ -60,6 +67,14 @@ namespace Titanhold.Session
             RunAbilityUnlockScheduleCatalog schedules)
         {
             abilityUnlockSchedules = schedules;
+        }
+
+        public void ConfigureRunUpgradesForEditor(
+            RunUpgradeDefinitionCatalog upgrades,
+            RunUpgradeUnlockScheduleCatalog schedules)
+        {
+            runUpgrades = upgrades;
+            upgradeUnlockSchedules = schedules;
         }
 #endif
 
@@ -160,6 +175,38 @@ namespace Titanhold.Session
                 return;
             }
 
+            if ((runUpgrades == null) != (upgradeUnlockSchedules == null))
+            {
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} requires run upgrade " +
+                    "definitions and schedules together.",
+                    this);
+                enabled = false;
+                return;
+            }
+
+            if (runUpgrades != null &&
+                (!runUpgrades.IsValid ||
+                 !upgradeUnlockSchedules.IsValid ||
+                 upgradeUnlockSchedules.UpgradeDefinitions != runUpgrades ||
+                 abilityUnlockSchedules == null))
+            {
+                string detail = !runUpgrades.IsValid
+                    ? runUpgrades.ValidationError
+                    : !upgradeUnlockSchedules.IsValid
+                        ? upgradeUnlockSchedules.ValidationError
+                        : upgradeUnlockSchedules.UpgradeDefinitions !=
+                          runUpgrades
+                            ? "The upgrade schedule catalog references a different upgrade catalog."
+                            : "Coordinated run rewards require ability schedules.";
+                Debug.LogError(
+                    $"{nameof(GameSessionRuntimeHost)} has invalid run " +
+                    $"upgrades: {detail}",
+                    this);
+                enabled = false;
+                return;
+            }
+
             if (runProgression == null || !runProgression.IsValid)
             {
                 Debug.LogError(
@@ -190,7 +237,9 @@ namespace Titanhold.Session
                 runExperienceCurve: runProgression.BuildCurve(),
                 startingAbilityPools: startingAbilityPools,
                 combatResourceLoadouts: combatResourceLoadouts,
-                abilityUnlockSchedules: abilityUnlockSchedules);
+                abilityUnlockSchedules: abilityUnlockSchedules,
+                runUpgrades: runUpgrades,
+                upgradeUnlockSchedules: upgradeUnlockSchedules);
             activeHost = this;
             DontDestroyOnLoad(gameObject);
         }
