@@ -12,6 +12,9 @@ namespace Titanhold.Session
         [SerializeField] private RunSceneParticipantBinding[] participants =
             Array.Empty<RunSceneParticipantBinding>();
 
+        private readonly List<string> boundUpgradePlayerIds = new();
+        private RunUpgradeStatApplicationService boundUpgradeApplication;
+
         public IReadOnlyList<RunSceneParticipantBinding> Participants =>
             participants ?? Array.Empty<RunSceneParticipantBinding>();
 
@@ -28,6 +31,11 @@ namespace Titanhold.Session
         {
             TryActivateSessionRun();
             RestoreParticipantVitals();
+        }
+
+        private void OnDestroy()
+        {
+            ClearParticipantRuntimeBindings();
         }
 
         private void TryActivateSessionRun()
@@ -125,6 +133,16 @@ namespace Titanhold.Session
                     out string resourceError))
             {
                 RejectEntry(runtime, descriptor, resourceError);
+                return;
+            }
+
+            if (!TryBindParticipantRunUpgrades(
+                    runtime,
+                    descriptor,
+                    resolved,
+                    out string upgradeError))
+            {
+                RejectEntry(runtime, descriptor, upgradeError);
                 return;
             }
 
@@ -313,8 +331,79 @@ namespace Titanhold.Session
             return true;
         }
 
+        private bool TryBindParticipantRunUpgrades(
+            GameSessionRuntime runtime,
+            RunSessionDescriptor descriptor,
+            IReadOnlyList<RunSceneParticipantBinding> resolved,
+            out string error)
+        {
+            error = string.Empty;
+            if (!runtime.TryGetActiveRunUpgradeStatApplication(
+                    descriptor.RunSessionId,
+                    out RunUpgradeStatApplicationService application))
+            {
+                error = "Run session has no active upgrade-stat application.";
+                return false;
+            }
+
+            CharacterStats[] stats = new CharacterStats[resolved.Count];
+            for (int i = 0; i < resolved.Count; i++)
+            {
+                RunSceneParticipantBinding participant = resolved[i];
+                stats[i] = participant.Inventory.GetComponent<CharacterStats>();
+                if (stats[i] == null)
+                {
+                    error =
+                        $"Run participant '{participant.PlayerId}' has no CharacterStats component.";
+                    return false;
+                }
+            }
+
+            for (int i = 0; i < resolved.Count; i++)
+            {
+                RunSceneParticipantBinding participant = resolved[i];
+                RunUpgradeStatApplicationResult result =
+                    application.TryBindParticipant(
+                        participant.PlayerId,
+                        new CharacterStatsRunUpgradeModifierGateway(stats[i]));
+                if (result.Success)
+                {
+                    boundUpgradePlayerIds.Add(participant.PlayerId);
+                    continue;
+                }
+
+                for (int rollbackIndex = 0;
+                     rollbackIndex < boundUpgradePlayerIds.Count;
+                     rollbackIndex++)
+                {
+                    application.TryUnbindParticipant(
+                        boundUpgradePlayerIds[rollbackIndex]);
+                }
+
+                boundUpgradePlayerIds.Clear();
+                error =
+                    $"Could not bind run upgrades for participant '{participant.PlayerId}': {result.Error}.";
+                return false;
+            }
+
+            boundUpgradeApplication = application;
+            return true;
+        }
+
         private void ClearParticipantRuntimeBindings()
         {
+            if (boundUpgradeApplication != null)
+            {
+                for (int i = 0; i < boundUpgradePlayerIds.Count; i++)
+                {
+                    boundUpgradeApplication.TryUnbindParticipant(
+                        boundUpgradePlayerIds[i]);
+                }
+            }
+
+            boundUpgradePlayerIds.Clear();
+            boundUpgradeApplication = null;
+
             if (participants == null)
                 return;
 

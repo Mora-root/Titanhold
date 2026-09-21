@@ -1,6 +1,7 @@
 using System;
 using Titanhold.Combat.Abilities;
 using Titanhold.Run;
+using Titanhold.UI.Common;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -77,6 +78,35 @@ namespace Titanhold.UI.Hub.Editor
                            buttons[i].interactable,
                         $"Option {i} was not rendered correctly.");
                 }
+
+                ChoiceSelectionModel genericModel = new(
+                    model.PlayerId,
+                    "choice:generic",
+                    new[]
+                    {
+                        new ChoiceSelectionOption(
+                            "upgrade:a",
+                            "Upgrade A",
+                            "Upgrade description A",
+                            null),
+                        new ChoiceSelectionOption(
+                            "upgrade:b",
+                            "Upgrade B",
+                            "Upgrade description B",
+                            null)
+                    });
+                Assert(
+                    view.TryShow(genericModel) &&
+                    names[0].text == "Upgrade A" &&
+                    descriptions[0].text ==
+                        "Upgrade description A" &&
+                    names[1].text == "Upgrade B" &&
+                    descriptions[1].text ==
+                        "Upgrade description B" &&
+                    !buttons[2].gameObject.activeSelf,
+                    "The shared view did not render a generic reward model.");
+                Assert(view.TryShow(model),
+                    "The view could not restore its ability options.");
 
                 int selectedIndex = -1;
                 view.OptionSelected += index => selectedIndex = index;

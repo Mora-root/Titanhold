@@ -131,10 +131,11 @@ namespace Titanhold.Session.Editor
             }
 
             if (player.GetComponent<Health>() == null ||
-                player.GetComponent<PlayerResource>() == null)
+                player.GetComponent<PlayerResource>() == null ||
+                player.GetComponent<CharacterStats>() == null)
             {
                 throw new InvalidOperationException(
-                    "Run participant requires Health and PlayerResource components.");
+                    "Run participant requires Health, PlayerResource, and CharacterStats components.");
             }
 
             IPlayerSkillCommands commands = PlayerSkillCommands.Resolve(player);

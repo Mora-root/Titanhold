@@ -1,5 +1,7 @@
 using System;
 using Titanhold.Combat.Abilities;
+using Titanhold.UI.Common;
+using Titanhold.UI.Run;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,8 +16,9 @@ namespace Titanhold.Run.Editor
             {
                 ValidateCrossedLevelsRemainOrdered();
                 ValidateConflictingMilestonesFail();
+                ValidatePresentation();
                 Debug.Log(
-                    "Run Level Reward Selection validation passed (2 scenarios).");
+                    "Run Level Reward Selection validation passed (3 scenarios).");
             }
             catch (Exception exception)
             {
@@ -92,6 +95,120 @@ namespace Titanhold.Run.Editor
                         out _),
                     "Conflicting level rewards did not fail before offering.");
             }
+        }
+
+        private static void ValidatePresentation()
+        {
+            const string playerId = "player:local";
+            RunParticipantIdentity identity = new(
+                playerId,
+                "character:warrior");
+
+            ValidationAbility[] abilities =
+            {
+                new("ability:a", "Ability A", "Ability description A"),
+                new("ability:b", "Ability B", "Ability description B")
+            };
+            Assert(
+                AbilityDefinitionRegistry.TryCreate(
+                    abilities,
+                    out AbilityDefinitionRegistry abilityRegistry,
+                    out _),
+                "Presentation ability registry was rejected.");
+            RunAbilityLoadoutService loadout = new();
+            loadout.TryRegisterParticipant(identity);
+            RunAbilityChoiceService abilityChoices = new(loadout);
+            RunAbilityChoiceResult abilityOffer =
+                abilityChoices.TryOfferChoice(
+                    new RunAbilityChoiceRequest(
+                        playerId,
+                        $"{RunLevelAbilitySelectionService.ChoiceIdPrefix}:presentation:3",
+                        1,
+                        new[]
+                        {
+                            abilities[0].AbilityId,
+                            abilities[1].AbilityId
+                        },
+                        2,
+                        10));
+
+            ValidationUpgrade[] upgrades =
+            {
+                new(
+                    "upgrade:damage",
+                    "Damage",
+                    "Increase all damage."),
+                new(
+                    "upgrade:health",
+                    "Health",
+                    "Increase maximum health.")
+            };
+            Assert(
+                RunUpgradeDefinitionRegistry.TryCreate(
+                    upgrades,
+                    out RunUpgradeDefinitionRegistry upgradeRegistry,
+                    out _),
+                "Presentation upgrade registry was rejected.");
+            RunUpgradeChoiceService upgradeChoices = new(upgradeRegistry);
+            upgradeChoices.TryRegisterParticipant(identity);
+            RunUpgradeChoiceResult upgradeOffer =
+                upgradeChoices.TryOfferChoice(
+                    new RunUpgradeChoiceRequest(
+                        playerId,
+                        $"{RunLevelUpgradeSelectionService.ChoiceIdPrefix}:presentation:level:2",
+                        new[]
+                        {
+                            upgrades[0].UpgradeId,
+                            upgrades[1].UpgradeId
+                        },
+                        2,
+                        20));
+
+            RunLevelRewardSelectionPresenter presenter = new(
+                abilityRegistry,
+                upgradeRegistry);
+            Assert(
+                abilityOffer.Success &&
+                presenter.TryBuild(
+                    abilityOffer.State,
+                    out ChoiceSelectionModel abilityModel,
+                    out RunLevelRewardPresentationError abilityError) &&
+                abilityError == RunLevelRewardPresentationError.None &&
+                HasExpectedOptions(
+                    abilityModel,
+                    abilityOffer.State.OfferedAbilityIds),
+                "Unified reward presenter did not preserve ability options.");
+            Assert(
+                upgradeOffer.Success &&
+                presenter.TryBuild(
+                    upgradeOffer.Choice,
+                    out ChoiceSelectionModel upgradeModel,
+                    out RunLevelRewardPresentationError upgradeError) &&
+                upgradeError == RunLevelRewardPresentationError.None &&
+                HasExpectedOptions(
+                    upgradeModel,
+                    upgradeOffer.Choice.OfferedUpgradeIds),
+                "Unified reward presenter did not preserve upgrade options.");
+        }
+
+        private static bool HasExpectedOptions(
+            ChoiceSelectionModel model,
+            System.Collections.Generic.IReadOnlyList<string> expectedIds)
+        {
+            if (model == null || model.Options.Count != expectedIds.Count)
+                return false;
+
+            for (int i = 0; i < expectedIds.Count; i++)
+            {
+                if (model.Options[i].OptionId != expectedIds[i] ||
+                    model.Options[i].DisplayName.Length == 0 ||
+                    model.Options[i].Description.Length == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void AssertPendingAbility(
@@ -293,20 +410,50 @@ namespace Titanhold.Run.Editor
             }
         }
 
-        private sealed class ValidationUpgrade : IRunUpgradeDefinition
+        private sealed class ValidationUpgrade :
+            IRunUpgradeDefinition,
+            IRunUpgradePresentationDefinition
         {
-            public ValidationUpgrade(string upgradeId)
+            public ValidationUpgrade(
+                string upgradeId,
+                string displayName = "Validation Upgrade",
+                string description = "Validation upgrade description.")
             {
                 UpgradeId = upgradeId;
+                DisplayName = displayName;
+                Description = description;
             }
 
             public string UpgradeId { get; }
+            public string DisplayName { get; }
+            public string Description { get; }
+            public Sprite Icon => null;
 
             public bool TryValidate(out string error)
             {
                 error = string.Empty;
                 return true;
             }
+        }
+
+        private sealed class ValidationAbility :
+            IAbilityDefinition,
+            IAbilityPresentationDefinition
+        {
+            public ValidationAbility(
+                string abilityId,
+                string displayName,
+                string description)
+            {
+                AbilityId = abilityId;
+                DisplayName = displayName;
+                Description = description;
+            }
+
+            public string AbilityId { get; }
+            public string DisplayName { get; }
+            public string Description { get; }
+            public Sprite Icon => null;
         }
     }
 }

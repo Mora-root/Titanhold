@@ -114,8 +114,9 @@ onto replaceable stat gateways. It reconciles late binding, preserves non-run
 modifier sources, and clears only `RunUpgrade` sources at the session boundary.
 Repeated modifiers remain separate so `Increased` stacks add while `More` stacks
 multiply. Maximum-health changes preserve absolute current health and only clamp
-downward. Binding the run participant and presenting upgrade choices in the run
-scene are the next stage; UI does not own pending choices or selected stacks.
+downward. `RunSceneSessionEntryPoint` binds each resolved participant's live
+`CharacterStats` to this projection and unbinds it during scene teardown or a
+rejected entry.
 
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to
@@ -185,6 +186,11 @@ uses deterministic run/participant/milestone seeds, and queues crossed milestone
 by level without fixing their authored levels, option counts, or candidate pools.
 `RunAbilityUnlockScheduleCatalog` is the all-or-nothing archetype resolver for
 those authored schedules; `GameSessionRuntime` owns the optional per-run service.
+`RunLevelRewardSelectionController` is the single owner of the shared three-card
+run-level overlay. It presents both ability and upgrade choices, keeps solo time
+and local gameplay input gated across a synchronous chain of crossed milestones,
+and sends only the selected stable option id to the appropriate domain service.
+The view and presenter never own pending choices or selected stacks.
 The warrior schedule authors milestones at Run Levels 3/7/10/15; only level 3 is
 enabled until later ability content exists. It offers two remaining starter
 abilities and assigns the selection to the first empty non-starter slot. The

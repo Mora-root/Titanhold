@@ -1,4 +1,5 @@
 using System;
+using Titanhold.UI.Common;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -90,24 +91,31 @@ namespace Titanhold.UI.Hub
             if (!subscribed)
                 return false;
 
-            for (int i = 0; i < MaximumOptionCount; i++)
-            {
-                bool hasOption = i < model.Options.Count;
-                optionButtons[i].gameObject.SetActive(hasOption);
-                if (!hasOption)
-                    continue;
+            return ShowOptions(
+                model.Options.Count,
+                index => model.Options[index].DisplayName,
+                index => model.Options[index].Description,
+                index => model.Options[index].Icon);
+        }
 
-                HubStartingAbilityOption option = model.Options[i];
-                optionNameTexts[i].text = option.DisplayName;
-                optionDescriptionTexts[i].text = option.Description;
-                optionIcons[i].sprite = option.Icon;
-                optionIcons[i].enabled = option.Icon != null;
+        public bool TryShow(ChoiceSelectionModel model)
+        {
+            if (!HasRequiredReferences || model == null ||
+                model.Options.Count <= 0 ||
+                model.Options.Count > MaximumOptionCount)
+            {
+                return false;
             }
 
-            statusText.text = string.Empty;
-            selectionRoot.SetActive(true);
-            SetInteractable(true);
-            return true;
+            Subscribe();
+            if (!subscribed)
+                return false;
+
+            return ShowOptions(
+                model.Options.Count,
+                index => model.Options[index].DisplayName,
+                index => model.Options[index].Description,
+                index => model.Options[index].Icon);
         }
 
         public void SetHeading(string title, string subtitle)
@@ -189,6 +197,32 @@ namespace Titanhold.UI.Hub
             {
                 OptionSelected?.Invoke(optionIndex);
             }
+        }
+
+        private bool ShowOptions(
+            int optionCount,
+            Func<int, string> getDisplayName,
+            Func<int, string> getDescription,
+            Func<int, Sprite> getIcon)
+        {
+            for (int i = 0; i < MaximumOptionCount; i++)
+            {
+                bool hasOption = i < optionCount;
+                optionButtons[i].gameObject.SetActive(hasOption);
+                if (!hasOption)
+                    continue;
+
+                Sprite icon = getIcon(i);
+                optionNameTexts[i].text = getDisplayName(i);
+                optionDescriptionTexts[i].text = getDescription(i);
+                optionIcons[i].sprite = icon;
+                optionIcons[i].enabled = icon != null;
+            }
+
+            statusText.text = string.Empty;
+            selectionRoot.SetActive(true);
+            SetInteractable(true);
+            return true;
         }
 
         private static bool HasCompleteArray<T>(T[] values)

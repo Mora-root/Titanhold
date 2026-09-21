@@ -35,6 +35,48 @@ namespace Titanhold.Run.Editor
 
         private static readonly int[] AuthoredLevels = { 3, 7, 10, 15 };
 
+        [MenuItem("Tools/Titanhold/Install Run Level Reward Selection UI Wiring")]
+        public static void InstallRewardSelectionUi()
+        {
+            try
+            {
+                RequireEditMode("reward UI installation");
+                RequireCleanOpenScene();
+                WireRunScene();
+                AssetDatabase.SaveAssets();
+                ValidateRunScene();
+                Debug.Log(
+                    "Run Level Reward Selection UI wiring installed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    "Run Level Reward Selection UI wiring installation failed: " +
+                    exception);
+            }
+        }
+
+        [MenuItem("Tools/Titanhold/Validate Run Level Reward Selection UI Wiring")]
+        public static void ValidateRewardSelectionUi()
+        {
+            try
+            {
+                RequireEditMode("reward UI validation");
+                EditorSceneManager.OpenScene(
+                    RunScenePath,
+                    OpenSceneMode.Single);
+                ValidateRunScene();
+                Debug.Log(
+                    "Run Level Reward Selection UI wiring validation passed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    "Run Level Reward Selection UI wiring validation failed: " +
+                    exception);
+            }
+        }
+
         [MenuItem("Tools/Titanhold/Install Run Level Ability Selection Wiring")]
         public static void Install()
         {
@@ -211,12 +253,19 @@ namespace Titanhold.Run.Editor
             }
 
             view.ConfigureHeadingsForEditor(title, subtitle);
-            RunLevelAbilitySelectionController controller =
+            RunLevelAbilitySelectionController legacyController =
                 view.GetComponent<RunLevelAbilitySelectionController>();
+            if (legacyController != null)
+            {
+                Undo.DestroyObjectImmediate(legacyController);
+            }
+
+            RunLevelRewardSelectionController controller =
+                view.GetComponent<RunLevelRewardSelectionController>();
             if (controller == null)
             {
                 controller = Undo.AddComponent<
-                    RunLevelAbilitySelectionController>(view.gameObject);
+                    RunLevelRewardSelectionController>(view.gameObject);
             }
 
             controller.ConfigureForEditor(view, PlayerId);
@@ -310,19 +359,24 @@ namespace Titanhold.Run.Editor
                 RunScenePath,
                 OpenSceneMode.Single);
             HubStartingAbilitySelectionView view = RequireSelectionView();
-            RunLevelAbilitySelectionController[] controllers =
+            RunLevelRewardSelectionController[] controllers =
+                UnityEngine.Object.FindObjectsByType<
+                    RunLevelRewardSelectionController>(
+                    FindObjectsInactive.Include);
+            RunLevelAbilitySelectionController[] legacyControllers =
                 UnityEngine.Object.FindObjectsByType<
                     RunLevelAbilitySelectionController>(
                     FindObjectsInactive.Include);
             if (!view.HasRequiredReferences ||
                 !view.HasHeadingReferences ||
                 controllers.Length != 1 ||
+                legacyControllers.Length != 0 ||
                 !controllers[0].HasRequiredReferences ||
                 controllers[0].View != view ||
                 controllers[0].PlayerId != PlayerId)
             {
                 throw new InvalidOperationException(
-                    "Run-level ability selection UI wiring is invalid.");
+                    "Run-level reward selection UI wiring is invalid.");
             }
         }
 
