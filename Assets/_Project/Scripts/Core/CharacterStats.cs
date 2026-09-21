@@ -80,6 +80,16 @@ public class CharacterStats : MonoBehaviour
         return statBlock.TrySetModifierFromSource(modifier, source);
     }
 
+    public bool TryReplaceModifiersFromSourceKind(
+        StatModifierSourceKind sourceKind,
+        IReadOnlyList<StatModifierAssignment> replacements)
+    {
+        EnsureInitialized();
+        return statBlock.TryReplaceModifiersFromSourceKind(
+            sourceKind,
+            replacements);
+    }
+
     public void RemoveModifier(StatModifier modifier)
     {
         EnsureInitialized();

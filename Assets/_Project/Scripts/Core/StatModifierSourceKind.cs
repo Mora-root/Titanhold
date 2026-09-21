@@ -4,5 +4,6 @@ public enum StatModifierSourceKind
     EquipmentSlot = 1,
     Buff = 2,
     Activity = 3,
-    System = 4
+    System = 4,
+    RunUpgrade = 5
 }

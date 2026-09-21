@@ -108,9 +108,14 @@ add another stack. `RunLevelRewardSelectionService` serializes crossed ability a
 upgrade milestones by level so only one participant choice is pending at a time.
 `GameSessionRuntime` owns these services for the run and preserves them across a
 retryable Hub transition. The warrior schedule offers three global-stat choices at
-every authored non-ability level through level 20. Applying selected stat modifiers
-and presenting upgrade choices in the run scene are the next stage; UI does not own
-the pending choice or selected stacks.
+every authored non-ability level through level 20.
+`RunUpgradeStatApplicationService` projects the authoritative participant stacks
+onto replaceable stat gateways. It reconciles late binding, preserves non-run
+modifier sources, and clears only `RunUpgrade` sources at the session boundary.
+Repeated modifiers remain separate so `Increased` stacks add while `More` stacks
+multiply. Maximum-health changes preserve absolute current health and only clamp
+downward. Binding the run participant and presenting upgrade choices in the run
+scene are the next stage; UI does not own pending choices or selected stacks.
 
 Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
 and victory bonus. The first successful settlement awards character experience to

@@ -99,6 +99,8 @@ namespace Titanhold.Session
             ActiveRunLevelUpgradeSelection { get; private set; }
         public RunLevelRewardSelectionService
             ActiveRunLevelRewardSelection { get; private set; }
+        public RunUpgradeStatApplicationService
+            ActiveRunUpgradeStatApplication { get; private set; }
 
         public event Action<string, CharacterSnapshot> CharacterSnapshotChanged;
         public event Action<string, RunProgressionService>
@@ -121,6 +123,8 @@ namespace Titanhold.Session
             ActiveRunLevelUpgradeSelectionChanged;
         public event Action<string, RunLevelRewardSelectionService>
             ActiveRunLevelRewardSelectionChanged;
+        public event Action<string, RunUpgradeStatApplicationService>
+            ActiveRunUpgradeStatApplicationChanged;
 
         public bool TryGetActiveRunProgression(
             string runSessionId,
@@ -319,6 +323,26 @@ namespace Titanhold.Session
             }
 
             selection = ActiveRunLevelRewardSelection;
+            return true;
+        }
+
+        public bool TryGetActiveRunUpgradeStatApplication(
+            string runSessionId,
+            out RunUpgradeStatApplicationService application)
+        {
+            string normalizedId = runSessionId?.Trim() ?? string.Empty;
+            if (normalizedId.Length == 0 ||
+                ActiveRunUpgradeStatApplication == null ||
+                !string.Equals(
+                    normalizedId,
+                    activeRunStateSessionId,
+                    StringComparison.Ordinal))
+            {
+                application = null;
+                return false;
+            }
+
+            application = ActiveRunUpgradeStatApplication;
             return true;
         }
 
@@ -687,6 +711,7 @@ namespace Titanhold.Session
             RunUpgradeChoiceService upgradeChoices = null;
             RunLevelUpgradeSelectionService levelUpgradeSelection = null;
             RunLevelRewardSelectionService levelRewardSelection = null;
+            RunUpgradeStatApplicationService upgradeStatApplication = null;
             if (coordinatedRunLevelRewards)
             {
                 upgradeChoices = new RunUpgradeChoiceService(
@@ -755,6 +780,10 @@ namespace Titanhold.Session
                     levelAbilitySelection,
                     levelUpgradeSelection,
                     playerIds);
+                upgradeStatApplication =
+                    new RunUpgradeStatApplicationService(
+                        upgradeChoices,
+                        RunUpgrades);
             }
 
             activeRunStateSessionId = descriptor.RunSessionId;
@@ -768,6 +797,7 @@ namespace Titanhold.Session
             ActiveRunUpgradeChoices = upgradeChoices;
             ActiveRunLevelUpgradeSelection = levelUpgradeSelection;
             ActiveRunLevelRewardSelection = levelRewardSelection;
+            ActiveRunUpgradeStatApplication = upgradeStatApplication;
             ActiveRunProgressionChanged?.Invoke(
                 activeRunStateSessionId,
                 ActiveRunProgression);
@@ -804,6 +834,9 @@ namespace Titanhold.Session
                 ActiveRunLevelRewardSelectionChanged?.Invoke(
                     activeRunStateSessionId,
                     ActiveRunLevelRewardSelection);
+                ActiveRunUpgradeStatApplicationChanged?.Invoke(
+                    activeRunStateSessionId,
+                    ActiveRunUpgradeStatApplication);
             }
         }
 
@@ -886,7 +919,8 @@ namespace Titanhold.Session
                 ActiveRunLevelAbilitySelection == null &&
                 ActiveRunUpgradeChoices == null &&
                 ActiveRunLevelUpgradeSelection == null &&
-                ActiveRunLevelRewardSelection == null)
+                ActiveRunLevelRewardSelection == null &&
+                ActiveRunUpgradeStatApplication == null)
                 return;
 
             string clearedRunSessionId = activeRunStateSessionId;
@@ -905,7 +939,10 @@ namespace Titanhold.Session
                 ActiveRunLevelUpgradeSelection != null;
             bool hadLevelRewardSelection =
                 ActiveRunLevelRewardSelection != null;
+            bool hadUpgradeStatApplication =
+                ActiveRunUpgradeStatApplication != null;
             ActiveRunLevelRewardSelection?.Dispose();
+            ActiveRunUpgradeStatApplication?.Dispose();
             ActiveRunLevelUpgradeSelection?.Dispose();
             ActiveRunLevelAbilitySelection?.Dispose();
             ActiveRunStartReadiness?.Dispose();
@@ -919,6 +956,7 @@ namespace Titanhold.Session
             ActiveRunUpgradeChoices = null;
             ActiveRunLevelUpgradeSelection = null;
             ActiveRunLevelRewardSelection = null;
+            ActiveRunUpgradeStatApplication = null;
             if (hadProgression)
             {
                 ActiveRunProgressionChanged?.Invoke(
@@ -985,6 +1023,13 @@ namespace Titanhold.Session
             if (hadLevelRewardSelection)
             {
                 ActiveRunLevelRewardSelectionChanged?.Invoke(
+                    clearedRunSessionId,
+                    null);
+            }
+
+            if (hadUpgradeStatApplication)
+            {
+                ActiveRunUpgradeStatApplicationChanged?.Invoke(
                     clearedRunSessionId,
                     null);
             }

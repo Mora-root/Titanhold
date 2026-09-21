@@ -123,6 +123,54 @@ public sealed class StatBlock
         return true;
     }
 
+    public bool TryReplaceModifiersFromSourceKind(
+        StatModifierSourceKind sourceKind,
+        IReadOnlyList<StatModifierAssignment> replacements)
+    {
+        if (sourceKind == StatModifierSourceKind.None ||
+            replacements == null)
+        {
+            return false;
+        }
+
+        HashSet<StatModifierSource> uniqueSources = new();
+        for (int i = 0; i < replacements.Count; i++)
+        {
+            StatModifierAssignment replacement = replacements[i];
+            if (!replacement.IsValid ||
+                replacement.Source.Kind != sourceKind ||
+                !uniqueSources.Add(replacement.Source))
+            {
+                return false;
+            }
+        }
+
+        HashSet<StatType> changedStats = new();
+        for (int i = sourcedModifiers.Count - 1; i >= 0; i--)
+        {
+            SourcedStatModifier current = sourcedModifiers[i];
+            if (current.Source.Kind != sourceKind)
+                continue;
+
+            changedStats.Add(current.Modifier.Type);
+            sourcedModifiers.RemoveAt(i);
+        }
+
+        for (int i = 0; i < replacements.Count; i++)
+        {
+            StatModifierAssignment replacement = replacements[i];
+            sourcedModifiers.Add(new SourcedStatModifier(
+                replacement.Modifier,
+                replacement.Source));
+            changedStats.Add(replacement.Modifier.Type);
+        }
+
+        foreach (StatType type in changedStats)
+            MarkChanged(type);
+
+        return true;
+    }
+
     public void RemoveModifier(StatModifier modifier)
     {
         if (modifier == null)

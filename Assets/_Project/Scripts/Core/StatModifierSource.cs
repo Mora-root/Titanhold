@@ -35,6 +35,13 @@ public readonly struct StatModifierSource : IEquatable<StatModifierSource>
         return new StatModifierSource(StatModifierSourceKind.System, systemId);
     }
 
+    public static StatModifierSource ForRunUpgrade(string sourceId)
+    {
+        return new StatModifierSource(
+            StatModifierSourceKind.RunUpgrade,
+            sourceId);
+    }
+
     public bool Equals(StatModifierSource other)
     {
         return Kind == other.Kind &&

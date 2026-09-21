@@ -197,7 +197,10 @@ namespace Titanhold.Session.Editor
                            out RunLevelUpgradeSelectionService _) &&
                        runtime.TryGetActiveRunLevelRewardSelection(
                            begin.RunSessionId,
-                           out RunLevelRewardSelectionService _),
+                           out RunLevelRewardSelectionService _) &&
+                       runtime.TryGetActiveRunUpgradeStatApplication(
+                           begin.RunSessionId,
+                           out RunUpgradeStatApplicationService _),
                     "Run level did not create its configured ability choice.");
                 string unlockedAbilityId =
                     levelChoice.OfferedAbilityIds[0];
@@ -291,6 +294,9 @@ namespace Titanhold.Session.Editor
                        !runtime.TryGetActiveRunLevelRewardSelection(
                            begin.RunSessionId,
                            out _) &&
+                       !runtime.TryGetActiveRunUpgradeStatApplication(
+                           begin.RunSessionId,
+                           out _) &&
                        runtime.AccountCrystals.Amount == 25,
                     "Cancelled run retained temporary state or cleared account currency.");
 
@@ -318,6 +324,8 @@ namespace Titanhold.Session.Editor
                 RunLevelUpgradeSelectionService retainedUpgradeSelection =
                     null;
                 RunLevelRewardSelectionService retainedRewardSelection = null;
+                RunUpgradeStatApplicationService retainedStatApplication =
+                    null;
                 Assert(secondBegin.Success &&
                        runtime.TryGetActiveRunProgression(
                            secondBegin.RunSessionId,
@@ -347,6 +355,9 @@ namespace Titanhold.Session.Editor
                        runtime.TryGetActiveRunLevelRewardSelection(
                            secondBegin.RunSessionId,
                            out retainedRewardSelection) &&
+                       runtime.TryGetActiveRunUpgradeStatApplication(
+                           secondBegin.RunSessionId,
+                           out retainedStatApplication) &&
                        retainedAbilityLoadout.TryGetParticipant(
                            "player:local",
                            out RunParticipantAbilityState secondAbilityState) &&
@@ -424,7 +435,14 @@ namespace Titanhold.Session.Editor
                                transitionRewardSelection) &&
                        ReferenceEquals(
                            retainedRewardSelection,
-                           transitionRewardSelection),
+                           transitionRewardSelection) &&
+                       runtime.TryGetActiveRunUpgradeStatApplication(
+                           secondBegin.RunSessionId,
+                           out RunUpgradeStatApplicationService
+                               transitionStatApplication) &&
+                       ReferenceEquals(
+                           retainedStatApplication,
+                           transitionStatApplication),
                     "Hub transition cleared temporary run state before rewards could settle.");
                 Assert(runtime.GameSession.TryCancelHubTransition(
                            secondBegin.RunSessionId).Success &&
@@ -485,7 +503,14 @@ namespace Titanhold.Session.Editor
                                retriedRewardSelection) &&
                        ReferenceEquals(
                            retainedRewardSelection,
-                           retriedRewardSelection),
+                           retriedRewardSelection) &&
+                       runtime.TryGetActiveRunUpgradeStatApplication(
+                           secondBegin.RunSessionId,
+                           out RunUpgradeStatApplicationService
+                               retriedStatApplication) &&
+                       ReferenceEquals(
+                           retainedStatApplication,
+                           retriedStatApplication),
                     "Failed Hub loading lost retryable temporary run state.");
                 Assert(runtime.GameSession.TryConcludeRun(result).Success &&
                        runtime.GameSession.TryEnterHub(
@@ -515,6 +540,9 @@ namespace Titanhold.Session.Editor
                            secondBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunLevelRewardSelection(
+                           secondBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunUpgradeStatApplication(
                            secondBegin.RunSessionId,
                            out _) &&
                        runtime.AccountCrystals.Amount == 25,
@@ -603,6 +631,9 @@ namespace Titanhold.Session.Editor
                            unseededBegin.RunSessionId,
                            out _) &&
                        !runtime.TryGetActiveRunLevelRewardSelection(
+                           unseededBegin.RunSessionId,
+                           out _) &&
+                       !runtime.TryGetActiveRunUpgradeStatApplication(
                            unseededBegin.RunSessionId,
                            out _),
                     "Cancelling a run retained its starting selection state.");
