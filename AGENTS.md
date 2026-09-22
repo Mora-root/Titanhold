@@ -138,6 +138,11 @@ World gold pickups
 credit that participant's run wallet through its progression gateway. `PlayerGold`
 is compatibility-only and must not define durable save data.
 
+The player prefab includes a development-only RunXP debug controller. In the
+Editor or a Development Build, `F6` grants 500 RunXP through the participant
+progression gateway; the component context menu exposes the same command. It does
+not mutate progression in non-development builds.
+
 `GameSessionRuntime` owns the active per-participant progression and combat-resource
 rosters, account wallet, five-slot run ability loadouts, ability-choice service,
 and start-readiness roster. These survive retryable run/Hub transitions and clear
@@ -199,10 +204,10 @@ and sends only the selected stable option id to the appropriate domain service.
 The view and presenter never own pending choices or selected stacks.
 The warrior schedule authors milestones at Run Levels 3/7/10/15. Level 3 offers
 the two remaining starter abilities and assigns one to the first empty non-starter
-slot. Level 7 is a one-card Whirlwind milestone assigned to the next slot. Levels
-10 and 15 remain disabled until their ability content exists. The shared 1–3 card
-overlay pauses solo simulation and suppresses local gameplay input while a
-run-level choice is pending.
+slot. Level 7 is a one-card Whirlwind milestone assigned to the next slot, and
+Level 10 similarly grants Charge. Level 15 remains disabled until its ability
+content exists. The shared 1–3 card overlay pauses solo simulation and suppresses
+local gameplay input while a run-level choice is pending.
 
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
@@ -221,6 +226,10 @@ request this follow-up.
 - `ConeDamageAbilityDefinition`: uses the selected target for approach/facing, then
   releases one report over unique targets in the forward sector. The primary target
   takes full damage; secondary targets currently use an authored `30%` multiplier.
+- `TargetedMovementAbilityDefinition`: approaches until the selected target is in
+  authored use range, then exposes an immutable movement directive during wind-up.
+  Local player movement consumes the directive; it is not hidden inside UI or
+  input code. Its release may apply a timed self stat effect.
 - Targeted and cone damage may author an optional timed stat effect. It applies
   after successful non-lethal damage, so the triggering hit uses existing defense.
   Effect expiry receives explicit simulation time.
@@ -246,6 +255,15 @@ Whirlwind (`ability:whirlwind`) is the Run Level 7 area attack: a self-centred
 `2x` hit in a 2.5 radius, costing 20 primary resource and two Rage with an
 eight-second cooldown. It uses the existing Spin animation but is an independent
 run ability definition.
+
+Charge (`ability:charge`) is the Run Level 10 targeted movement ability. It costs
+20 primary resource, has a ten-second cooldown and an eight-unit use range, moves
+at `8x` the actor's current move speed during its 0.4-second wind-up, and stops
+1.25 units from the target. Release grants one non-stacking `+20%` Increased
+MoveSpeed effect for three seconds. It uses locomotion rather than a skill trigger
+and continues basic attacks against a surviving primary target after recovery.
+The player prefab's generic `TimedStackingStatEffectReceiver` also supports later
+self-buff abilities.
 
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation

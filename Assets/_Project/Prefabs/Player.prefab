@@ -449,6 +449,8 @@ GameObject:
   - component: {fileID: 793951062184299724}
   - component: {fileID: 3091728011547008757}
   - component: {fileID: 4637905816498117188}
+  - component: {fileID: 2374341804063899624}
+  - component: {fileID: 4235733267626750893}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -836,6 +838,33 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAbilityExecutor
   skill1: {fileID: 11400000, guid: 29500030244fb3641a43e9aaf7fddb5c, type: 2}
+--- !u!114 &2374341804063899624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e9f5b321d9323d4eb5d4836cf3e8a86, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Effects.TimedStackingStatEffectReceiver
+  characterStats: {fileID: 1468254328002215119}
+--- !u!114 &4235733267626750893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1245050983247841845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e48bb4936779ce84a97629a366929076, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunExperienceDebugController
+  experiencePerGrant: 500
+  grantKey: 287
 --- !u!1 &1324046130192809902
 GameObject:
   m_ObjectHideFlags: 0

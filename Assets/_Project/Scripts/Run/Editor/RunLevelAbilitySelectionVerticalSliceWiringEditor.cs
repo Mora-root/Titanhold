@@ -27,6 +27,8 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/ScriptableObjects/Abilities/Cleave.asset";
         private const string WhirlwindPath =
             "Assets/_Project/ScriptableObjects/Abilities/Whirlwind.asset";
+        private const string ChargePath =
+            "Assets/_Project/ScriptableObjects/Abilities/Charge.asset";
         private const string SchedulePath =
             "Assets/_Project/ScriptableObjects/Run/WarriorAbilityUnlockSchedule.asset";
         private const string CatalogPath =
@@ -166,7 +168,13 @@ namespace Titanhold.Run.Editor
                 optionCount: 1,
                 new[] { RequireAsset<ScriptableObject>(WhirlwindPath) },
                 isEnabled: true);
-            for (int i = 2; i < milestones.Length; i++)
+            milestones[2] = CreateMilestone(
+                AuthoredLevels[2],
+                targetSlotIndex: 3,
+                optionCount: 1,
+                new[] { RequireAsset<ScriptableObject>(ChargePath) },
+                isEnabled: true);
+            for (int i = 3; i < milestones.Length; i++)
             {
                 milestones[i] = CreateMilestone(
                     AuthoredLevels[i],
@@ -314,7 +322,7 @@ namespace Titanhold.Run.Editor
                 if (milestone == null ||
                     milestone.UnlockLevel != AuthoredLevels[i] ||
                     milestone.TargetSlotIndex != i + 1 ||
-                    milestone.IsEnabled != (i <= 1))
+                    milestone.IsEnabled != (i <= 2))
                 {
                     throw new InvalidOperationException(
                         $"Warrior milestone {i} is not configured correctly.");
@@ -341,6 +349,17 @@ namespace Titanhold.Run.Editor
                     "Run level seven must grant the authored Rage Whirlwind ability.");
             }
 
+            RunAbilityUnlockMilestoneDefinition third =
+                schedule.Milestones[2];
+            if (third.OptionCount != 1 ||
+                third.AbilityDefinitions.Count != 1 ||
+                third.AbilityDefinitions[0] is not IAbilityDefinition charge ||
+                charge.AbilityId != "ability:charge")
+            {
+                throw new InvalidOperationException(
+                    "Run level ten must grant the authored Charge ability.");
+            }
+
             if (catalog.AbilityCatalog != abilities ||
                 !catalog.IsValid ||
                 catalog.Definitions.Count != 1 ||
@@ -348,9 +367,10 @@ namespace Titanhold.Run.Editor
                 !catalog.TryResolve(
                     ArchetypeId,
                     out RunAbilityUnlockSchedule runtimeSchedule) ||
-                runtimeSchedule.Milestones.Count != 2 ||
+                runtimeSchedule.Milestones.Count != 3 ||
                 runtimeSchedule.Milestones[0].UnlockLevel != 3 ||
-                runtimeSchedule.Milestones[1].UnlockLevel != 7)
+                runtimeSchedule.Milestones[1].UnlockLevel != 7 ||
+                runtimeSchedule.Milestones[2].UnlockLevel != 10)
             {
                 throw new InvalidOperationException(
                     "Ability unlock schedule catalog is invalid.");

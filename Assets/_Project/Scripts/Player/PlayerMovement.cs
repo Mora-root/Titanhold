@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using Titanhold.Combat.Abilities;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class PlayerMovement : MonoBehaviour
     private PlayerAnimator animator;
     private CharacterStats stats;
     private float fallbackMoveSpeed;
+    private float fallbackAcceleration;
+    private bool fallbackAutoBraking;
+    private float abilityMoveSpeedMultiplier = 1f;
+    private bool hasAbilityMoveSpeedOverride;
 
     public bool IsStopped => agent == null || agent.isStopped;
 
@@ -18,6 +23,8 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponentInChildren<PlayerAnimator>();
         stats = GetComponent<CharacterStats>();
         fallbackMoveSpeed = agent != null ? agent.speed : 0f;
+        fallbackAcceleration = agent != null ? agent.acceleration : 0f;
+        fallbackAutoBraking = agent != null && agent.autoBraking;
 
         agent.updateRotation = false;
         ApplyMoveSpeed();
@@ -60,6 +67,50 @@ public class PlayerMovement : MonoBehaviour
         agent.isStopped = true;
     }
 
+    public bool MoveForAbility(AbilityMovementDirective movement)
+    {
+        if (agent == null || !agent.isOnNavMesh)
+            return false;
+
+        if (!hasAbilityMoveSpeedOverride ||
+            !Mathf.Approximately(
+                abilityMoveSpeedMultiplier,
+                movement.SpeedMultiplier))
+        {
+            hasAbilityMoveSpeedOverride = true;
+            abilityMoveSpeedMultiplier = movement.SpeedMultiplier;
+            agent.autoBraking = false;
+            ApplyMoveSpeed();
+        }
+
+        Vector3 offset = movement.Destination - transform.position;
+        offset.y = 0f;
+        if (offset.sqrMagnitude <=
+            movement.ArrivalDistance * movement.ArrivalDistance)
+        {
+            Stop();
+            return true;
+        }
+
+        Vector3 destination = movement.Destination -
+                              offset.normalized *
+                              movement.ArrivalDistance;
+        MoveTo(destination);
+        return true;
+    }
+
+    public void EndAbilityMovement()
+    {
+        if (!hasAbilityMoveSpeedOverride)
+            return;
+
+        hasAbilityMoveSpeedOverride = false;
+        abilityMoveSpeedMultiplier = 1f;
+        if (agent != null)
+            agent.autoBraking = fallbackAutoBraking;
+        ApplyMoveSpeed();
+    }
+
     public void RotateTowards(Vector3 targetPos)
     {
         Vector3 dir = (targetPos - transform.position).normalized;
@@ -100,7 +151,16 @@ public class PlayerMovement : MonoBehaviour
             return;
 
         float moveSpeed = stats != null ? stats.GetValue(StatType.MoveSpeed) : 0f;
-        agent.speed = moveSpeed > 0f ? moveSpeed : fallbackMoveSpeed;
+        float resolvedSpeed = moveSpeed > 0f
+            ? moveSpeed
+            : fallbackMoveSpeed;
+        agent.speed = resolvedSpeed *
+                      (hasAbilityMoveSpeedOverride
+                          ? abilityMoveSpeedMultiplier
+                          : 1f);
+        agent.acceleration = hasAbilityMoveSpeedOverride
+            ? Mathf.Max(fallbackAcceleration, agent.speed * 10f)
+            : fallbackAcceleration;
     }
 
     private float GetLocomotionPlaybackSpeed(float currentSpeed)

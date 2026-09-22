@@ -49,6 +49,18 @@ namespace Titanhold.Run
             playerId = string.Empty;
         }
 
+        public bool TryGrantExperience(
+            int amount,
+            out RunProgressionResult result)
+        {
+            result = default;
+            if (!IsBound)
+                return false;
+
+            result = progression.TryGrantExperience(playerId, amount);
+            return result.Success;
+        }
+
         public bool TryAddGold(
             int amount,
             out RunProgressionResult result)

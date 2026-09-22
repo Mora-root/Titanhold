@@ -9,7 +9,8 @@ public sealed class PlayerAbilityExecutor :
     IPlayerSkillCommands,
     IPlayerAbilitySlotBinding,
     IPlayerCombatResourceBinding,
-    IPlayerAbilityCooldownSource
+    IPlayerAbilityCooldownSource,
+    IPlayerAbilityMovementSource
 {
     [SerializeField] private AreaDamageAbilityDefinition skill1;
 
@@ -125,7 +126,8 @@ public sealed class PlayerAbilityExecutor :
                     CombatDamageCalculator.GetGlobalDamage(stats)),
                 out IRuntimeAbilitySnapshot ability) ||
             !ability.CanCommit(new AbilityUseContext(transform, selectedTarget)) ||
-            !playerAnimator.CanPlaySkill(ability.AnimatorTrigger))
+            (!string.IsNullOrWhiteSpace(ability.AnimatorTrigger) &&
+             !playerAnimator.CanPlaySkill(ability.AnimatorTrigger)))
             return false;
 
         using (resource != null ? resource.DeferNotifications() : null)
@@ -139,7 +141,8 @@ public sealed class PlayerAbilityExecutor :
             currentAbility = ability;
             currentTarget = selectedTarget;
             pendingPostAbilityAction = default;
-            playerAnimator.PlaySkill(ability.AnimatorTrigger);
+            if (!string.IsNullOrWhiteSpace(ability.AnimatorTrigger))
+                playerAnimator.PlaySkill(ability.AnimatorTrigger);
         }
 
         return true;
@@ -206,6 +209,18 @@ public sealed class PlayerAbilityExecutor :
                    definition,
                    simulationTime,
                    out cooldown);
+    }
+
+    public bool TryGetActiveAbilityMovement(
+        out AbilityMovementDirective movement)
+    {
+        movement = default;
+        return IsUsingSkill &&
+               execution.Phase == AbilityExecutionPhase.Committed &&
+               currentAbility is IRuntimeAbilityMovement movementAbility &&
+               movementAbility.TryGetMovement(
+                   new AbilityUseContext(transform, currentTarget),
+                   out movement);
     }
 
     private void Update()

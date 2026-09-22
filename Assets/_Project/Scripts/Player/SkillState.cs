@@ -16,7 +16,16 @@ public class SkillState : IState
 
     public void Tick()
     {
-        brain.Stop();
+        bool isAbilityMoving =
+            brain.Skills is IPlayerAbilityMovementSource movementSource &&
+            movementSource.TryGetActiveAbilityMovement(
+                out Titanhold.Combat.Abilities.AbilityMovementDirective movement) &&
+            brain.Movement.MoveForAbility(movement);
+        if (!isAbilityMoving)
+        {
+            brain.Movement.EndAbilityMovement();
+            brain.Stop();
+        }
 
         ITargetable target = brain.Skills?.CurrentTarget;
         if (target != null &&
@@ -35,5 +44,8 @@ public class SkillState : IState
         }
     }
 
-    public void Exit() { }
+    public void Exit()
+    {
+        brain.Movement.EndAbilityMovement();
+    }
 }

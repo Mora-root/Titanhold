@@ -94,6 +94,12 @@ public interface IPlayerAbilityCooldownSource
         out AbilityCooldownSnapshot cooldown);
 }
 
+public interface IPlayerAbilityMovementSource
+{
+    bool TryGetActiveAbilityMovement(
+        out AbilityMovementDirective movement);
+}
+
 public static class PlayerSkillCommands
 {
     public static IPlayerSkillCommands Resolve(GameObject participant)

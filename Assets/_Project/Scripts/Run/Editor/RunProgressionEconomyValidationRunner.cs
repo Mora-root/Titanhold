@@ -201,6 +201,18 @@ namespace Titanhold.Run.Editor
                        goldState.Gold == 17 &&
                        gold.Amount == 0,
                     "Gold pickup did not route to temporary run gold.");
+
+                RunExperienceDebugController debugController =
+                    player.AddComponent<RunExperienceDebugController>();
+                debugController.ConfigureForEditor(5, KeyCode.F6);
+                Assert(debugController.TryGrantExperience(
+                           out RunProgressionResult debugAward) &&
+                       debugAward.Success &&
+                       debugAward.ExperienceApplied == 5 &&
+                       debugAward.State.Level == 2 &&
+                       debugAward.State.Experience == 15,
+                    "RunXP debug component bypassed or failed its " +
+                    "participant progression gateway.");
             }
             finally
             {
