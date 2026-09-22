@@ -171,11 +171,12 @@ starter pool and catalogs are connected through the persistent host in `HubScene
 `AbilityExecutionService` is plain C# for one-release abilities: actor-local
 cooldowns, immutable commit snapshots, explicit simulation time, and execution-id
 checked release/finish/cancellation. Resource gateways reject unaffordable spends
-without mutation and defer notifications until the enclosing command returns. A
-read-only availability preflight rejects insufficient resource and active cooldown
-before skill approach; the actual commit atomically rechecks and spends. Resource
-and cooldown commit only when execution actually starts. Animation events never
-authorize effects on the replacement path.
+without mutation and defer notifications until the enclosing command returns.
+Definitions may add one stable-id combat-resource cost to the primary class-resource
+cost. A read-only availability preflight rejects an insufficient amount of either
+resource or an active cooldown before skill approach; the actual commit atomically
+rechecks and spends both resources. Resource and cooldown commit only when execution
+actually starts. Animation events never authorize effects on the replacement path.
 
 Player skill commands capture the explicitly selected target when input is issued,
 including while buffered behind another action. Runtime definitions implement the
@@ -196,11 +197,12 @@ run-level overlay. It presents both ability and upgrade choices, keeps solo time
 and local gameplay input gated across a synchronous chain of crossed milestones,
 and sends only the selected stable option id to the appropriate domain service.
 The view and presenter never own pending choices or selected stacks.
-The warrior schedule authors milestones at Run Levels 3/7/10/15; only level 3 is
-enabled until later ability content exists. It offers two remaining starter
-abilities and assigns the selection to the first empty non-starter slot. The
-shared 1–3 card overlay pauses solo simulation and suppresses local gameplay input
-while a run-level choice is pending.
+The warrior schedule authors milestones at Run Levels 3/7/10/15. Level 3 offers
+the two remaining starter abilities and assigns one to the first empty non-starter
+slot. Level 7 is a one-card Whirlwind milestone assigned to the next slot. Levels
+10 and 15 remain disabled until their ability content exists. The shared 1–3 card
+overlay pauses solo simulation and suppresses local gameplay input while a
+run-level choice is pending.
 
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
@@ -239,6 +241,11 @@ Warrior starter set:
   duration;
 - Cleave: `1.5x` damage to the selected target, 30% of that damage to other
   forward-sector targets, and no Rage generation.
+
+Whirlwind (`ability:whirlwind`) is the Run Level 7 area attack: a self-centred
+`2x` hit in a 2.5 radius, costing 20 primary resource and two Rage with an
+eight-second cooldown. It uses the existing Spin animation but is an independent
+run ability definition.
 
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation

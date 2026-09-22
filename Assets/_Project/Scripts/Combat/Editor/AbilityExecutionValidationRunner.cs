@@ -31,7 +31,8 @@ namespace Titanhold.Combat.Editor
             ValidateReentrantResourceGateway();
             ValidateReadOnlyCommitAvailability();
             ValidateReadOnlyCooldownSnapshot();
-            return "Ability execution foundation validation passed (9 scenarios).";
+            ValidateAdditionalCombatResourceCost();
+            return "Ability execution foundation validation passed (10 scenarios).";
         }
 
         private static void ValidateLifecycleAndCooldownSnapshot()
@@ -290,6 +291,56 @@ namespace Titanhold.Combat.Editor
                 "Invalid cooldown queries were accepted.");
         }
 
+        private static void ValidateAdditionalCombatResourceCost()
+        {
+            AbilityCombatResourceCost rageCost = new(
+                "resource:rage",
+                2f);
+            AbilityExecutionDefinition definition = new(
+                "ability:rage-spender",
+                10f,
+                8d,
+                0.2d,
+                0.3d,
+                rageCost);
+            TestResources resources = new(20f)
+            {
+                CombatResourceAmount = 1f
+            };
+            AbilityExecutionService service = CreatePlayer(resources);
+            Assert(service.EvaluateCommitAvailability(definition, 0d) ==
+                       AbilityExecutionError.InsufficientResource &&
+                   resources.Amount == 20f &&
+                   resources.CombatResourceAmount == 1f,
+                "Additional-resource preflight mutated or accepted an insufficient balance.");
+
+            resources.CombatResourceAmount = 3f;
+            AbilityExecutionSnapshot committed = Success(service.TryCommit(
+                new CombatExecutionId("cast:rage-spender"),
+                definition,
+                0d));
+            Assert(resources.Amount == 10f &&
+                   resources.CombatResourceAmount == 1f &&
+                   committed.Definition.CombatResourceCost.ResourceId ==
+                       "resource:rage" &&
+                   committed.Definition.CombatResourceCost.Amount == 2f,
+                "Ability commit did not spend and snapshot both resource costs atomically.");
+
+            AbilityExecutionService withoutResources = CreatePlayer(null);
+            AbilityExecutionDefinition rageOnly = new(
+                "ability:rage-only",
+                0f,
+                0d,
+                0d,
+                0d,
+                rageCost);
+            Assert(withoutResources.EvaluateCommitAvailability(rageOnly, 0d) ==
+                       AbilityExecutionError.MissingResourceGateway,
+                "A combat-resource cost was accepted without a gateway.");
+            Throws(() => new AbilityCombatResourceCost(string.Empty, 2f));
+            Throws(() => new AbilityCombatResourceCost("resource:rage", 0f));
+        }
+
         private static AbilityExecutionDefinition CreateDefinition(string id = "ability:test")
         {
             return new AbilityExecutionDefinition(id, 10f, 5d, 0.5d, 0.25d);
@@ -330,20 +381,32 @@ namespace Titanhold.Combat.Editor
         {
             public TestResources(float amount) { Amount = amount; }
             public float Amount { get; set; }
+            public float CombatResourceAmount { get; set; }
             public int SpendCount { get; private set; }
             public Action DuringSpend { get; set; }
 
-            public bool CanSpend(float amount)
+            public bool CanSpend(
+                float amount,
+                AbilityCombatResourceCost combatResourceCost)
             {
-                return amount <= Amount;
+                return amount <= Amount &&
+                       (!combatResourceCost.IsConfigured ||
+                        (combatResourceCost.ResourceId == "resource:rage" &&
+                         combatResourceCost.Amount <= CombatResourceAmount));
             }
 
-            public bool TrySpend(float amount)
+            public bool TrySpend(
+                float amount,
+                AbilityCombatResourceCost combatResourceCost)
             {
                 DuringSpend?.Invoke();
-                if (amount > Amount)
+                if (!CanSpend(amount, combatResourceCost))
                     return false;
                 Amount -= amount;
+                if (combatResourceCost.IsConfigured)
+                {
+                    CombatResourceAmount -= combatResourceCost.Amount;
+                }
                 SpendCount++;
                 return true;
             }

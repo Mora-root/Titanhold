@@ -275,7 +275,13 @@ public static class AreaDamageAbilityValidationRunner
     {
         private readonly PlayerResource resource;
         public ResourceGateway(PlayerResource resource) => this.resource = resource;
-        public bool CanSpend(float amount) => resource.CanSpend(amount);
-        public bool TrySpend(float amount) => resource.TrySpend(amount);
+        public bool CanSpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost) =>
+            !combatResourceCost.IsConfigured && resource.CanSpend(amount);
+        public bool TrySpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost) =>
+            !combatResourceCost.IsConfigured && resource.TrySpend(amount);
     }
 }

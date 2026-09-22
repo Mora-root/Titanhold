@@ -11,7 +11,8 @@ namespace Titanhold.Combat.Abilities
             float resourceCost,
             double cooldown,
             double windUp,
-            double recovery)
+            double recovery,
+            AbilityCombatResourceCost combatResourceCost = default)
         {
             if (string.IsNullOrWhiteSpace(abilityId))
                 throw new ArgumentException("An ability requires a stable definition id.", nameof(abilityId));
@@ -21,12 +22,20 @@ namespace Titanhold.Combat.Abilities
             RequireNonNegativeFinite(windUp, nameof(windUp));
             RequireNonNegativeFinite(recovery, nameof(recovery));
             RequireNonNegativeFinite(windUp + recovery, nameof(recovery));
+            if (combatResourceCost.IsConfigured &&
+                !combatResourceCost.IsValid)
+            {
+                throw new ArgumentException(
+                    "The optional combat-resource cost is invalid.",
+                    nameof(combatResourceCost));
+            }
 
             AbilityId = abilityId.Trim();
             ResourceCost = resourceCost;
             Cooldown = cooldown;
             WindUp = windUp;
             Recovery = recovery;
+            CombatResourceCost = combatResourceCost;
         }
 
         public string AbilityId { get; }
@@ -34,6 +43,7 @@ namespace Titanhold.Combat.Abilities
         public double Cooldown { get; }
         public double WindUp { get; }
         public double Recovery { get; }
+        public AbilityCombatResourceCost CombatResourceCost { get; }
 
         internal static bool IsNonNegativeFinite(double value)
         {

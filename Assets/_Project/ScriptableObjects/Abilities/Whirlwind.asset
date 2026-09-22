@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a1eefe542d3e0f43acd341653636fbe, type: 3}
-  m_Name: SpinAbility
+  m_Name: Whirlwind
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Combat.Abilities.AreaDamageAbilityDefinition
-  abilityId: ability:spin
-  displayName: Spin
-  description: Strike all nearby enemies.
+  abilityId: ability:whirlwind
+  displayName: Whirlwind
+  description: Strike all nearby enemies. Costs 2 Rage.
   icon: {fileID: 0}
   resourceCost: 20
-  cooldown: 3
+  cooldown: 8
   windUp: 0.23333333
   recovery: 0.30000004
-  damageMultiplier: 1.5
+  damageMultiplier: 2
   radius: 2.5
   targetMask:
     serializedVersion: 2
     m_Bits: 64
   animatorTrigger: Spin
   combatResourceCost:
-    enabled: 0
+    enabled: 1
     resourceId: resource:rage
-    amount: 0
+    amount: 2
   sourceResourceGain:
     enabled: 0
     resourceId: resource:rage

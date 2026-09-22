@@ -5,12 +5,16 @@ namespace Titanhold.Combat.Abilities
         // Preflight must never mutate the balance or notify observers. Commit
         // repeats the check through TrySpend because availability can change
         // between command acceptance and execution.
-        bool CanSpend(float amount);
+        bool CanSpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost);
 
         // A rejected spend must leave the resource unchanged. Implementations must
         // defer observer notifications until the enclosing ability command returns,
         // so observers see both the committed cast and its resource cost together.
-        bool TrySpend(float amount);
+        bool TrySpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost);
     }
 
     public enum AbilityExecutionPhase

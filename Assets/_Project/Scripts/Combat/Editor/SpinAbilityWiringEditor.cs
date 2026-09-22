@@ -29,19 +29,10 @@ public static class SpinAbilityWiringEditor
                 Require(AssetDatabase.LoadMainAssetAtPath(DefinitionPath) == null,
                     "Spin ability path is occupied by another asset.");
                 definition = ScriptableObject.CreateInstance<AreaDamageAbilityDefinition>();
-                SerializedObject data = new(definition);
-                data.FindProperty("abilityId").stringValue = "ability:spin";
-                data.FindProperty("resourceCost").floatValue = 20f;
-                data.FindProperty("cooldown").floatValue = 3f;
-                data.FindProperty("windUp").floatValue = 0.23333333f;
-                data.FindProperty("recovery").floatValue = 0.30000003f;
-                data.FindProperty("damageMultiplier").floatValue = 1.5f;
-                data.FindProperty("radius").floatValue = 2.5f;
-                data.FindProperty("targetMask").intValue = 64;
-                data.FindProperty("animatorTrigger").stringValue = "Spin";
-                data.ApplyModifiedPropertiesWithoutUndo();
                 AssetDatabase.CreateAsset(definition, DefinitionPath);
             }
+
+            ConfigureApprovedDefinition(definition);
 
             PlayerAbilityExecutor executor = player.GetComponent<PlayerAbilityExecutor>();
             if (executor == null) executor = player.AddComponent<PlayerAbilityExecutor>();
@@ -80,6 +71,7 @@ public static class SpinAbilityWiringEditor
         definition.TryCreateSnapshot(20f, out var snapshot);
         Require(snapshot.Execution.AbilityId == "ability:spin" && snapshot.Execution.ResourceCost == 20f &&
                 snapshot.Execution.Cooldown == 3d && snapshot.Damage == 30f && snapshot.Radius == 2.5f &&
+                !snapshot.Execution.CombatResourceCost.IsConfigured &&
                 snapshot.TargetMask == 64 && snapshot.AnimatorTrigger == "Spin",
             "Spin balance or stable identity differs from the approved migration.");
         AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(
@@ -107,5 +99,32 @@ public static class SpinAbilityWiringEditor
     private static void Require(bool condition, string message)
     {
         if (!condition) throw new InvalidOperationException(message);
+    }
+
+    internal static void ConfigureApprovedDefinition(
+        AreaDamageAbilityDefinition definition)
+    {
+        SerializedObject data = new(definition);
+        data.FindProperty("abilityId").stringValue = "ability:spin";
+        data.FindProperty("displayName").stringValue = "Spin";
+        data.FindProperty("description").stringValue =
+            "Strike all nearby enemies.";
+        data.FindProperty("resourceCost").floatValue = 20f;
+        data.FindProperty("cooldown").floatValue = 3f;
+        data.FindProperty("windUp").floatValue = 0.23333333f;
+        data.FindProperty("recovery").floatValue = 0.30000003f;
+        data.FindProperty("damageMultiplier").floatValue = 1.5f;
+        data.FindProperty("radius").floatValue = 2.5f;
+        data.FindProperty("targetMask").intValue = 64;
+        data.FindProperty("animatorTrigger").stringValue = "Spin";
+        SerializedProperty cost = data.FindProperty("combatResourceCost");
+        cost.FindPropertyRelative("enabled").boolValue = false;
+        cost.FindPropertyRelative("resourceId").stringValue =
+            "resource:rage";
+        cost.FindPropertyRelative("amount").floatValue = 0f;
+        SerializedProperty gain = data.FindProperty("sourceResourceGain");
+        gain.FindPropertyRelative("enabled").boolValue = false;
+        data.ApplyModifiedPropertiesWithoutUndo();
+        EditorUtility.SetDirty(definition);
     }
 }

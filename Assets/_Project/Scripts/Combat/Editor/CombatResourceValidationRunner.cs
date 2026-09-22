@@ -54,6 +54,15 @@ public static class CombatResourceValidationRunner
                resource.TrySetCurrent(3f) &&
                resource.Current == 3f && notifications == 3,
             "Explicit resource restoration accepted invalid state.");
+        using (resource.DeferNotifications())
+        {
+            Assert(resource.TrySpend("resource:rage", 1f) &&
+                   resource.TryGain("resource:rage", 1f) &&
+                   resource.Current == 3f && notifications == 3,
+                "Deferred combat-resource mutations notified observers early.");
+        }
+        Assert(notifications == 4,
+            "Deferred combat-resource mutations did not coalesce their notification.");
     }
 
     private static void ValidateAbilityAuthoring()

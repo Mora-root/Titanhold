@@ -23,11 +23,12 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 9b63db11fced5174e96ffa17ee706fa4, type: 2}
     - {fileID: 11400000, guid: 73de60b98fd5dcf449102ddb15f6f8fa, type: 2}
     - {fileID: 11400000, guid: be09518beee326d4aa16bd1b42af48df, type: 2}
-  - isEnabled: 0
+  - isEnabled: 1
     unlockLevel: 7
     targetSlotIndex: 2
-    optionCount: 3
-    abilityDefinitions: []
+    optionCount: 1
+    abilityDefinitions:
+    - {fileID: 11400000, guid: 50c93ab481bc07a46b9181e04a9e2642, type: 2}
   - isEnabled: 0
     unlockLevel: 10
     targetSlotIndex: 3

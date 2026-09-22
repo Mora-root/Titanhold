@@ -49,11 +49,16 @@ namespace Titanhold.Combat.Abilities
                 return AbilityExecutionError.OnCooldown;
             }
 
-            if (definition.ResourceCost <= 0f)
+            if (definition.ResourceCost <= 0f &&
+                !definition.CombatResourceCost.IsConfigured)
+            {
                 return AbilityExecutionError.None;
+            }
             if (resources == null)
                 return AbilityExecutionError.MissingResourceGateway;
-            return resources.CanSpend(definition.ResourceCost)
+            return resources.CanSpend(
+                    definition.ResourceCost,
+                    definition.CombatResourceCost)
                 ? AbilityExecutionError.None
                 : AbilityExecutionError.InsufficientResource;
         }
@@ -120,8 +125,14 @@ namespace Titanhold.Combat.Abilities
             isCommitting = true;
             try
             {
-                if (definition.ResourceCost > 0f && !resources.TrySpend(definition.ResourceCost))
+                bool hasCost = definition.ResourceCost > 0f ||
+                               definition.CombatResourceCost.IsConfigured;
+                if (hasCost && !resources.TrySpend(
+                        definition.ResourceCost,
+                        definition.CombatResourceCost))
+                {
                     return Fail(AbilityExecutionError.InsufficientResource);
+                }
 
                 cooldownEnds[definition.AbilityId] = cooldownEnd;
                 committedExecutions.Add(executionId);

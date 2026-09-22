@@ -54,7 +54,7 @@ public sealed class PlayerAbilityExecutor :
                 ICombatResourceGateway;
         sourceResourceGateway = localSourceResourceGateway;
         execution = new AbilityExecutionService(ActorReference,
-            resource != null ? new ResourceGateway(resource) : null);
+            resource != null ? new ResourceGateway(this) : null);
     }
 
     public PlayerSkillUseEvaluation EvaluateSkillSlot(
@@ -129,6 +129,7 @@ public sealed class PlayerAbilityExecutor :
             return false;
 
         using (resource != null ? resource.DeferNotifications() : null)
+        using (sourceResourceGateway?.DeferNotifications())
         {
             AbilityExecutionResult result = execution.TryCommit(
                 CombatExecutionId.New(), ability.Execution, Time.timeAsDouble);
@@ -307,10 +308,55 @@ public sealed class PlayerAbilityExecutor :
 
     private sealed class ResourceGateway : IAbilityResourceGateway
     {
-        private readonly PlayerResource resource;
-        public ResourceGateway(PlayerResource resource) => this.resource = resource;
-        public bool CanSpend(float amount) =>
-            resource != null && resource.CanSpend(amount);
-        public bool TrySpend(float amount) => resource != null && resource.TrySpend(amount);
+        private readonly PlayerAbilityExecutor owner;
+
+        public ResourceGateway(PlayerAbilityExecutor owner)
+        {
+            this.owner = owner;
+        }
+
+        public bool CanSpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost)
+        {
+            if (amount > 0f &&
+                (owner.resource == null || !owner.resource.CanSpend(amount)))
+            {
+                return false;
+            }
+
+            return !combatResourceCost.IsConfigured ||
+                   (combatResourceCost.IsValid &&
+                    owner.sourceResourceGateway != null &&
+                    owner.sourceResourceGateway.CanSpend(
+                        combatResourceCost.ResourceId,
+                        combatResourceCost.Amount));
+        }
+
+        public bool TrySpend(
+            float amount,
+            AbilityCombatResourceCost combatResourceCost)
+        {
+            if (!CanSpend(amount, combatResourceCost))
+                return false;
+
+            bool spentPrimary = amount <= 0f ||
+                                owner.resource.TrySpend(amount);
+            if (!spentPrimary)
+                return false;
+
+            if (!combatResourceCost.IsConfigured ||
+                owner.sourceResourceGateway.TrySpend(
+                    combatResourceCost.ResourceId,
+                    combatResourceCost.Amount))
+            {
+                return true;
+            }
+
+            if (amount > 0f)
+                owner.resource.Restore(amount);
+
+            return false;
+        }
     }
 }

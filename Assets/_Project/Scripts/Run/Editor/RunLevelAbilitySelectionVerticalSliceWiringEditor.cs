@@ -25,6 +25,8 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/ScriptableObjects/Abilities/CrushingStrike.asset";
         private const string CleavePath =
             "Assets/_Project/ScriptableObjects/Abilities/Cleave.asset";
+        private const string WhirlwindPath =
+            "Assets/_Project/ScriptableObjects/Abilities/Whirlwind.asset";
         private const string SchedulePath =
             "Assets/_Project/ScriptableObjects/Run/WarriorAbilityUnlockSchedule.asset";
         private const string CatalogPath =
@@ -158,7 +160,13 @@ namespace Titanhold.Run.Editor
                 optionCount: 2,
                 starterAbilities,
                 isEnabled: true);
-            for (int i = 1; i < milestones.Length; i++)
+            milestones[1] = CreateMilestone(
+                AuthoredLevels[1],
+                targetSlotIndex: 2,
+                optionCount: 1,
+                new[] { RequireAsset<ScriptableObject>(WhirlwindPath) },
+                isEnabled: true);
+            for (int i = 2; i < milestones.Length; i++)
             {
                 milestones[i] = CreateMilestone(
                     AuthoredLevels[i],
@@ -306,7 +314,7 @@ namespace Titanhold.Run.Editor
                 if (milestone == null ||
                     milestone.UnlockLevel != AuthoredLevels[i] ||
                     milestone.TargetSlotIndex != i + 1 ||
-                    milestone.IsEnabled != (i == 0))
+                    milestone.IsEnabled != (i <= 1))
                 {
                     throw new InvalidOperationException(
                         $"Warrior milestone {i} is not configured correctly.");
@@ -322,6 +330,17 @@ namespace Titanhold.Run.Editor
                     "Run level three must offer two of the three starter abilities.");
             }
 
+            RunAbilityUnlockMilestoneDefinition second =
+                schedule.Milestones[1];
+            if (second.OptionCount != 1 ||
+                second.AbilityDefinitions.Count != 1 ||
+                second.AbilityDefinitions[0] is not IAbilityDefinition whirlwind ||
+                whirlwind.AbilityId != "ability:whirlwind")
+            {
+                throw new InvalidOperationException(
+                    "Run level seven must grant the authored Rage Whirlwind ability.");
+            }
+
             if (catalog.AbilityCatalog != abilities ||
                 !catalog.IsValid ||
                 catalog.Definitions.Count != 1 ||
@@ -329,8 +348,9 @@ namespace Titanhold.Run.Editor
                 !catalog.TryResolve(
                     ArchetypeId,
                     out RunAbilityUnlockSchedule runtimeSchedule) ||
-                runtimeSchedule.Milestones.Count != 1 ||
-                runtimeSchedule.Milestones[0].UnlockLevel != 3)
+                runtimeSchedule.Milestones.Count != 2 ||
+                runtimeSchedule.Milestones[0].UnlockLevel != 3 ||
+                runtimeSchedule.Milestones[1].UnlockLevel != 7)
             {
                 throw new InvalidOperationException(
                     "Ability unlock schedule catalog is invalid.");

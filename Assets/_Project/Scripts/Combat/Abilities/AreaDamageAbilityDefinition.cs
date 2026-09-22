@@ -22,6 +22,8 @@ namespace Titanhold.Combat.Abilities
         [SerializeField] private LayerMask targetMask;
         [SerializeField] private string animatorTrigger = "Spin";
         [SerializeField]
+        private AbilityCombatResourceCostAuthoring combatResourceCost = new();
+        [SerializeField]
         private AbilitySourceResourceGainAuthoring sourceResourceGain = new();
 
         public string AbilityId => abilityId ?? string.Empty;
@@ -41,6 +43,14 @@ namespace Titanhold.Combat.Abilities
         public bool TryCreateExecutionDefinition(
             out AbilityExecutionDefinition execution)
         {
+            AbilityCombatResourceCost additionalCost = default;
+            if (combatResourceCost != null &&
+                !combatResourceCost.TryCreate(out additionalCost))
+            {
+                execution = null;
+                return false;
+            }
+
             try
             {
                 execution = new AbilityExecutionDefinition(
@@ -48,7 +58,8 @@ namespace Titanhold.Combat.Abilities
                     resourceCost,
                     cooldown,
                     windUp,
-                    recovery);
+                    recovery,
+                    additionalCost);
                 return true;
             }
             catch (ArgumentException)

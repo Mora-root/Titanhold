@@ -13,6 +13,9 @@ namespace Titanhold.Run
             new(StringComparer.Ordinal);
         private readonly HashSet<string> characterIds =
             new(StringComparer.Ordinal);
+        private readonly Dictionary<(string PlayerId, string ResourceId),
+            CombatResourceSnapshot> pendingNotifications = new();
+        private int notificationDeferralDepth;
 
         public RunCombatResourceService(
             int maximumParticipantCount = DefaultMaximumParticipantCount)
@@ -107,7 +110,7 @@ namespace Titanhold.Run
                 maximum,
                 initial);
             participant.Resources.Add(normalizedResourceId, resource);
-            ResourceChanged?.Invoke(
+            PublishResourceChanged(
                 participant.Identity.PlayerId,
                 resource.Snapshot);
             return RunCombatResourceResult.Succeeded(
@@ -224,6 +227,20 @@ namespace Titanhold.Run
             return CompleteMutation(normalizedPlayerId, resource, previous);
         }
 
+        public bool CanSpend(
+            string playerId,
+            string resourceId,
+            float amount)
+        {
+            return IsPositiveFinite(amount) &&
+                   TryGetResourceState(
+                       playerId,
+                       resourceId,
+                       out _,
+                       out CombatResourceState resource) &&
+                   resource.CanSpend(amount);
+        }
+
         public RunCombatResourceResult TrySetCurrent(
             string playerId,
             string resourceId,
@@ -266,12 +283,65 @@ namespace Titanhold.Run
             bool changed = resource.Current != previous;
             CombatResourceSnapshot snapshot = resource.Snapshot;
             if (changed)
-                ResourceChanged?.Invoke(playerId, snapshot);
+                PublishResourceChanged(playerId, snapshot);
 
             return RunCombatResourceResult.Succeeded(
                 playerId,
                 snapshot,
                 changed);
+        }
+
+        private IDisposable DeferNotifications()
+        {
+            notificationDeferralDepth++;
+            return new NotificationScope(this);
+        }
+
+        private void PublishResourceChanged(
+            string playerId,
+            CombatResourceSnapshot snapshot)
+        {
+            if (notificationDeferralDepth > 0)
+            {
+                pendingNotifications[(playerId, snapshot.ResourceId)] =
+                    snapshot;
+                return;
+            }
+
+            ResourceChanged?.Invoke(playerId, snapshot);
+        }
+
+        private void EndNotificationDeferral()
+        {
+            notificationDeferralDepth--;
+            if (notificationDeferralDepth > 0)
+                return;
+
+            KeyValuePair<
+                (string PlayerId, string ResourceId),
+                CombatResourceSnapshot>[] notifications =
+                new KeyValuePair<
+                    (string PlayerId, string ResourceId),
+                    CombatResourceSnapshot>[pendingNotifications.Count];
+            int index = 0;
+            foreach (KeyValuePair<
+                         (string PlayerId, string ResourceId),
+                         CombatResourceSnapshot> pending in
+                     pendingNotifications)
+            {
+                notifications[index++] = pending;
+            }
+
+            pendingNotifications.Clear();
+            for (int i = 0; i < notifications.Length; i++)
+            {
+                KeyValuePair<
+                    (string PlayerId, string ResourceId),
+                    CombatResourceSnapshot> pending = notifications[i];
+                ResourceChanged?.Invoke(
+                    pending.Key.PlayerId,
+                    pending.Value);
+            }
         }
 
         private RunCombatResourceResult MissingResourceResult(
@@ -376,6 +446,44 @@ namespace Titanhold.Run
                     sourceExecutionId,
                     resourceId,
                     amount).Success;
+            }
+
+            public IDisposable DeferNotifications()
+            {
+                return resources.DeferNotifications();
+            }
+
+            public bool CanSpend(string resourceId, float amount)
+            {
+                return resources.CanSpend(
+                    playerId,
+                    resourceId,
+                    amount);
+            }
+
+            public bool TrySpend(string resourceId, float amount)
+            {
+                return resources.TrySpend(
+                    playerId,
+                    resourceId,
+                    amount).Success;
+            }
+        }
+
+        private sealed class NotificationScope : IDisposable
+        {
+            private RunCombatResourceService owner;
+
+            public NotificationScope(RunCombatResourceService owner)
+            {
+                this.owner = owner;
+            }
+
+            public void Dispose()
+            {
+                RunCombatResourceService service = owner;
+                owner = null;
+                service?.EndNotificationDeferral();
             }
         }
     }

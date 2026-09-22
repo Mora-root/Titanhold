@@ -84,16 +84,25 @@ public static class RunCombatResourceValidationRunner
             "Registered participant did not expose a resource gateway.");
 
         CombatExecutionId executionId = CombatExecutionId.New();
-        Assert(gateway.TryGain(
-                   executionId,
-                   "resource:rage",
-                   3f) &&
-               resources.TryGetResource(
+        using (gateway.DeferNotifications())
+        {
+            Assert(gateway.TryGain(
+                       executionId,
+                       "resource:rage",
+                       3f) &&
+                   resources.TryGetResource(
+                       "player:one",
+                       "resource:rage",
+                       out CombatResourceSnapshot deferredRage) &&
+                   deferredRage.Current == 3f && notifications == 1,
+                "Participant gateway notified observers before its command completed.");
+        }
+        Assert(resources.TryGetResource(
                    "player:one",
                    "resource:rage",
                    out CombatResourceSnapshot rage) &&
                rage.Current == 3f && notifications == 2,
-            "Participant gateway did not route Rage generation.");
+            "Participant gateway did not publish its deferred Rage mutation.");
         Assert(gateway.TryGain(
                    executionId,
                    "resource:rage",
@@ -108,6 +117,8 @@ public static class RunCombatResourceValidationRunner
                    CombatExecutionId.New(),
                    "resource:missing",
                    3f) &&
+               !gateway.CanSpend("resource:rage", 4f) &&
+               !gateway.TrySpend("resource:rage", 4f) &&
                resources.TrySpend(
                    "player:one",
                    "resource:rage",
@@ -118,10 +129,8 @@ public static class RunCombatResourceValidationRunner
                    "player:one",
                    "resource:rage",
                    8f).Success &&
-               resources.TrySpend(
-                   "player:one",
-                   "resource:rage",
-                   5f).Success &&
+               gateway.CanSpend("resource:rage", 5f) &&
+               gateway.TrySpend("resource:rage", 5f) &&
                resources.TryGetResource(
                    "player:one",
                    "resource:rage",

@@ -31,6 +31,12 @@ namespace Titanhold.Combat
 
     public interface ICombatResourceGateway
     {
+        IDisposable DeferNotifications();
+
+        bool CanSpend(string resourceId, float amount);
+
+        bool TrySpend(string resourceId, float amount);
+
         bool TryGain(
             CombatExecutionId sourceExecutionId,
             string resourceId,
@@ -44,6 +50,8 @@ namespace Titanhold.Combat
         private readonly HashSet<CombatExecutionId> appliedGainExecutions =
             new();
         private float current;
+        private int notificationDeferralDepth;
+        private bool notificationPending;
 
         public CombatResourceState(
             string resourceId,
@@ -72,6 +80,12 @@ namespace Titanhold.Combat
 
         public event Action<float, float> Changed;
 
+        public IDisposable DeferNotifications()
+        {
+            notificationDeferralDepth++;
+            return new NotificationScope(this);
+        }
+
         public bool CanSpend(float amount)
         {
             return IsFinite(amount) && amount >= 0f && current >= amount;
@@ -85,8 +99,18 @@ namespace Titanhold.Combat
                 return true;
 
             current -= amount;
-            Changed?.Invoke(current, Maximum);
+            NotifyChanged();
             return true;
+        }
+
+        public bool CanSpend(string resourceId, float amount)
+        {
+            return MatchesResource(resourceId) && CanSpend(amount);
+        }
+
+        public bool TrySpend(string resourceId, float amount)
+        {
+            return MatchesResource(resourceId) && TrySpend(amount);
         }
 
         public bool TryGain(
@@ -124,7 +148,7 @@ namespace Titanhold.Combat
                 return true;
 
             current = value;
-            Changed?.Invoke(current, Maximum);
+            NotifyChanged();
             return true;
         }
 
@@ -134,7 +158,44 @@ namespace Titanhold.Combat
             if (next > current)
             {
                 current = next;
-                Changed?.Invoke(current, Maximum);
+                NotifyChanged();
+            }
+        }
+
+        private void NotifyChanged()
+        {
+            if (notificationDeferralDepth > 0)
+            {
+                notificationPending = true;
+                return;
+            }
+
+            Changed?.Invoke(current, Maximum);
+        }
+
+        private sealed class NotificationScope : IDisposable
+        {
+            private CombatResourceState owner;
+
+            public NotificationScope(CombatResourceState owner)
+            {
+                this.owner = owner;
+            }
+
+            public void Dispose()
+            {
+                CombatResourceState resource = owner;
+                owner = null;
+                if (resource == null)
+                    return;
+
+                resource.notificationDeferralDepth--;
+                if (resource.notificationDeferralDepth == 0 &&
+                    resource.notificationPending)
+                {
+                    resource.notificationPending = false;
+                    resource.NotifyChanged();
+                }
             }
         }
 
@@ -145,13 +206,18 @@ namespace Titanhold.Combat
 
         private bool CanAcceptGain(string resourceId, float amount)
         {
-            string normalizedId = resourceId?.Trim() ?? string.Empty;
-            return string.Equals(
-                       ResourceId,
-                       normalizedId,
-                       StringComparison.Ordinal) &&
+            return MatchesResource(resourceId) &&
                    IsFinite(amount) &&
                    amount > 0f;
+        }
+
+        private bool MatchesResource(string resourceId)
+        {
+            string normalizedId = resourceId?.Trim() ?? string.Empty;
+            return string.Equals(
+                ResourceId,
+                normalizedId,
+                StringComparison.Ordinal);
         }
     }
 }
