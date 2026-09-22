@@ -16,12 +16,12 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset";
         private const string SchedulePath =
             "Assets/_Project/ScriptableObjects/Run/WarriorAbilityUnlockSchedule.asset";
-        private const string HeavyStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/HeavyStrike.asset";
-        private const string CrushingStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/CrushingStrike.asset";
-        private const string CleavePath =
-            "Assets/_Project/ScriptableObjects/Abilities/Cleave.asset";
+        private const string ChargePath =
+            "Assets/_Project/ScriptableObjects/Abilities/Charge.asset";
+        private const string IronGuardPath =
+            "Assets/_Project/ScriptableObjects/Abilities/IronGuard.asset";
+        private const string BattleCryPath =
+            "Assets/_Project/ScriptableObjects/Abilities/BattleCry.asset";
 
         [MenuItem("Tools/Titanhold/Install Rage Whirlwind Ability Content")]
         public static void Install()
@@ -159,33 +159,41 @@ namespace Titanhold.Run.Editor
             RunAbilityUnlockScheduleDefinition schedule,
             AreaDamageAbilityDefinition whirlwind)
         {
-            ScriptableObject[] starters =
-            {
-                RequireAsset<ScriptableObject>(HeavyStrikePath),
-                RequireAsset<ScriptableObject>(CrushingStrikePath),
-                RequireAsset<ScriptableObject>(CleavePath)
-            };
             RunAbilityUnlockMilestoneDefinition[] milestones =
             {
-                Milestone(3, 1, 2, starters, true),
                 Milestone(
-                    7,
-                    2,
+                    3,
+                    1,
                     1,
                     new ScriptableObject[] { whirlwind },
                     true),
                 Milestone(
+                    7,
+                    2,
+                    1,
+                    new[]
+                    {
+                        RequireAsset<ScriptableObject>(ChargePath)
+                    },
+                    true),
+                Milestone(
                     10,
                     3,
-                    3,
-                    Array.Empty<ScriptableObject>(),
-                    false),
+                    1,
+                    new[]
+                    {
+                        RequireAsset<ScriptableObject>(IronGuardPath)
+                    },
+                    true),
                 Milestone(
                     15,
                     4,
-                    3,
-                    Array.Empty<ScriptableObject>(),
-                    false)
+                    1,
+                    new[]
+                    {
+                        RequireAsset<ScriptableObject>(BattleCryPath)
+                    },
+                    true)
             };
             schedule.ConfigureForEditor(
                 "ability-schedule:warrior",
@@ -259,12 +267,12 @@ namespace Titanhold.Run.Editor
             if (!schedule.TryCreateSchedule(
                     out RunAbilityUnlockSchedule runtime,
                     out string error) ||
-                runtime.Milestones.Count != 2 ||
-                runtime.Milestones[1].UnlockLevel != 7 ||
-                runtime.Milestones[1].TargetSlotIndex != 2 ||
-                runtime.Milestones[1].OptionCount != 1 ||
-                runtime.Milestones[1].CandidateAbilityIds.Count != 1 ||
-                runtime.Milestones[1].CandidateAbilityIds[0] !=
+                runtime.Milestones.Count != 4 ||
+                runtime.Milestones[0].UnlockLevel != 3 ||
+                runtime.Milestones[0].TargetSlotIndex != 1 ||
+                runtime.Milestones[0].OptionCount != 1 ||
+                runtime.Milestones[0].CandidateAbilityIds.Count != 1 ||
+                runtime.Milestones[0].CandidateAbilityIds[0] !=
                     "ability:whirlwind")
             {
                 throw new InvalidOperationException(

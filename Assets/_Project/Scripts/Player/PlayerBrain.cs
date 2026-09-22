@@ -124,18 +124,7 @@ public class PlayerBrain : MonoBehaviour
 
         if (intent.HasSkillCommand)
         {
-            PlayerSkillCommand command =
-                new PlayerSkillCommand(
-                    intent.SkillSlotIndex,
-                    TargetSelection.CurrentSelection as ITargetable);
-            if (Combat.IsAttacking || Skills?.IsUsingSkill == true)
-            {
-                skillCommandBuffer.TryBuffer(command);
-                return;
-            }
-
-            skillCommandBuffer.Clear();
-            if (TryHandleSkillCommand(command))
+            if (TrySubmitSkillSlotCommand(intent.SkillSlotIndex))
                 return;
         }
 
@@ -239,6 +228,22 @@ public class PlayerBrain : MonoBehaviour
     public void TryAttack(ITargetable target) => Combat.TryAttack(target);
     public bool CanAttack() => Combat.CanAttack();
 
+    public bool TrySubmitSkillSlotCommand(int slotIndex)
+    {
+        if (!isActiveAndEnabled ||
+            isDead ||
+            Input == null ||
+            !Input.GameplayInputEnabled ||
+            TargetSelection == null)
+        {
+            return false;
+        }
+
+        return TrySubmitSkillCommand(new PlayerSkillCommand(
+            slotIndex,
+            TargetSelection.CurrentSelection as ITargetable));
+    }
+
     public void ChangeToIdle() => StateMachine.ChangeState(IdleState);
     public void ChangeToMove() => StateMachine.ChangeState(MoveState);
     public void ChangeToApproach() => StateMachine.ChangeState(ApproachState);
@@ -291,6 +296,18 @@ public class PlayerBrain : MonoBehaviour
         if (StateMachine.CurrentState != SkillApproachState)
             StateMachine.ChangeState(SkillApproachState);
         return true;
+    }
+
+    private bool TrySubmitSkillCommand(PlayerSkillCommand command)
+    {
+        if (!command.IsValid)
+            return false;
+
+        if (Combat.IsAttacking || Skills?.IsUsingSkill == true)
+            return skillCommandBuffer.TryBuffer(command);
+
+        skillCommandBuffer.Clear();
+        return TryHandleSkillCommand(command);
     }
 
     public bool TryApplyPostAbilityAction()

@@ -2,12 +2,13 @@ using System;
 using Titanhold.Combat.Abilities;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Titanhold.UI.Run
 {
     [DisallowMultipleComponent]
-    public sealed class RunAbilitySlotView : MonoBehaviour
+    public sealed class RunAbilitySlotView : MonoBehaviour, IPointerClickHandler
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private Image cooldownOverlay;
@@ -16,7 +17,10 @@ namespace Titanhold.UI.Run
         [SerializeField] private TMP_Text cooldownText;
 
         private string assignedAbilityId = string.Empty;
+        private int renderedSlotIndex = -1;
         private int renderedCooldownSeconds = -1;
+
+        public event Action<int> UseRequested;
 
         public Image IconImage => iconImage;
         public Image CooldownOverlay => cooldownOverlay;
@@ -46,6 +50,7 @@ namespace Titanhold.UI.Run
             string displayName,
             Sprite icon)
         {
+            renderedSlotIndex = slotIndex;
             assignedAbilityId = abilityId?.Trim() ?? string.Empty;
             if (keyText != null)
                 keyText.text = (slotIndex + 1).ToString();
@@ -65,6 +70,24 @@ namespace Titanhold.UI.Run
             }
 
             RenderReady();
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData != null &&
+                eventData.button == PointerEventData.InputButton.Left)
+            {
+                TryRequestUse();
+            }
+        }
+
+        public bool TryRequestUse()
+        {
+            if (renderedSlotIndex < 0 || assignedAbilityId.Length == 0)
+                return false;
+
+            UseRequested?.Invoke(renderedSlotIndex);
+            return true;
         }
 
         public void RenderCooldown(AbilityCooldownSnapshot cooldown)

@@ -19,16 +19,14 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/Scenes/SampleScene.unity";
         private const string AbilityCatalogPath =
             "Assets/_Project/ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset";
-        private const string HeavyStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/HeavyStrike.asset";
-        private const string CrushingStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/CrushingStrike.asset";
-        private const string CleavePath =
-            "Assets/_Project/ScriptableObjects/Abilities/Cleave.asset";
         private const string WhirlwindPath =
             "Assets/_Project/ScriptableObjects/Abilities/Whirlwind.asset";
         private const string ChargePath =
             "Assets/_Project/ScriptableObjects/Abilities/Charge.asset";
+        private const string IronGuardPath =
+            "Assets/_Project/ScriptableObjects/Abilities/IronGuard.asset";
+        private const string BattleCryPath =
+            "Assets/_Project/ScriptableObjects/Abilities/BattleCry.asset";
         private const string SchedulePath =
             "Assets/_Project/ScriptableObjects/Run/WarriorAbilityUnlockSchedule.asset";
         private const string CatalogPath =
@@ -148,41 +146,32 @@ namespace Titanhold.Run.Editor
                 AssetDatabase.CreateAsset(schedule, SchedulePath);
             }
 
-            ScriptableObject[] starterAbilities =
-            {
-                RequireAsset<ScriptableObject>(HeavyStrikePath),
-                RequireAsset<ScriptableObject>(CrushingStrikePath),
-                RequireAsset<ScriptableObject>(CleavePath)
-            };
             RunAbilityUnlockMilestoneDefinition[] milestones =
                 new RunAbilityUnlockMilestoneDefinition[AuthoredLevels.Length];
             milestones[0] = CreateMilestone(
                 AuthoredLevels[0],
                 targetSlotIndex: 1,
-                optionCount: 2,
-                starterAbilities,
+                optionCount: 1,
+                new[] { RequireAsset<ScriptableObject>(WhirlwindPath) },
                 isEnabled: true);
             milestones[1] = CreateMilestone(
                 AuthoredLevels[1],
                 targetSlotIndex: 2,
                 optionCount: 1,
-                new[] { RequireAsset<ScriptableObject>(WhirlwindPath) },
+                new[] { RequireAsset<ScriptableObject>(ChargePath) },
                 isEnabled: true);
             milestones[2] = CreateMilestone(
                 AuthoredLevels[2],
                 targetSlotIndex: 3,
                 optionCount: 1,
-                new[] { RequireAsset<ScriptableObject>(ChargePath) },
+                new[] { RequireAsset<ScriptableObject>(IronGuardPath) },
                 isEnabled: true);
-            for (int i = 3; i < milestones.Length; i++)
-            {
-                milestones[i] = CreateMilestone(
-                    AuthoredLevels[i],
-                    targetSlotIndex: i + 1,
-                    optionCount: 3,
-                    Array.Empty<ScriptableObject>(),
-                    isEnabled: false);
-            }
+            milestones[3] = CreateMilestone(
+                AuthoredLevels[3],
+                targetSlotIndex: 4,
+                optionCount: 1,
+                new[] { RequireAsset<ScriptableObject>(BattleCryPath) },
+                isEnabled: true);
 
             schedule.ConfigureForEditor(
                 ScheduleId,
@@ -322,7 +311,7 @@ namespace Titanhold.Run.Editor
                 if (milestone == null ||
                     milestone.UnlockLevel != AuthoredLevels[i] ||
                     milestone.TargetSlotIndex != i + 1 ||
-                    milestone.IsEnabled != (i <= 2))
+                    !milestone.IsEnabled)
                 {
                     throw new InvalidOperationException(
                         $"Warrior milestone {i} is not configured correctly.");
@@ -331,33 +320,46 @@ namespace Titanhold.Run.Editor
 
             RunAbilityUnlockMilestoneDefinition first =
                 schedule.Milestones[0];
-            if (first.OptionCount != 2 ||
-                first.AbilityDefinitions.Count != 3)
+            if (first.OptionCount != 1 ||
+                first.AbilityDefinitions.Count != 1 ||
+                first.AbilityDefinitions[0] is not IAbilityDefinition whirlwind ||
+                whirlwind.AbilityId != "ability:whirlwind")
             {
                 throw new InvalidOperationException(
-                    "Run level three must offer two of the three starter abilities.");
+                    "Run level three must grant the authored Rage Whirlwind ability.");
             }
 
             RunAbilityUnlockMilestoneDefinition second =
                 schedule.Milestones[1];
             if (second.OptionCount != 1 ||
                 second.AbilityDefinitions.Count != 1 ||
-                second.AbilityDefinitions[0] is not IAbilityDefinition whirlwind ||
-                whirlwind.AbilityId != "ability:whirlwind")
+                second.AbilityDefinitions[0] is not IAbilityDefinition charge ||
+                charge.AbilityId != "ability:charge")
             {
                 throw new InvalidOperationException(
-                    "Run level seven must grant the authored Rage Whirlwind ability.");
+                    "Run level seven must grant the authored Charge ability.");
             }
 
             RunAbilityUnlockMilestoneDefinition third =
                 schedule.Milestones[2];
             if (third.OptionCount != 1 ||
                 third.AbilityDefinitions.Count != 1 ||
-                third.AbilityDefinitions[0] is not IAbilityDefinition charge ||
-                charge.AbilityId != "ability:charge")
+                third.AbilityDefinitions[0] is not IAbilityDefinition guard ||
+                guard.AbilityId != "ability:iron-guard")
             {
                 throw new InvalidOperationException(
-                    "Run level ten must grant the authored Charge ability.");
+                    "Run level ten must grant Iron Guard.");
+            }
+
+            RunAbilityUnlockMilestoneDefinition fourth =
+                schedule.Milestones[3];
+            if (fourth.OptionCount != 1 ||
+                fourth.AbilityDefinitions.Count != 1 ||
+                fourth.AbilityDefinitions[0] is not IAbilityDefinition cry ||
+                cry.AbilityId != "ability:battle-cry")
+            {
+                throw new InvalidOperationException(
+                    "Run level fifteen must grant Battle Cry.");
             }
 
             if (catalog.AbilityCatalog != abilities ||
@@ -367,10 +369,11 @@ namespace Titanhold.Run.Editor
                 !catalog.TryResolve(
                     ArchetypeId,
                     out RunAbilityUnlockSchedule runtimeSchedule) ||
-                runtimeSchedule.Milestones.Count != 3 ||
+                runtimeSchedule.Milestones.Count != 4 ||
                 runtimeSchedule.Milestones[0].UnlockLevel != 3 ||
                 runtimeSchedule.Milestones[1].UnlockLevel != 7 ||
-                runtimeSchedule.Milestones[2].UnlockLevel != 10)
+                runtimeSchedule.Milestones[2].UnlockLevel != 10 ||
+                runtimeSchedule.Milestones[3].UnlockLevel != 15)
             {
                 throw new InvalidOperationException(
                     "Ability unlock schedule catalog is invalid.");

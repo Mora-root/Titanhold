@@ -13,6 +13,10 @@ namespace Titanhold.UI.Run
             Array.Empty<RunAbilitySlotView>();
         [SerializeField] private TMP_Text combatResourceText;
 
+        private readonly List<RunAbilitySlotView> subscribedSlots = new();
+
+        public event Action<int> AbilitySlotPressed;
+
         public int AbilitySlotCount => abilitySlots?.Length ?? 0;
         public IReadOnlyList<RunAbilitySlotView> AbilitySlots =>
             abilitySlots ?? Array.Empty<RunAbilitySlotView>();
@@ -26,12 +30,24 @@ namespace Titanhold.UI.Run
             abilitySlots = configuredSlots ??
                 Array.Empty<RunAbilitySlotView>();
             combatResourceText = configuredCombatResourceText;
+            if (isActiveAndEnabled)
+                RefreshSlotSubscriptions();
         }
 #endif
 
         private void Awake()
         {
             Clear();
+        }
+
+        private void OnEnable()
+        {
+            RefreshSlotSubscriptions();
+        }
+
+        private void OnDisable()
+        {
+            ClearSlotSubscriptions();
         }
 
         public void Clear()
@@ -121,6 +137,40 @@ namespace Titanhold.UI.Run
 
             slot = abilitySlots[slotIndex];
             return slot != null;
+        }
+
+        private void RefreshSlotSubscriptions()
+        {
+            ClearSlotSubscriptions();
+            if (abilitySlots == null)
+                return;
+
+            for (int i = 0; i < abilitySlots.Length; i++)
+            {
+                RunAbilitySlotView slot = abilitySlots[i];
+                if (slot == null || subscribedSlots.Contains(slot))
+                    continue;
+
+                slot.UseRequested += HandleSlotUseRequested;
+                subscribedSlots.Add(slot);
+            }
+        }
+
+        private void ClearSlotSubscriptions()
+        {
+            for (int i = 0; i < subscribedSlots.Count; i++)
+            {
+                RunAbilitySlotView slot = subscribedSlots[i];
+                if (slot != null)
+                    slot.UseRequested -= HandleSlotUseRequested;
+            }
+
+            subscribedSlots.Clear();
+        }
+
+        private void HandleSlotUseRequested(int slotIndex)
+        {
+            AbilitySlotPressed?.Invoke(slotIndex);
         }
 
         private static string NormalizeLabel(string label)

@@ -189,7 +189,9 @@ shared `IRuntimeAbilityDefinition`/`IRuntimeAbilitySnapshot` contract.
 
 The run combat HUD is a passive session-backed view of the five-slot participant
 loadout, combat resource, and read-only actor-local cooldown snapshots. Numeric
-keys 1–5 emit generic slot-index commands; UI never owns gameplay state.
+keys 1–5 and left-clicking an assigned HUD slot emit the same generic slot-index
+command. Clicks capture the selected target through `PlayerBrain` and preserve the
+normal validation and action buffer; UI never owns gameplay state.
 
 `RunLevelAbilitySelectionService` sequences fixed-level ability milestones over
 the shared choice/loadout services. It preserves one pending choice per participant,
@@ -202,12 +204,11 @@ run-level overlay. It presents both ability and upgrade choices, keeps solo time
 and local gameplay input gated across a synchronous chain of crossed milestones,
 and sends only the selected stable option id to the appropriate domain service.
 The view and presenter never own pending choices or selected stacks.
-The warrior schedule authors milestones at Run Levels 3/7/10/15. Level 3 offers
-the two remaining starter abilities and assigns one to the first empty non-starter
-slot. Level 7 is a one-card Whirlwind milestone assigned to the next slot, and
-Level 10 similarly grants Charge. Level 15 remains disabled until its ability
-content exists. The shared 1–3 card overlay pauses solo simulation and suppresses
-local gameplay input while a run-level choice is pending.
+The warrior schedule authors one-card milestones at Run Levels 3/7/10/15 after
+the separate starting choice. They assign Whirlwind, Charge, Iron Guard, and
+Battle Cry respectively to slots two through five. Run-level milestones never
+reuse the three-ability starting pool. The shared 1–3 card overlay pauses solo
+simulation and suppresses local gameplay input while a run-level choice is pending.
 
 An accepted skill command owns movement: it clears the previously stored manual
 destination, while an invalid command leaves movement untouched. Runtime ability
@@ -230,6 +231,8 @@ request this follow-up.
   authored use range, then exposes an immutable movement directive during wind-up.
   Local player movement consumes the directive; it is not hidden inside UI or
   input code. Its release may apply a timed self stat effect.
+- `SelfStatEffectAbilityDefinition`: target-free one-release ability that applies
+  one authored timed stat effect to its source through the shared effect receiver.
 - Targeted and cone damage may author an optional timed stat effect. It applies
   after successful non-lethal damage, so the triggering hit uses existing defense.
   Effect expiry receives explicit simulation time.
@@ -264,6 +267,12 @@ MoveSpeed effect for three seconds. It uses locomotion rather than a skill trigg
 and continues basic attacks against a surviving primary target after recovery.
 The player prefab's generic `TimedStackingStatEffectReceiver` also supports later
 self-buff abilities.
+
+Iron Guard (`ability:iron-guard`) is granted at Run Level 10 and Battle Cry
+(`ability:battle-cry`) at Run Level 15. Both cost 20 primary resource, have a
+20-second cooldown, last eight seconds, and refresh rather than stack with
+themselves. Iron Guard grants `+30%` Increased Armor; Battle Cry grants `+20%`
+Increased Damage.
 
 Spin is not a starter. Generic bounded combat-resource state, per-run participant
 ownership/binding, and idempotent once-per-release successful-damage generation

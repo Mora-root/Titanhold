@@ -29935,6 +29935,7 @@ GameObject:
   - component: {fileID: 2003463662}
   - component: {fileID: 2003463667}
   - component: {fileID: 2003463666}
+  - component: {fileID: 2003463668}
   m_Layer: 5
   m_Name: SkillBar
   m_TagString: Untagged
@@ -30084,6 +30085,21 @@ MonoBehaviour:
   - {fileID: 107518588}
   - {fileID: 265544876}
   combatResourceText: {fileID: 102499744}
+--- !u!114 &2003463668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2003463660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4070520317feea48a08b12f0b6fab38, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.UI.Run.RunCombatHudInputController
+  sessionEntryPoint: {fileID: 407419260}
+  view: {fileID: 2003463667}
+  playerId: player:local
 --- !u!1 &2003849155
 GameObject:
   m_ObjectHideFlags: 0

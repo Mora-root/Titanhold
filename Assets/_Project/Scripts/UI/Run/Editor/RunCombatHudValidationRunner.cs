@@ -80,6 +80,21 @@ namespace Titanhold.UI.Run.Editor
                        !view.TryRenderReady(1),
                     "Combat resource or bounded slot presentation is invalid.");
 
+                int pressedSlotIndex = -1;
+                int pressedCount = 0;
+                view.AbilitySlotPressed += slotIndex =>
+                {
+                    pressedSlotIndex = slotIndex;
+                    pressedCount++;
+                };
+                Assert(slot.TryRequestUse() &&
+                       pressedSlotIndex == 4 &&
+                       pressedCount == 1,
+                    "Assigned ability click did not emit its slot index.");
+                slot.RenderContent(4, string.Empty, string.Empty, null);
+                Assert(!slot.TryRequestUse() && pressedCount == 1,
+                    "Empty ability slot emitted a use request.");
+
                 Debug.Log("Run Combat HUD presentation validation passed.");
             }
             catch (Exception exception)

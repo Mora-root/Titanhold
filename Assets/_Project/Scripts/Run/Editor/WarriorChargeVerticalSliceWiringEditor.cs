@@ -17,14 +17,12 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset";
         private const string SchedulePath =
             "Assets/_Project/ScriptableObjects/Run/WarriorAbilityUnlockSchedule.asset";
-        private const string HeavyStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/HeavyStrike.asset";
-        private const string CrushingStrikePath =
-            "Assets/_Project/ScriptableObjects/Abilities/CrushingStrike.asset";
-        private const string CleavePath =
-            "Assets/_Project/ScriptableObjects/Abilities/Cleave.asset";
         private const string WhirlwindPath =
             "Assets/_Project/ScriptableObjects/Abilities/Whirlwind.asset";
+        private const string IronGuardPath =
+            "Assets/_Project/ScriptableObjects/Abilities/IronGuard.asset";
+        private const string BattleCryPath =
+            "Assets/_Project/ScriptableObjects/Abilities/BattleCry.asset";
 
         [MenuItem("Tools/Titanhold/Install Warrior Charge Ability Content")]
         public static void Install()
@@ -159,35 +157,40 @@ namespace Titanhold.Run.Editor
             RunAbilityUnlockScheduleDefinition schedule,
             TargetedMovementAbilityDefinition charge)
         {
-            ScriptableObject[] starters =
-            {
-                RequireAsset<ScriptableObject>(HeavyStrikePath),
-                RequireAsset<ScriptableObject>(CrushingStrikePath),
-                RequireAsset<ScriptableObject>(CleavePath)
-            };
             ScriptableObject whirlwind =
                 RequireAsset<ScriptableObject>(WhirlwindPath);
             RunAbilityUnlockMilestoneDefinition[] milestones =
             {
-                Milestone(3, 1, 2, starters, true),
+                Milestone(
+                    3,
+                    1,
+                    1,
+                    new[] { whirlwind },
+                    true),
                 Milestone(
                     7,
                     2,
                     1,
-                    new[] { whirlwind },
+                    new ScriptableObject[] { charge },
                     true),
                 Milestone(
                     10,
                     3,
                     1,
-                    new ScriptableObject[] { charge },
+                    new[]
+                    {
+                        RequireAsset<ScriptableObject>(IronGuardPath)
+                    },
                     true),
                 Milestone(
                     15,
                     4,
-                    2,
-                    Array.Empty<ScriptableObject>(),
-                    false)
+                    1,
+                    new[]
+                    {
+                        RequireAsset<ScriptableObject>(BattleCryPath)
+                    },
+                    true)
             };
             schedule.ConfigureForEditor(
                 "ability-schedule:warrior",
@@ -289,12 +292,12 @@ namespace Titanhold.Run.Editor
             if (!schedule.TryCreateSchedule(
                     out RunAbilityUnlockSchedule runtime,
                     out string error) ||
-                runtime.Milestones.Count != 3 ||
-                runtime.Milestones[2].UnlockLevel != 10 ||
-                runtime.Milestones[2].TargetSlotIndex != 3 ||
-                runtime.Milestones[2].OptionCount != 1 ||
-                runtime.Milestones[2].CandidateAbilityIds.Count != 1 ||
-                runtime.Milestones[2].CandidateAbilityIds[0] !=
+                runtime.Milestones.Count != 4 ||
+                runtime.Milestones[1].UnlockLevel != 7 ||
+                runtime.Milestones[1].TargetSlotIndex != 2 ||
+                runtime.Milestones[1].OptionCount != 1 ||
+                runtime.Milestones[1].CandidateAbilityIds.Count != 1 ||
+                runtime.Milestones[1].CandidateAbilityIds[0] !=
                     "ability:charge")
             {
                 throw new InvalidOperationException(

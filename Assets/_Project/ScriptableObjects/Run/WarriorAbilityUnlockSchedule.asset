@@ -18,25 +18,24 @@ MonoBehaviour:
   - isEnabled: 1
     unlockLevel: 3
     targetSlotIndex: 1
-    optionCount: 2
+    optionCount: 1
     abilityDefinitions:
-    - {fileID: 11400000, guid: 9b63db11fced5174e96ffa17ee706fa4, type: 2}
-    - {fileID: 11400000, guid: 73de60b98fd5dcf449102ddb15f6f8fa, type: 2}
-    - {fileID: 11400000, guid: be09518beee326d4aa16bd1b42af48df, type: 2}
+    - {fileID: 11400000, guid: 50c93ab481bc07a46b9181e04a9e2642, type: 2}
   - isEnabled: 1
     unlockLevel: 7
     targetSlotIndex: 2
     optionCount: 1
     abilityDefinitions:
-    - {fileID: 11400000, guid: 50c93ab481bc07a46b9181e04a9e2642, type: 2}
+    - {fileID: 11400000, guid: 5078629eb3e12ba4bbd17fd556c8b7a5, type: 2}
   - isEnabled: 1
     unlockLevel: 10
     targetSlotIndex: 3
     optionCount: 1
     abilityDefinitions:
-    - {fileID: 11400000, guid: 5078629eb3e12ba4bbd17fd556c8b7a5, type: 2}
-  - isEnabled: 0
+    - {fileID: 11400000, guid: e28630076b1adf448a41904529e96fac, type: 2}
+  - isEnabled: 1
     unlockLevel: 15
     targetSlotIndex: 4
-    optionCount: 2
-    abilityDefinitions: []
+    optionCount: 1
+    abilityDefinitions:
+    - {fileID: 11400000, guid: 89697d42024843444af4d7caae47ddd2, type: 2}

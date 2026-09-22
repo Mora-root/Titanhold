@@ -70,6 +70,9 @@ namespace Titanhold.UI.Run.Editor
                 RunCombatHudPresenter presenter =
                     skillBar.GetComponent<RunCombatHudPresenter>() ??
                     skillBar.AddComponent<RunCombatHudPresenter>();
+                RunCombatHudInputController inputController =
+                    skillBar.GetComponent<RunCombatHudInputController>() ??
+                    skillBar.AddComponent<RunCombatHudInputController>();
                 string playerId = entryPoint.Participants[0].PlayerId;
                 view.ConfigureForEditor(slots, resourceText);
                 presenter.ConfigureForEditor(
@@ -78,9 +81,14 @@ namespace Titanhold.UI.Run.Editor
                     playerId,
                     "resource:rage",
                     "Rage");
+                inputController.ConfigureForEditor(
+                    entryPoint,
+                    view,
+                    playerId);
 
                 EditorUtility.SetDirty(view);
                 EditorUtility.SetDirty(presenter);
+                EditorUtility.SetDirty(inputController);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
                     throw new InvalidOperationException("Could not save run scene.");
@@ -116,6 +124,14 @@ namespace Titanhold.UI.Run.Editor
             Transform slotTransform,
             int slotIndex)
         {
+            Graphic clickTarget = slotTransform.GetComponent<Graphic>();
+            if (clickTarget == null)
+            {
+                throw new InvalidOperationException(
+                    $"Ability slot {slotIndex} has no UI graphic click target.");
+            }
+
+            clickTarget.raycastTarget = true;
             RunAbilitySlotView slot =
                 slotTransform.GetComponent<RunAbilitySlotView>() ??
                 slotTransform.gameObject.AddComponent<RunAbilitySlotView>();
@@ -253,17 +269,24 @@ namespace Titanhold.UI.Run.Editor
                 skillBar.GetComponent<RunCombatHudView>();
             RunCombatHudPresenter presenter =
                 skillBar.GetComponent<RunCombatHudPresenter>();
+            RunCombatHudInputController inputController =
+                skillBar.GetComponent<RunCombatHudInputController>();
             RunSceneSessionEntryPoint entryPoint =
                 UnityEngine.Object.FindAnyObjectByType<
                     RunSceneSessionEntryPoint>(
                     FindObjectsInactive.Include);
             if (view == null ||
                 presenter == null ||
+                inputController == null ||
                 presenter.View != view ||
                 presenter.SessionEntryPoint != entryPoint ||
+                inputController.View != view ||
+                inputController.SessionEntryPoint != entryPoint ||
                 entryPoint == null ||
                 entryPoint.Participants.Count != 1 ||
                 presenter.PlayerId != entryPoint.Participants[0].PlayerId ||
+                inputController.PlayerId !=
+                    entryPoint.Participants[0].PlayerId ||
                 presenter.CombatResourceId != "resource:rage" ||
                 view.AbilitySlotCount != AbilitySlotCount ||
                 view.CombatResourceText == null)
@@ -276,9 +299,14 @@ namespace Titanhold.UI.Run.Editor
             for (int i = 0; i < view.AbilitySlotCount; i++)
             {
                 RunAbilitySlotView slot = view.AbilitySlots[i];
+                Graphic clickTarget = slot != null
+                    ? slot.GetComponent<Graphic>()
+                    : null;
                 if (slot == null ||
                     !uniqueSlots.Add(slot) ||
                     slot.transform.parent != skillBar.transform ||
+                    clickTarget == null ||
+                    !clickTarget.raycastTarget ||
                     slot.IconImage == null ||
                     slot.CooldownOverlay == null ||
                     slot.KeyText == null ||
