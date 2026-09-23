@@ -150,16 +150,25 @@ public class PlayerInput : MonoBehaviour
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out RaycastHit hit, 200f, groundMask))
-        {
-            TargetPosition = hit.point;
-            HasPosition = true;
-        }
+            SetMoveTarget(hit.point);
+    }
+
+    public void SetMoveTarget(Vector3 position)
+    {
+        TargetPosition = position;
+        HasPosition = true;
+        RefreshCurrentIntent();
+    }
+
+    public void ClearMoveTarget()
+    {
+        HasPosition = false;
+        RefreshCurrentIntent();
     }
 
     public void ClearAll()
     {
-        HasPosition = false;
-        RefreshCurrentIntent();
+        ClearMoveTarget();
     }
 
     public void SetGameplayInputEnabled(bool enabled)

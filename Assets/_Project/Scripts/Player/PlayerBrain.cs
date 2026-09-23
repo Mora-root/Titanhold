@@ -163,13 +163,11 @@ public class PlayerBrain : MonoBehaviour
 
             if (selectable != null)
             {
+                if (!TrySubmitActionSelection(selectable))
+                    return;
+
                 // Left click on an object also highlights it for the UI
                 TargetSelection.Select(selectable);
-
-                // But the action is stored separately
-                ActionSelection = selectable;
-
-                Input.ClearAll();
                 return;
             }
 
@@ -200,9 +198,22 @@ public class PlayerBrain : MonoBehaviour
         }
     }
 
-    public void SetActionSelection(ISelectable selectable)
+    public bool TrySubmitActionSelection(ISelectable selectable)
     {
+        if (!isActiveAndEnabled ||
+            isDead ||
+            Input == null ||
+            !Input.GameplayInputEnabled ||
+            selectable == null ||
+            !selectable.IsSelectable)
+        {
+            return false;
+        }
+
+        CancelSkillApproach();
+        Input.ClearMoveTarget();
         ActionSelection = selectable;
+        return true;
     }
 
     public void ClearActionSelection()

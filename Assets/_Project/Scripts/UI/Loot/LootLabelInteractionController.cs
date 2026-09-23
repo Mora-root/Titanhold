@@ -64,10 +64,11 @@ namespace Titanhold.UI.Loot
             if (pickup == null || !pickup.IsSelectable)
                 return;
 
+            if (!playerBrain.TrySubmitActionSelection(pickup))
+                return;
+
             if (selectForInspection && playerBrain.TargetSelection != null)
                 playerBrain.TargetSelection.Select(pickup);
-
-            playerBrain.SetActionSelection(pickup);
         }
 
         private void LogMissingLabelManager()

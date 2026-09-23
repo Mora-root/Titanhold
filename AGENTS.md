@@ -217,6 +217,11 @@ basic attacks against their surviving primary target after recovery; a newer
 buffered skill or manual movement command takes precedence. Area attacks do not
 request this follow-up.
 
+An accepted world-action command also owns movement. Clicking a selectable either
+in the world or through its loot label clears the previous manual destination
+before assigning the action target, so completing pickup cannot resume stale
+movement. Invalid or input-gated label clicks do not mutate the current command.
+
 - `AreaDamageAbilityDefinition`: self-centred multi-target release.
 - `TargetedDamageAbilityDefinition`: requires a live non-self target; commit checks
   range, horizontal facing, and optional obstruction. Release rechecks target,
