@@ -81,8 +81,11 @@ them as legacy/future activity code unless explicitly requested.
 - `ExplorationSpawnBalanceDefinition` is the all-or-nothing authored boundary
   for spot profiles. Ordered round milestones control maximum population,
   respawn delay, and weighted stable enemy ids; its plain-C# table resolves the
-  active stage and deterministic weighted selection. Scene zones are not wired
-  to it yet.
+  active stage and deterministic weighted selection. `RunFlowRuntime` owns the
+  built table and `WorldEnemySpawnZone` resolves its profile each round; absent
+  balance data keeps the legacy single-prefab fallback, while assigned invalid
+  data fails explicitly. The current `spot:prototype` preserves 12 skeletons
+  with a ten-second respawn.
 
 ## Session, Progression, and Economy
 
@@ -345,7 +348,8 @@ Current assets:
   `AssaultWave_Boss_Prototype.asset`, `AssaultReward_Prototype.asset`,
   `RunConclusionRewards_Prototype.asset`, `RunProgression_Prototype.asset`,
   `RunRoundBalance_Prototype.asset`, `WarriorAbilityUnlockSchedule.asset`,
-  `WarriorUpgradeUnlockSchedule.asset`, and the eight global-stat definitions in
+  `WarriorUpgradeUnlockSchedule.asset`,
+  `Enemies/ExplorationSpawnBalance_Prototype.asset`, and the eight global-stat definitions in
   `ScriptableObjects/Run/Upgrades/`;
 - catalogs: `ScriptableObjects/Items/ItemDefinitionCatalog.asset`,
   `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`,

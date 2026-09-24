@@ -24816,6 +24816,7 @@ MonoBehaviour:
   startingRound: 1
   roundBalanceDefinition: {fileID: 11400000, guid: 293d8d4635905cd4392e985f4c7fa61c, type: 2}
   enemyDefinitionCatalog: {fileID: 11400000, guid: c8745ff01a4df7543aa5d8fe820423b9, type: 2}
+  explorationSpawnBalanceDefinition: {fileID: 11400000, guid: 4043a248a6c2c0649b8fe7659f39c9d6, type: 2}
 --- !u!4 &1489734143
 Transform:
   m_ObjectHideFlags: 0
@@ -32460,6 +32461,7 @@ MonoBehaviour:
   maxSpawnAttempts: 20
   spawnOnStart: 1
   runFlowRuntime: {fileID: 1489734142}
+  spawnProfileId: spot:prototype
 --- !u!1 &2071258477
 GameObject:
   m_ObjectHideFlags: 0

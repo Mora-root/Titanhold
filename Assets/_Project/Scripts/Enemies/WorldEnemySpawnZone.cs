@@ -15,11 +15,13 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
     [SerializeField] private int maxSpawnAttempts = 10;
     [SerializeField] private bool spawnOnStart = true;
     [SerializeField] private RunFlowRuntime runFlowRuntime;
+    [SerializeField] private string spawnProfileId;
 
     private readonly HashSet<EnemyDeathNotifier> aliveEnemies = new HashSet<EnemyDeathNotifier>();
     private readonly HashSet<RespawnOperation> respawnOperations = new();
     private readonly EnemyScalingApplicator scalingApplicator = new EnemyScalingApplicator();
     private int appliedRound;
+    private ExplorationSpawnStage currentSpawnStage;
 
     public RunFlowRuntime RunFlowRuntime => runFlowRuntime;
 
@@ -34,10 +36,11 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
     private void Start()
     {
+        if (!TryRefreshSpawnStage(appliedRound))
+            return;
+
         if (spawnOnStart)
-        {
             FillToMaxAlive();
-        }
     }
 
     private void OnDisable()
@@ -68,7 +71,7 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
     private void FillToMaxAlive()
     {
-        while (aliveEnemies.Count < maxAlive)
+        while (aliveEnemies.Count < EffectiveMaximumAlive)
         {
             if (!SpawnEnemy())
                 break;
@@ -77,16 +80,19 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
     private bool SpawnEnemy()
     {
-        if (enemyPrefab == null)
+        if (!TryResolveEnemyPrefab(out GameObject selectedPrefab))
             return false;
 
-        if (aliveEnemies.Count >= maxAlive)
+        if (aliveEnemies.Count >= EffectiveMaximumAlive)
             return false;
 
         if (!TryGetSpawnPosition(out Vector3 position))
             return false;
 
-        GameObject createdEnemy = Instantiate(enemyPrefab, position, transform.rotation);
+        GameObject createdEnemy = Instantiate(
+            selectedPrefab,
+            position,
+            transform.rotation);
         EnemyDeathNotifier notifier = createdEnemy.GetComponentInChildren<EnemyDeathNotifier>();
 
         if (notifier == null)
@@ -147,6 +153,7 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
             return;
 
         appliedRound = state.RoundNumber;
+        bool hasSpawnStage = TryRefreshSpawnStage(appliedRound);
         foreach (EnemyDeathNotifier notifier in aliveEnemies)
         {
             if (notifier != null)
@@ -156,6 +163,9 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
                     restoreFullHealth: true);
             }
         }
+
+        if (hasSpawnStage)
+            FillToMaxAlive();
     }
 
     private bool TryApplyCurrentRoundScaling(
@@ -217,8 +227,9 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
 
     private IEnumerator RespawnAfterDelay(RespawnOperation operation)
     {
-        if (respawnDelay > 0f)
-            yield return new WaitForSeconds(respawnDelay);
+        float delay = EffectiveRespawnDelay;
+        if (delay > 0f)
+            yield return new WaitForSeconds(delay);
 
         try
         {
@@ -233,6 +244,77 @@ public sealed class WorldEnemySpawnZone : MonoBehaviour
     private sealed class RespawnOperation
     {
         public Coroutine Coroutine { get; set; }
+    }
+
+    private int EffectiveMaximumAlive =>
+        currentSpawnStage != null
+            ? currentSpawnStage.MaximumAlive
+            : maxAlive;
+
+    private float EffectiveRespawnDelay =>
+        currentSpawnStage != null
+            ? currentSpawnStage.RespawnDelay
+            : respawnDelay;
+
+    private bool TryRefreshSpawnStage(int roundNumber)
+    {
+        currentSpawnStage = null;
+        ExplorationSpawnBalanceTable balance =
+            runFlowRuntime != null
+                ? runFlowRuntime.ExplorationSpawnBalance
+                : null;
+        if (balance == null)
+            return true;
+
+        if (balance.TryResolve(
+                spawnProfileId,
+                roundNumber,
+                out currentSpawnStage))
+        {
+            return true;
+        }
+
+        Debug.LogError(
+            $"Could not resolve exploration spawn profile '{spawnProfileId}' " +
+            $"for round {roundNumber}.",
+            this);
+        return false;
+    }
+
+    private bool TryResolveEnemyPrefab(out GameObject selectedPrefab)
+    {
+        selectedPrefab = null;
+        if (currentSpawnStage == null)
+        {
+            if (runFlowRuntime != null &&
+                runFlowRuntime.ExplorationSpawnBalance != null)
+            {
+                return false;
+            }
+
+            selectedPrefab = enemyPrefab;
+            return selectedPrefab != null;
+        }
+
+        int selection = Random.Range(0, currentSpawnStage.TotalWeight);
+        if (!currentSpawnStage.TrySelectEnemy(
+                selection,
+                out string enemyId) ||
+            runFlowRuntime == null ||
+            runFlowRuntime.EnemyDefinitions == null ||
+            !runFlowRuntime.EnemyDefinitions.TryResolvePrefab(
+                enemyId,
+                out selectedPrefab))
+        {
+            Debug.LogError(
+                $"Could not resolve an enemy prefab for exploration spawn " +
+                $"profile '{spawnProfileId}'.",
+                this);
+            selectedPrefab = null;
+            return false;
+        }
+
+        return true;
     }
 
     private void OnDrawGizmosSelected()

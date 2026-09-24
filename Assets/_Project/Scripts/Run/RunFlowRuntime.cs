@@ -18,12 +18,15 @@ namespace Titanhold.Run
         [SerializeField, Min(1)] private int startingRound = 1;
         [SerializeField] private RunRoundBalanceDefinition roundBalanceDefinition;
         [SerializeField] private EnemyDefinitionCatalog enemyDefinitionCatalog;
+        [SerializeField]
+        private ExplorationSpawnBalanceDefinition explorationSpawnBalanceDefinition;
 
         private RunFlowService service;
         private ExplorationKillApplicationService killApplication;
         private RunPortalEntryApplicationService portalEntry;
         private AssaultEncounterApplicationService assaultEncounter;
         private AssaultRewardApplicationService assaultReward;
+        private ExplorationSpawnBalanceTable explorationSpawnBalance;
 
         public RunFlowService Service
         {
@@ -75,6 +78,10 @@ namespace Titanhold.Run
             enemyDefinitionCatalog;
         public RunRoundBalanceDefinition RoundBalanceDefinition =>
             roundBalanceDefinition;
+        public ExplorationSpawnBalanceTable ExplorationSpawnBalance =>
+            explorationSpawnBalance;
+        public ExplorationSpawnBalanceDefinition ExplorationSpawnBalanceDefinition =>
+            explorationSpawnBalanceDefinition;
 
         public event Action<RunFlowState> StateChanged;
 
@@ -114,6 +121,29 @@ namespace Titanhold.Run
 
             if (roundBalanceDefinition != null)
                 roundBalance = table;
+
+            if (explorationSpawnBalanceDefinition != null)
+            {
+                if (enemyDefinitionCatalog == null ||
+                    !enemyDefinitionCatalog.IsValid)
+                {
+                    string catalogError = enemyDefinitionCatalog != null
+                        ? enemyDefinitionCatalog.ValidationError
+                        : "catalog is missing";
+                    throw new InvalidOperationException(
+                        $"Exploration spawn balance requires valid enemy definitions: " +
+                        $"{catalogError}.");
+                }
+
+                if (!explorationSpawnBalanceDefinition.TryCreateTable(
+                        enemyDefinitionCatalog,
+                        out explorationSpawnBalance,
+                        out string spawnBalanceError))
+                {
+                    throw new InvalidOperationException(
+                        $"Exploration spawn balance is invalid: {spawnBalanceError}");
+                }
+            }
 
             RunFlowConfiguration configuration = new RunFlowConfiguration(
                 maxThreat,
