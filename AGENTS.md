@@ -75,6 +75,9 @@ them as legacy/future activity code unless explicitly requested.
   Authored scene enemies initialize once at run-scene start; dynamic exploration,
   assault, and boss enemies initialize immediately after instantiation and before
   round/instability scaling. Missing bindings or definitions fail the spawn.
+- `Tools/Titanhold/Balance Overview` is a read-only editor projection of the
+  enemy catalog, round table, and RunXP curve. Its validator must pass without
+  mutating those authored assets.
 
 ## Session, Progression, and Economy
 
