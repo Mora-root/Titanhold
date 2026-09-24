@@ -78,6 +78,11 @@ them as legacy/future activity code unless explicitly requested.
 - `Tools/Titanhold/Balance Overview` is a read-only editor projection of the
   enemy catalog, round table, and RunXP curve. Its validator must pass without
   mutating those authored assets.
+- `ExplorationSpawnBalanceDefinition` is the all-or-nothing authored boundary
+  for spot profiles. Ordered round milestones control maximum population,
+  respawn delay, and weighted stable enemy ids; its plain-C# table resolves the
+  active stage and deterministic weighted selection. Scene zones are not wired
+  to it yet.
 
 ## Session, Progression, and Economy
 
