@@ -60,7 +60,7 @@ MonoBehaviour:
     minGeneratedModifiers: 1
     maxGeneratedModifiers: 2
   - kind: 0
-    dropChance: 0.3
+    dropChance: 0
     minAmount: 1
     maxAmount: 2
     item: {fileID: 11400000, guid: 67c73ffa4d1b5994e8030c1cf117527f, type: 2}
@@ -68,7 +68,7 @@ MonoBehaviour:
     minGeneratedModifiers: 0
     maxGeneratedModifiers: 0
   - kind: 0
-    dropChance: 0.503
+    dropChance: 0
     minAmount: 1
     maxAmount: 1
     item: {fileID: 11400000, guid: 5e88c6e9c548f644d80792b3e416148e, type: 2}

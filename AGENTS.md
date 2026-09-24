@@ -285,6 +285,17 @@ exist. The warrior starts each run with `0/8` Rage through its archetype resourc
 loadout. Rage decay and external generation (such as taking damage) are not
 implemented yet; the run combat HUD now displays the bound Rage state.
 
+The player prefab has two reusable flask slots independent from the five run
+ability slots. Health and Primary Resource flasks instantly restore 50% of the
+current maximum and have separate 30-second cooldowns. The universal primary
+resource target resolves through `PlayerResource` (Energy for the warrior and
+Mana for a future mage) and never restores secondary combat resources such as
+Rage. Q/E and left-clicking the two reserved HUD slots emit the same slot-index
+command. Full targets, death, and active cooldown reject use without starting a
+new cooldown; successful use does not interrupt movement, attacks, or abilities.
+The base flasks are static equipped definitions for the vertical slice, not
+inventory items; item levels, affixes, drops, and replacement are later work.
+
 `SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
 20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled
 legacy `PlayerSkillExecutor` and its `SkillData` reference remain intact.
