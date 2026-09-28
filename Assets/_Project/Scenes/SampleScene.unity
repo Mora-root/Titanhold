@@ -11345,6 +11345,7 @@ RectTransform:
   - {fileID: 261413820}
   - {fileID: 1372247510}
   - {fileID: 2463659}
+  - {fileID: 1441489873}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -24501,6 +24502,32 @@ Material:
     - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!1001 &1441489872
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 540920803}
+    m_Modifications:
+    - target: {fileID: 3896271477084538566, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: chapterFlowRuntime
+      value:
+      objectReference: {fileID: 1489734154}
+    - target: {fileID: 9125371185946274362, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_Name
+      value: RunChapterFlowHUD
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+--- !u!224 &1441489873 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+  m_PrefabInstance: {fileID: 1441489872}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1446341238
 GameObject:
   m_ObjectHideFlags: 0
@@ -24752,6 +24779,7 @@ GameObject:
   - component: {fileID: 1489734153}
   - component: {fileID: 1489734152}
   - component: {fileID: 1489734154}
+  - component: {fileID: 1489734155}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -25002,6 +25030,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunChapterFlowRuntime
   definition: {fileID: 11400000, guid: f236c365e78fccd4b9c188bfedc6c2e9, type: 2}
+  sessionEntryPoint: {fileID: 407419260}
+--- !u!114 &1489734155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7540ae705f45cf44ac89104966b7a4a, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunChapterBossPortalSpawner
+  chapterFlowRuntime: {fileID: 1489734154}
+  portalPrefab: {fileID: 5649122592125419343, guid: f30ff7baa0dda1d4292e8062b5268aad, type: 3}
+  localPlayer: {fileID: 8744477821165718855}
+  spawnDistance: 3
+  navMeshSampleDistance: 3
+  heightOffset: 0.05
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0
