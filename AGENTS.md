@@ -49,6 +49,8 @@ contains only technical state and working rules.
 - At full progress, ordinary rewards continue but progress stops. Manual entry and
   collapse expiry share the same transition path and freeze the current boss
   scaling snapshot. There is no assault wave before the chapter boss.
+- In the Editor or a Development Build, `F7` fills the active chapter progress
+  through `RunChapterProgressApplicationService` for portal/collapse testing.
 
 ## Legacy Boundaries — Preserve Until Cutover
 

@@ -7,6 +7,10 @@ namespace Titanhold.Run
     [DisallowMultipleComponent]
     public sealed class RunChapterFlowRuntime : MonoBehaviour
     {
+        private const KeyCode DebugFillProgressKey = KeyCode.F7;
+        private const string DebugProgressSourceId =
+            "source:debug:chapter-progress-fill";
+
         [SerializeField] private RunChapterFlowDefinition definition;
         [SerializeField] private RunSceneSessionEntryPoint sessionEntryPoint;
 
@@ -16,6 +20,7 @@ namespace Titanhold.Run
         private RunChapterTransitionParticipantRoster transitionParticipants;
         private RunChapterBossTransitionApplicationService transitionApplication;
         private string runId = string.Empty;
+        private int debugProgressCommandSequence;
 
         public RunChapterFlowDefinition Definition => definition;
         public RunSceneSessionEntryPoint SessionEntryPoint => sessionEntryPoint;
@@ -81,6 +86,11 @@ namespace Titanhold.Run
 
         private void Update()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (Input.GetKeyDown(DebugFillProgressKey))
+                FillChapterProgressFromDebugCommand();
+#endif
+
             if (service == null ||
                 service.State.Phase != RunChapterPhase.RiftCollapse)
             {
@@ -105,6 +115,64 @@ namespace Titanhold.Run
         public RunChapterFlowResult TryAddProgress(float amount)
         {
             return Service.TryAddProgress(amount, Time.timeAsDouble);
+        }
+
+        [ContextMenu("Debug/Fill Chapter Progress")]
+        public void FillChapterProgressFromDebugCommand()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (!TryFillChapterProgressForDebug(
+                    out RunChapterProgressApplicationResult result))
+            {
+                Debug.LogWarning(
+                    "Chapter progress debug fill was rejected because the " +
+                    "chapter is not in exploration or no registered " +
+                    "participant is available.",
+                    this);
+                return;
+            }
+
+            Debug.Log(
+                $"Filled Chapter {State.ChapterNumber} progress through " +
+                $"debug command '{result.EventId}' for " +
+                $"'{result.ParticipantId}'. Rift Collapse started.",
+                this);
+#endif
+        }
+
+        public bool TryFillChapterProgressForDebug(
+            out RunChapterProgressApplicationResult result)
+        {
+            result = default;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            EnsureInitialized();
+            RunChapterFlowState state = service.State;
+            if (state.Phase != RunChapterPhase.Exploration ||
+                state.IsProgressFull ||
+                !TryGetFirstRegisteredParticipantId(out string participantId))
+            {
+                return false;
+            }
+
+            float remainingProgress =
+                state.MaximumProgress - state.CurrentProgress;
+            int commandSequence = debugProgressCommandSequence++;
+            RunChapterProgressCommand command = new(
+                $"event:debug:chapter-progress-fill:{runId}:{commandSequence}",
+                participantId,
+                new[]
+                {
+                    new RunChapterProgressContribution(
+                        DebugProgressSourceId,
+                        remainingProgress)
+                });
+            result = progressApplication.TryApply(
+                command,
+                Time.timeAsDouble);
+            return result.Success;
+#else
+            return false;
+#endif
         }
 
         public RunChapterBossTransitionApplicationResult TryEnterBossPortal(
@@ -178,6 +246,27 @@ namespace Titanhold.Run
             RunChapterBossTransitionRequest request)
         {
             BossTransitionRequested?.Invoke(request);
+        }
+
+        private bool TryGetFirstRegisteredParticipantId(
+            out string participantId)
+        {
+            participantId = string.Empty;
+            if (sessionEntryPoint == null)
+                return false;
+
+            for (int i = 0; i < sessionEntryPoint.Participants.Count; i++)
+            {
+                RunSceneParticipantBinding participant =
+                    sessionEntryPoint.Participants[i];
+                if (participant == null || !participant.IsValid)
+                    continue;
+
+                participantId = participant.PlayerId;
+                return true;
+            }
+
+            return false;
         }
 
         private string ResolveRunId()

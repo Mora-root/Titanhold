@@ -69,11 +69,14 @@ namespace Titanhold.Run.Editor
                        participantId == "player:validation",
                     "Runtime could not resolve a registered participant.");
 
-                double simulationTime = Time.timeAsDouble;
-                Assert(runtime.Service.TryAddProgress(
-                           100f,
-                           simulationTime).Success,
-                    "Could not begin Rift Collapse.");
+                Assert(runtime.TryFillChapterProgressForDebug(
+                           out RunChapterProgressApplicationResult fillResult) &&
+                       fillResult.AcceptedContributionCount == 1 &&
+                       fillResult.ParticipantId == "player:validation" &&
+                       runtime.State.IsProgressFull &&
+                       runtime.State.Phase == RunChapterPhase.RiftCollapse,
+                    "Debug progress command did not begin Rift Collapse " +
+                    "through the application boundary.");
                 RunChapterBossPortalInteractable portal =
                     portalObject.AddComponent<
                         RunChapterBossPortalInteractable>();
