@@ -1,6 +1,6 @@
 # Titanhold — AI Agent Instructions
 
-## Mission and Scope
+## Mission and Current Stage
 
 Titanhold is a Unity isometric ARPG/RPG prototype. Build the solo vertical slice
 while keeping gameplay state and commands suitable for later host-authoritative
@@ -8,346 +8,155 @@ while keeping gameplay state and commands suitable for later host-authoritative
 
 Active replacement loop:
 
-`continuous exploration/activities → fill chapter progress → Rift Collapse and
-manual boss portal → direct boss encounter → reward/completion`
+`continuous exploration/activities → chapter progress → Rift Collapse and manual
+boss portal → direct boss encounter → reward/completion`
 
-The map remains populated through respawns and later renewable activities. Chapter
-progress, region, and authored world stages increase difficulty; enemies do not
-autolevel directly from the player. Filling progress starts a short collapse window:
-the player may enter immediately, while waiting adds discrete boss-strength stacks
-until forced transition. There is no assault wave before the chapter boss.
+The existing nine-round exploration/assault flow must remain operational until the
+replacement has its portal, presentation, boss transition, and reward path and the
+user explicitly approves cutover. Do not create a hybrid flow.
 
-The existing nine-round exploration/assault implementation remains operational
-until the replacement has its portal, UI, boss transition, and reward path. Preserve
-camp defense, towers, and all other legacy/future activity code unless explicitly
-requested.
+Private design documents outside the repository hold game-design decisions. Do not
+copy them into the repository or Git without explicit permission. `AGENTS.md`
+contains only technical state and working rules.
 
-## Gameplay Invariants
-
-### Chapter Flow (Active Replacement)
+## Active Chapter Flow
 
 - `RunChapterFlowService` is the plain-C# authority for chapter progress,
-  escalation stages, Rift Collapse time, boss-instability stacks, and direct
-  boss/reward/completion phases. `RunChapterFlowRuntime` is its parallel Unity
-  adapter; do not remove or hybridize the active legacy flow before cutover.
-- `RunChapterProgressApplicationService` accepts immutable atomic progress batches
-  from kills, elites, quests, and activities. Stable event/source/participant ids
-  provide replay protection and future co-op attribution.
-- `RunChapterCombatProgressAdapter` is implemented but not scene-wired. It converts
-  participant-attributed multi-target combat reports into one progress event and
-  temporarily reads the existing `EnemyRunContributionSource.ThreatAmount` as the
-  enemy's chapter-progress value. Do not enable it alongside the legacy meter until
-  the new portal/presentation path is ready for cutover.
-- `RunChapterFlowPresentationProjection` exposes an immutable, polling-friendly
-  snapshot of chapter progress, escalation, portal availability, collapse timing,
-  instability, authoritative boss scaling, and forced-transition state. Reading the
-  projection never advances simulation time; future UI must poll fresh snapshots
-  for countdown display instead of deriving values from phase or relying only on
-  `StateChanged`.
-- The prototype chapter definition uses progress `100`, thresholds
-  `0/30/60/85%`, a `120s` collapse, one stack per `20s`, and boss bonuses of
-  `+10%` health and `+5%` damage per stack, capped at six stacks.
-- At full progress, further exploration kills retain their ordinary rewards but do
-  not add progress. Manual portal entry snapshots current boss scaling; expiry
-  forces the same transition with the final snapshot.
-- A universal forward Dash is planned outside the five ability slots with a
-  five-second cooldown. It initially has no invulnerability, but its execution
-  contract must later support an authored evade window.
+  escalation, Rift Collapse time, instability stacks, boss scaling snapshots, and
+  the direct boss/reward/completion phases. `RunChapterFlowRuntime` is its parallel
+  Unity adapter.
+- `RunChapterProgressApplicationService` accepts immutable atomic progress batches.
+  Stable event, source, and participant ids provide replay protection and future
+  co-op attribution.
+- `RunChapterCombatProgressAdapter` converts participant-attributed multi-target
+  combat reports into one progress event. It temporarily reads
+  `EnemyRunContributionSource.ThreatAmount` as chapter progress, is not scene-wired,
+  and must not run beside the legacy meter before cutover.
+- `RunChapterFlowPresentationProjection` exposes an immutable polling-friendly
+  snapshot containing chapter, progress, escalation, phase, portal availability,
+  collapse timing, instability, authoritative boss scaling, and forced-transition
+  state. Reading it never advances simulation time. UI must poll fresh snapshots
+  for countdown display and must not infer game values from phase or recalculate
+  boss scaling.
+- Prototype configuration: progress `100`; thresholds `0/30/60/85%`; collapse
+  `120s`; one instability stack per `20s`, capped at six; each stack adds `10%`
+  boss health and `5%` boss damage.
+- At full progress, ordinary rewards continue but progress stops. Manual entry and
+  collapse expiry share the same transition path and freeze the current boss
+  scaling snapshot. There is no assault wave before the chapter boss.
 
-### Legacy Run and Assault (Preserve Until Cutover)
+## Legacy Boundaries — Preserve Until Cutover
 
-- Filling the meter locks it at maximum and creates a persistent manual portal.
-  Further eligible exploration kills keep their ordinary rewards and add Rift
-  Instability; the portal snapshots that instability when the player enters.
-- Exploration enemies select only explicitly registered run participants through
-  `ExplorationTargetRegistry`; their retained target remains mutable and is
-  reselected when it becomes invalid or leaves detection range. Spawn zones bind
-  dynamic enemies without per-enemy scene searches. `EnemySensor` is a bounded
-  non-allocating fallback for legacy or temporarily unbound content.
-- Assault enemies immediately pursue an eligible participant. Their target is
-  mutable for future aggro, taunts, death, disconnects, and reselection.
-- Assault enemies grant experience but no item loot, exploration threat, or run
-  meter contribution. Encounter rewards come from the reward chest.
-- The encounter reward is rolled once. Its optional one-use chest appears during
-  intermission and emits world pickups when opened.
-- The return portal exists only during regular intermission and restores the saved
-  exploration position.
-- `Skelet_Assault` and `Skelet_Boss_Prototype` are independent from exploration
-  and legacy wave prefabs. Boss abilities and telegraphs are later work.
-- Boss victory opens non-pausing completion UI. The player may collapse it to
-  collect drops. Confirmation moves the run to `Completed`; a separate retryable
-  command captures participants, settles the result, and loads Hub.
-- Explicitly registered participant health determines defeat. The run becomes
-  `Failed` only when no registered participant remains alive. Defeat and abandon
-  record only fully completed rounds and use the same session boundary as victory.
-- Player death clears the state machine and queued action, cancels unreleased
-  attacks/abilities, stops NavMesh movement, and plays the non-looping death
-  animation before defeat UI appears.
+- Preserve the old Threat meter, nine regular rounds, boss round, assault arena,
+  reward chest, return portal, checkpoint/settlement path, camp defense, and towers.
+- Exploration enemies target explicitly registered participants through
+  `ExplorationTargetRegistry`; targets remain mutable and are reselected when
+  invalid or out of range. `EnemySensor` is only a bounded non-allocating fallback.
+- Assault enemies immediately pursue eligible participants. They grant experience
+  but no item loot, exploration threat, or run-meter contribution. Encounter loot
+  comes from the reward chest.
+- `Skelet_Assault` and `Skelet_Boss_Prototype` remain independent from exploration
+  and legacy-wave prefabs.
+- Defeat depends on explicitly registered participant health and occurs only when
+  no participant remains alive. Victory settlement is retry-safe; failed Hub loads
+  must not duplicate rewards.
+- Player death clears state and queued actions, cancels unreleased combat actions,
+  stops NavMesh movement, and completes the death presentation before defeat UI.
 
-### Scaling
+## Balance and Spawning
 
-- `RunRoundBalanceSnapshot` and its resolver are the plain-C# boundary for
-  per-round meter, enemy-stat, and RunXP multipliers.
-  `RunRoundBalanceDefinition` builds the all-or-nothing authored table.
-  `SampleScene` uses `RunRoundBalance_Prototype`: meter thresholds are
-  `120/150/200/250/300/350/400/450/500/500`, and RunXP scales by `+20%`
-  per round. The compatible linear fallback remains for isolated/default tests.
-- Round one uses authored base values. Each completed round adds `+20%` maximum
-  health and `+10%` damage to later-round enemies.
-- Living exploration enemies are rescaled and restored to their new full health
-  when the next exploration round begins.
-- Assault scaling multiplies the current round snapshot by the locked Rift
-  Instability snapshot; never compound previous runtime values.
-- Out-of-combat enemy regeneration is not implemented yet.
-- `EnemyDefinition`/`EnemyDefinitionCatalog` provide the all-or-nothing central
-  enemy-balance registry and immutable base-stat snapshots. The application
-  service and optional `EnemyBaseStatsReceiver` can feed CharacterStats, combat,
-  movement, and detection without changing legacy fallbacks.
-  `EnemyDefinitionInitializationService` resolves a strict stable id before any
-  mutation; `EnemyDefinitionBinding` is the local prefab adapter. Four active
-  enemy definitions and their catalog are wired through `RunFlowRuntime`.
-  Authored scene enemies initialize once at run-scene start; dynamic exploration,
-  assault, and boss enemies initialize immediately after instantiation and before
-  round/instability scaling. Missing bindings or definitions fail the spawn.
-- `Tools/Titanhold/Balance Overview` is a read-only editor projection of the
-  enemy catalog, round table, and RunXP curve. Its validator must pass without
-  mutating those authored assets.
-- `ExplorationSpawnBalanceDefinition` is the all-or-nothing authored boundary
-  for spot profiles. Ordered round milestones control maximum population,
-  respawn delay, and weighted stable enemy ids; its plain-C# table resolves the
-  active stage and deterministic weighted selection. `RunFlowRuntime` owns the
-  built table and `WorldEnemySpawnZone` resolves its profile each round; absent
-  balance data keeps the legacy single-prefab fallback, while assigned invalid
-  data fails explicitly. The current `spot:prototype` preserves 12 skeletons
-  with a ten-second respawn.
+- Enemies do not autolevel directly from the player. Difficulty comes from authored
+  chapter, region, world stage, enemy role, and explicit difficulty modifiers.
+- `RunRoundBalanceSnapshot` and its resolver remain the legacy per-round boundary.
+  `RunRoundBalanceDefinition` builds an all-or-nothing authored table; isolated
+  tests may use the compatible fallback.
+- `EnemyDefinitionCatalog` is the strict all-or-nothing enemy-balance registry.
+  Resolve a stable id before mutation. Authored and dynamically spawned enemies
+  must initialize base stats before round or instability scaling; missing bindings
+  or definitions fail the spawn.
+- `ExplorationSpawnBalanceDefinition` is the strict boundary for spawn profiles.
+  `RunFlowRuntime` owns the built table and `WorldEnemySpawnZone` resolves the
+  active stage. Missing data keeps the legacy single-prefab fallback; assigned
+  invalid data fails explicitly.
+- Scaling always starts from immutable authored base values; never compound prior
+  runtime values. Out-of-combat enemy regeneration is not implemented.
+- `Tools/Titanhold/Balance Overview` is read-only and its validator must not mutate
+  authored assets.
 
-## Session, Progression, and Economy
+## Session, Progression, and UI Boundaries
 
-- The first-build meta layer is the UI-only `HubScene`, not the legacy camp in
-  `SampleScene`. It owns preparation, difficulty selection, and run results.
-- The internal Windows Player is a resizable 1280×720 window. Hub exposes an
-  application quit command; `InternalWindowsBuildEditor` creates the ignored
-  Development Build under `Builds/InternalWindows/`.
-- `GameSessionService` is the outer scene-independent lifecycle around
-  `RunFlowService`. `GameSessionRuntimeHost` is the persistent Unity adapter;
-  discover it once at scene entry rather than exposing a global singleton.
-- `CharacterSnapshotService` atomically captures/restores inventory, equipment
-  instances and modifiers, character level/experience, and gold using stable
-  item-definition ids. Participants enter exploration with full health and class
-  resource after restoration and derived-stat application.
-- Solo pause stops world time. Local input suppression remains separate so future
-  co-op pause need not stop shared simulation.
+- `HubScene` is the first-build UI-only meta layer. `GameSessionService` owns the
+  scene-independent lifecycle; `GameSessionRuntimeHost` is the persistent Unity
+  adapter and is discovered once at scene entry, not exposed as a global singleton.
+- `CharacterSnapshotService` atomically captures and restores inventory, equipment,
+  character progression, and gold through stable definition ids. Participants enter
+  exploration with full health and primary resource after derived stats apply.
+- Lifetimes remain separate:
+  - run/participant: RunXP, RunLevel, RunGold, run abilities, upgrades, relics, and
+    temporary state;
+  - character: character experience, level, talents, abilities, and equipment;
+  - account: crystals and account-wide unlocks;
+  - ordinary crafting reagents: stackable inventory items.
+- `GameSessionRuntime` owns participant progression, combat-resource rosters,
+  account wallet, five-slot run loadouts, choices, upgrades, and readiness. Run
+  state survives retryable run/Hub transitions and clears only at the defined
+  session boundary.
+- Ability and upgrade offers are deterministic, participant-scoped, replay-safe,
+  and stable-id based. Catalogs and unlock schedules are all-or-nothing.
+  `RunLevelRewardSelectionService` serializes crossed milestones so only one choice
+  is pending for a participant.
+- `RunUpgradeStatApplicationService` reconciles authoritative stacks onto
+  replaceable gateways while preserving other modifier sources. Repeated
+  `Increased` modifiers add; repeated `More` modifiers multiply. Max-health changes
+  preserve absolute current health and clamp only when necessary.
+- The Hub does not seed a starter ability. The run scene gates solo simulation and
+  local input until the deterministic starter choice is accepted and readiness is
+  sealed.
+- Run HUDs and choice views are passive projections. They emit slot indices or
+  stable option ids; controllers and domain services validate and mutate state.
+  Solo pause and local input suppression remain separate for future co-op.
+- `EnemyRewardSource` is data-only. Player-attributed combat reports award RunXP
+  through `RunProgressionCombatAdapter`; world gold credits the participant run
+  wallet. `PlayerGold` is compatibility-only.
+- Conclusion rewards are deterministic and settle once for character experience
+  and account crystals, even when the Hub load must be retried.
+- `ItemDefinitionCatalog` must include every project-owned `ItemDefinition` under
+  `Assets/_Project/ScriptableObjects`, including loot-table-only definitions.
+  Invalid item or ability catalogs never expose partial subsets.
 
-Lifetimes are separate:
+## Combat and Ability Contracts
 
-- per run and participant: RunXP, RunLevel, RunGold, run abilities, upgrades,
-  relics, and temporary state;
-- per character: character experience, level, talents, abilities, and equipment;
-- per account: crystals and account-wide unlocks;
-- inventory items: ordinary crafting reagents remain stackable items.
-
-The run-upgrade foundation uses all-or-nothing stable-id definition catalogs and
-participant-scoped `RunUpgradeChoiceService` state. Offers are deterministic,
-contain unique options, and may select the same upgrade again in later offers to
-add another stack. `RunLevelRewardSelectionService` serializes crossed ability and
-upgrade milestones by level so only one participant choice is pending at a time.
-`GameSessionRuntime` owns these services for the run and preserves them across a
-retryable Hub transition. The warrior schedule offers three global-stat choices at
-every authored non-ability level through level 20.
-`RunUpgradeStatApplicationService` projects the authoritative participant stacks
-onto replaceable stat gateways. It reconciles late binding, preserves non-run
-modifier sources, and clears only `RunUpgrade` sources at the session boundary.
-Repeated modifiers remain separate so `Increased` stacks add while `More` stacks
-multiply. Maximum-health changes preserve absolute current health and only clamp
-downward. `RunSceneSessionEntryPoint` binds each resolved participant's live
-`CharacterStats` to this projection and unbinds it during scene teardown or a
-rejected entry.
-`RunUpgradeHudPresenter` is a passive session-backed projection of that same
-participant upgrade state. `SampleScene` shows unique selected upgrades in a
-top-left vertical column, preserves first-selection order, and aggregates repeated
-selections as `×N`; late binding rebuilds the list from selection history. The
-disabled legacy `WaveHUD` remains untouched.
-
-Conclusion rewards are deterministic from outcome, completed rounds, difficulty,
-and victory bonus. The first successful settlement awards character experience to
-each participant and account crystals once. Settlement survives a failed Hub load,
-so retry cannot duplicate rewards.
-
-`EnemyRewardSource` is data-only. Player-attributed `CombatExecutionReport`
-batches award RunXP through `RunProgressionCombatAdapter`, which maps combat actors
-to participant ids, handles multi-target executions once, and applies the current
-round's RunXP multiplier to the summed base reward with deterministic rounding.
-The current prototype RunXP curve has 20 levels, requires 70 XP for level two,
-and adds 25 XP to each later level requirement.
-World gold pickups
-credit that participant's run wallet through its progression gateway. `PlayerGold`
-is compatibility-only and must not define durable save data.
-
-The player prefab includes a development-only RunXP debug controller. In the
-Editor or a Development Build, `F6` grants 500 RunXP through the participant
-progression gateway; the component context menu exposes the same command. It does
-not mutate progression in non-development builds.
-
-`GameSessionRuntime` owns the active per-participant progression and combat-resource
-rosters, account wallet, five-slot run ability loadouts, ability-choice service,
-and start-readiness roster. These survive retryable run/Hub transitions and clear
-only after entering Hub or cancelling launch. Ability ownership and slot commands
-use stable ids; replacement and movement are atomic.
-
-General ability offers are deterministic, exclude already owned definitions, allow
-one pending choice per participant, and cannot replay a resolved choice id.
-
-Starter selection rules:
-
-- a participant without a seeded ability receives one deterministic
-  `choice:starting` offer for slot zero;
-- the offer contains exactly three unique definitions resolved from the stable
-  character-archetype pool;
-- successful selection grants/assigns the ability and confirms readiness;
-- changing confirmed slot zero revokes readiness until it is confirmed again;
-- Hub creates the run transition immediately; the run scene activates only after
-  its readiness roster is sealed;
-- presentation preserves rolled order and never rerolls or mutates the offer;
-- the view emits only an option index; coordinator/domain services own validation.
-
-The Hub does not seed an ability. It loads `SampleScene` in the transition phase;
-the in-run start gate pauses solo simulation and suppresses local gameplay input
-while the wired three-card overlay is open. Selecting one option seals readiness,
-activates the run, closes the overlay, and starts the first round. The warrior
-starter pool and catalogs are connected through the persistent host in `HubScene`.
-
-## Combat and Abilities
-
-`AbilityExecutionService` is plain C# for one-release abilities: actor-local
-cooldowns, immutable commit snapshots, explicit simulation time, and execution-id
-checked release/finish/cancellation. Resource gateways reject unaffordable spends
-without mutation and defer notifications until the enclosing command returns.
-Definitions may add one stable-id combat-resource cost to the primary class-resource
-cost. A read-only availability preflight rejects an insufficient amount of either
-resource or an active cooldown before skill approach; the actual commit atomically
-rechecks and spends both resources. Resource and cooldown commit only when execution
-actually starts. Animation events never authorize effects on the replacement path.
-
-Player skill commands capture the explicitly selected target when input is issued,
-including while buffered behind another action. Runtime definitions implement the
-shared `IRuntimeAbilityDefinition`/`IRuntimeAbilitySnapshot` contract.
-
-The run combat HUD is a passive session-backed view of the five-slot participant
-loadout, combat resource, and read-only actor-local cooldown snapshots. Numeric
-keys 1–5 and left-clicking an assigned HUD slot emit the same generic slot-index
-command. Clicks capture the selected target through `PlayerBrain` and preserve the
-normal validation and action buffer; UI never owns gameplay state.
-
-`RunLevelAbilitySelectionService` sequences fixed-level ability milestones over
-the shared choice/loadout services. It preserves one pending choice per participant,
-uses deterministic run/participant/milestone seeds, and queues crossed milestones
-by level without fixing their authored levels, option counts, or candidate pools.
-`RunAbilityUnlockScheduleCatalog` is the all-or-nothing archetype resolver for
-those authored schedules; `GameSessionRuntime` owns the optional per-run service.
-`RunLevelRewardSelectionController` is the single owner of the shared three-card
-run-level overlay. It presents both ability and upgrade choices, keeps solo time
-and local gameplay input gated across a synchronous chain of crossed milestones,
-and sends only the selected stable option id to the appropriate domain service.
-The view and presenter never own pending choices or selected stacks.
-The warrior schedule authors one-card milestones at Run Levels 3/7/10/15 after
-the separate starting choice. They assign Whirlwind, Charge, Iron Guard, and
-Battle Cry respectively to slots two through five. Run-level milestones never
-reuse the three-ability starting pool. The shared 1–3 card overlay pauses solo
-simulation and suppresses local gameplay input while a run-level choice is pending.
-
-An accepted skill command owns movement: it clears the previously stored manual
-destination, while an invalid command leaves movement untouched. Runtime ability
-snapshots carry a semantic post-action policy. Targeted and cone attacks continue
-basic attacks against their surviving primary target after recovery; a newer
-buffered skill or manual movement command takes precedence. Area attacks do not
-request this follow-up.
-
-An accepted world-action command also owns movement. Clicking a selectable either
-in the world or through its loot label clears the previous manual destination
-before assigning the action target, so completing pickup cannot resume stale
-movement. Invalid or input-gated label clicks do not mutate the current command.
-
-- `AreaDamageAbilityDefinition`: self-centred multi-target release.
-- `TargetedDamageAbilityDefinition`: requires a live non-self target; commit checks
-  range, horizontal facing, and optional obstruction. Release rechecks target,
-  obstruction, and authored grace range, but not facing.
-- Targeted preflight returns ready/repositionable/invalid without spending. The
-  approach state paths for range/obstruction, rotates at normal speed for facing,
-  commits only when valid, and is cancelled by manual movement.
-- `ConeDamageAbilityDefinition`: uses the selected target for approach/facing, then
-  releases one report over unique targets in the forward sector. The primary target
-  takes full damage; secondary targets currently use an authored `30%` multiplier.
-- `TargetedMovementAbilityDefinition`: approaches until the selected target is in
-  authored use range, then exposes an immutable movement directive during wind-up.
-  Local player movement consumes the directive; it is not hidden inside UI or
-  input code. Its release may apply a timed self stat effect.
-- `SelfStatEffectAbilityDefinition`: target-free one-release ability that applies
-  one authored timed stat effect to its source through the shared effect receiver.
-- Targeted and cone damage may author an optional timed stat effect. It applies
-  after successful non-lethal damage, so the triggering hit uses existing defense.
-  Effect expiry receives explicit simulation time.
-
-`TimedStackingStatEffectService` aggregates stacks by effect and combat source,
-refreshes one shared expiry, enforces the cap, and replaces one sourced stat
-modifier atomically. `TimedStackingStatEffectReceiver` is connected with an
-explicit `CharacterStats` reference on the four active enemy prefabs. Their stat
-configs remain unset, so authored health continues using `Health` fallback values
-and base Armor remains zero. Cross-player/global co-op cap rules are not defined.
-
-Warrior starter set:
-
-- Heavy Strike (`ability:heavy-strike`): one target, `2.5x` damage, generates one
-  Rage;
-- Crushing Strike (`ability:crushing-strike`): `1.5x` damage, generates one Rage,
-  and applies five possible stacks of `-5%` armor with an eight-second shared
-  duration;
-- Cleave: `1.5x` damage to the selected target, 30% of that damage to other
-  forward-sector targets, and no Rage generation.
-
-Whirlwind (`ability:whirlwind`) is the Run Level 7 area attack: a self-centred
-`2x` hit in a 2.5 radius, costing 20 primary resource and two Rage with an
-eight-second cooldown. It uses the existing Spin animation but is an independent
-run ability definition.
-
-Charge (`ability:charge`) is the Run Level 10 targeted movement ability. It costs
-20 primary resource, has a ten-second cooldown and an eight-unit use range, moves
-at `8x` the actor's current move speed during its 0.4-second wind-up, and stops
-1.25 units from the target. Release grants one non-stacking `+20%` Increased
-MoveSpeed effect for three seconds. It uses locomotion rather than a skill trigger
-and continues basic attacks against a surviving primary target after recovery.
-The player prefab's generic `TimedStackingStatEffectReceiver` also supports later
-self-buff abilities.
-
-Iron Guard (`ability:iron-guard`) is granted at Run Level 10 and Battle Cry
-(`ability:battle-cry`) at Run Level 15. Both cost 20 primary resource, have a
-20-second cooldown, last eight seconds, and refresh rather than stack with
-themselves. Iron Guard grants `+30%` Increased Armor; Battle Cry grants `+20%`
-Increased Damage.
-
-Spin is not a starter. Generic bounded combat-resource state, per-run participant
-ownership/binding, and idempotent once-per-release successful-damage generation
-exist. The warrior starts each run with `0/8` Rage through its archetype resource
-loadout. Rage decay and external generation (such as taking damage) are not
-implemented yet; the run combat HUD now displays the bound Rage state.
-
-The player prefab has two reusable flask slots independent from the five run
-ability slots. Health and Primary Resource flasks instantly restore 50% of the
-current maximum and have separate 30-second cooldowns. The universal primary
-resource target resolves through `PlayerResource` (Energy for the warrior and
-Mana for a future mage) and never restores secondary combat resources such as
-Rage. Q/E and left-clicking the two reserved HUD slots emit the same slot-index
-command. Full targets, death, and active cooldown reject use without starting a
-new cooldown; successful use does not interrupt movement, attacks, or abilities.
-The base flasks are static equipped definitions for the vertical slice, not
-inventory items; item levels, affixes, drops, and replacement are later work.
-
-`SpinAbility.asset` remains the direct-scene fallback: stable id `ability:spin`,
-20 resource, 3-second cooldown, 1.5 damage multiplier, 2.5 radius. The disabled
-legacy `PlayerSkillExecutor` and its `SkillData` reference remain intact.
-
-Definition catalogs are all-or-nothing: null entries, malformed/duplicate ids, or
-unresolved pool abilities invalidate the whole catalog. Live ability slot binding
-must reflect replacement without rebuilding the player executor.
+- `AbilityExecutionService` is the plain-C# authority for one-release abilities:
+  actor-local cooldowns, immutable commit snapshots, explicit simulation time, and
+  execution-id checked release, finish, and cancellation.
+- Availability preflight checks cooldown and all required resources before
+  approach. Commit atomically rechecks and spends resources and starts cooldown;
+  animation events never authorize replacement-path effects.
+- Player skill commands capture the explicitly selected target when issued,
+  including while buffered. One next action is retained. Invalid commands do not
+  mutate movement; accepted skill or world-action commands own movement and clear
+  stale manual destinations.
+- Runtime abilities use the shared `IRuntimeAbilityDefinition` and
+  `IRuntimeAbilitySnapshot` contracts. Targeted and cone attacks may request basic
+  attack continuation after recovery; area/self abilities do not. Newer buffered
+  skills or movement take precedence.
+- Targeted execution validates target, range, facing, and optional obstruction at
+  commit, then target, obstruction, and grace range at release. Facing is not
+  rechecked at release. Targeted movement exposes an immutable movement directive
+  consumed by local player movement.
+- Timed effects group stacks by effect and combat source, refresh one shared expiry,
+  enforce caps, and replace one sourced stat modifier atomically. Expiry uses
+  explicit simulation time.
+- Current warrior run abilities and their balance live in the ability definitions
+  and unlock schedule assets. Do not duplicate their values in executors or UI.
+  `SpinAbility.asset` remains a direct-scene fallback and Spin is not a starter.
+- Rage uses the generic participant-owned bounded combat-resource foundation.
+  Decay and external generation are not implemented. Health and primary-resource
+  flasks are independent from the five run slots and never restore secondary
+  resources.
+- A universal forward Dash is planned outside the five run slots. Its future
+  execution contract must support an authored evade window; do not implement later
+  Dash stages early.
 
 ## Project Map and Search
 
@@ -355,72 +164,60 @@ Start in the smallest relevant project-owned folder and use exact names with `rg
 Prefer `Assets/_Project/`; do not begin in scenes, large assets, or imported/sample
 packages. Report unrelated dirty files without inspecting or modifying them.
 
-- `Scripts/Run/`: run flow, portals, arena, assault, registries, validators.
+- `Scripts/Run/`: chapter/legacy run flow, portals, arena, registries, validators.
 - `Scripts/Session/`: Hub/run lifecycle, participants, snapshots, results.
-- `Scripts/Combat/`: damage, identities, attacks, abilities, effects.
-- `Scripts/Enemies/`: AI, mutable targeting, death, reward integration.
+- `Scripts/Combat/`: damage, identities, abilities, resources, effects.
+- `Scripts/Enemies/`: AI, mutable targeting, death, rewards.
 - `Scripts/Player/`: input-facing components, states, runtime adapters.
 - `Scripts/UI/`: passive views and interaction controllers.
 - `Scripts/Inventory/`, `Equipment/`, `Loot/`, `Progression/`: named systems.
 - `Scripts/Core/`: shared runtime utilities and stats.
-- `Scripts/Threat/`, `Camp/`, `Towers/`: legacy/out of current scope unless asked.
+- `Scripts/Threat/`, `Camp/`, `Towers/`: legacy/out of scope unless requested.
 
-For run/arena work start in `Scripts/Run/`. For targeting, start from the exact
-provider/state in `Scripts/Enemies/`, then inspect `EnemyBrain`; avoid legacy
-`WaveEnemyTargetProvider` unless targeting the old flow.
+For run/arena work start in `Scripts/Run/`. For enemy targeting start from the
+exact provider/state in `Scripts/Enemies/`, then inspect `EnemyBrain`; avoid
+`WaveEnemyTargetProvider` unless working on legacy flow.
 
-Current assets:
-
-- scenes: `Scenes/HubScene.unity`, `Scenes/SampleScene.unity`;
-- enemies: `Prefabs/Enemy/Skelet_Assault.prefab`,
-  `Prefabs/Enemy/Skelet_Boss_Prototype.prefab`; exploration targeting is wired on
-  `Prefabs/Enemy/Skelet.prefab` and `Prefabs/Enemy/Skelet_Warrior.prefab`;
-- run prefabs: `Prefabs/Run/AssaultRewardChest.prefab`,
-  `Prefabs/Run/AssaultReturnPortal.prefab`;
-- UI: `Prefabs/UI/RunCompletionUI.prefab`, `Prefabs/UI/RunPauseUI.prefab`;
-- definitions: `ScriptableObjects/Run/AssaultWave_Prototype.asset`,
-  `AssaultWave_Boss_Prototype.asset`, `AssaultReward_Prototype.asset`,
-  `RunConclusionRewards_Prototype.asset`, `RunProgression_Prototype.asset`,
-  `RunRoundBalance_Prototype.asset`, `WarriorAbilityUnlockSchedule.asset`,
-  `WarriorUpgradeUnlockSchedule.asset`,
-  `Enemies/ExplorationSpawnBalance_Prototype.asset`, and the eight global-stat definitions in
-  `ScriptableObjects/Run/Upgrades/`;
-- catalogs: `ScriptableObjects/Items/ItemDefinitionCatalog.asset`,
-  `ScriptableObjects/Abilities/AbilityDefinitionCatalog.asset`,
-  `ScriptableObjects/Run/AbilityUnlockScheduleCatalog.asset`,
-  `ScriptableObjects/Run/RunUpgradeDefinitionCatalog.asset`, and
-  `ScriptableObjects/Run/UpgradeUnlockScheduleCatalog.asset`;
-- `Prefabs/Old/`: legacy only.
-
-Never start in imported folders including `HDRPDefaultResources`, asset packs,
-`TerrainSampleAssets`, `TextMesh Pro`, `TutorialInfo`, or `Settings`.
+Primary scenes are `Scenes/HubScene.unity` and `Scenes/SampleScene.unity`. Active
+project assets live under `Assets/_Project/ScriptableObjects` and
+`Assets/_Project/Prefabs`; `Prefabs/Old` is legacy. Never start in imported folders
+such as `HDRPDefaultResources`, asset packs, `TerrainSampleAssets`, `TextMesh Pro`,
+`TutorialInfo`, or `Settings`.
 
 ## Architecture Rules
 
-- `ScriptableObject`: static definitions and balance data.
+- `ScriptableObject`: static definitions and authored balance.
 - Plain C#: runtime state and core rules.
-- Service: use case and mutation boundary.
+- Service: use-case and mutation boundary.
 - `MonoBehaviour`: Unity lifecycle, adapter, or serialized wiring.
 - UI view: rendering and user-event emission only; controllers translate events
   into commands. UI never mutates gameplay models directly.
 - Keep domain rules independent from UI, camera, physical input, animation events,
   and scene-only objects.
-- Prefer practical composition over broad managers/speculative abstractions.
+- Prefer practical composition over broad managers and speculative abstractions.
 - Avoid global mutable state, per-frame logs, per-enemy scene searches, and
   per-enemy physics scans as authoritative targeting.
-- For future co-op, use stable definition ids, explicit runtime entity ids,
-  replaceable participant/target rosters, commands for mutations, and serializable
-  state only where it has current value.
+- For future co-op use stable definition ids, explicit participant/runtime entity
+  ids, replaceable rosters, validated mutation commands, deterministic offers, and
+  serializable state only where it has current value.
 
-`ItemDefinitionCatalog` must include every project-owned `ItemDefinition` under
-`Assets/_Project/ScriptableObjects`, including loot-table-only definitions. Invalid
-item or ability catalogs must never expose a partially valid subset.
+## Agent Orchestration
+
+- The primary chat implements small and medium sequential stages directly.
+- Use a subagent only for large independent work or parallel research when the
+  separate context materially saves time.
+- After subagent work, review its diff and architectural boundaries. Do not
+  automatically repeat the entire execution cycle; repeat Unity compilation and
+  validators only when the change carries relevant risk or the result is uncertain.
+- Prefer one long agent wait over repeated short polling, use direct Unity MCP
+  tools, and avoid broad tool-catalog dumps.
+- Do not estimate usage percentages without available usage statistics.
 
 ## Staging and Safety
 
 - Follow the current stage; do not implement later stages early.
-- Build replacements side-by-side. Keep legacy working until separately approved
-  cleanup; do not create hybrid legacy/new flows unless requested.
+- Build replacements side-by-side and keep legacy working until explicit cutover
+  approval. Cleanup or deletion requires a later explicit stage.
 - Scenes, prefabs, ScriptableObjects, settings, packages, imported assets, and
   serialized references require explicit approval for the current stage.
 - Do not delete assets, components, GameObjects, or serialized references without
@@ -432,26 +229,22 @@ item or ability catalogs must never expose a partially valid subset.
 
 ## Validation and Handoff
 
-After code changes, recompile and run the narrowest applicable Unity checks:
+After code changes, recompile and run only the narrowest relevant
+`Tools/Titanhold/...` validators. Expand checks only when the integration boundary
+changed or results are uncertain.
 
-- catalogs/loadouts: Ability Definition Resolution, Ability Definition Catalog
-  Wiring, Run Ability Choices;
-- starting choice: Run Start Ability Readiness, Starting Ability Selection,
-  Starting Ability Pools, and their UI/wiring validators;
-- execution: Ability Execution Foundation, Combat Resources, Run Combat Resources,
-  Area Damage Ability, Targeted Damage Ability, Cone Damage Ability, Timed Stacking
-  Stat Effects;
-- sequencing/wiring: Player Skill Command Buffer, Spin Ability Wiring, and the
-  Spin Ability Play Mode smoke test from saved `SampleScene`;
-- run: assault arena/target selection, Round Enemy Scaling, Assault Enemy Scaling,
-  Assault Reward and wiring, Boss Encounter Wiring, Run Completion UI Wiring, Run
-  Pause Wiring, Exploration Target Selection/Wiring, and the Run Flow Play Mode
-  smoke test as relevant.
+- Chapter flow: Chapter Flow, Progress Application, Combat Progress Adapter, and
+  Chapter Presentation validators as applicable.
+- Ability foundations: Ability Execution, Combat Resources, damage-shape, timed
+  effect, catalog/loadout, and command-buffer validators as applicable.
+- Session/UI wiring: starting choice/readiness, run-level rewards, combat HUD,
+  completion, pause, and relevant wiring validators.
+- Legacy run integration: target selection, enemy scaling, assault reward/boss,
+  and Run Flow Play Mode smoke tests only when those boundaries change.
 
-Use the Console/MCP and `Tools/Titanhold/...` validators. Run broader smoke tests
-only when their integration boundary changed. Restore `HubScene` after Play Mode
-checks and remove automatically generated TMP fallback-cache diffs.
+Use direct Unity MCP tools and inspect Console errors. Restore `HubScene` after
+Play Mode checks and remove automatically generated TMP fallback-cache diffs.
 
 Handoff concisely: changed behavior/files, validation results, remaining warnings
-or errors, unrelated dirty files, intentionally untouched systems/assets, manual
-Unity check required, and proposed commit title.
+or errors, unrelated dirty files, intentionally untouched systems/assets, required
+manual Unity check, and a proposed commit title.
