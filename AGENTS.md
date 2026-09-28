@@ -32,8 +32,12 @@ requested.
   adapter; do not remove or hybridize the active legacy flow before cutover.
 - `RunChapterProgressApplicationService` accepts immutable atomic progress batches
   from kills, elites, quests, and activities. Stable event/source/participant ids
-  provide replay protection and future co-op attribution. Runtime sources are not
-  wired to it yet.
+  provide replay protection and future co-op attribution.
+- `RunChapterCombatProgressAdapter` is implemented but not scene-wired. It converts
+  participant-attributed multi-target combat reports into one progress event and
+  temporarily reads the existing `EnemyRunContributionSource.ThreatAmount` as the
+  enemy's chapter-progress value. Do not enable it alongside the legacy meter until
+  the new portal/presentation path is ready for cutover.
 - The prototype chapter definition uses progress `100`, thresholds
   `0/30/60/85%`, a `120s` collapse, one stack per `20s`, and boss bonuses of
   `+10%` health and `+5%` damage per stack, capped at six stacks.
