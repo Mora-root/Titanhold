@@ -6,21 +6,45 @@ Titanhold is a Unity isometric ARPG/RPG prototype. Build the solo vertical slice
 while keeping gameplay state and commands suitable for later host-authoritative
 4–8 player co-op. Do not implement networking yet.
 
-Current loop:
+Active replacement loop:
 
-`exploration/farming → fill run meter → manual portal → separate assault arena →
-assault encounter → intermission/reward → return to the same exploration location`
+`continuous exploration/activities → fill chapter progress → Rift Collapse and
+manual boss portal → direct boss encounter → reward/completion`
 
-There are nine regular rounds. Round ten includes exploration, then its portal
-starts the final boss. Boss victory enters final intermission; it must not create
-a return portal or advance to round eleven.
+The map remains populated through respawns and later renewable activities. Chapter
+progress, region, and authored world stages increase difficulty; enemies do not
+autolevel directly from the player. Filling progress starts a short collapse window:
+the player may enter immediately, while waiting adds discrete boss-strength stacks
+until forced transition. There is no assault wave before the chapter boss.
 
-Camp defense, towers, and the legacy wave flow are outside this slice. Preserve
-them as legacy/future activity code unless explicitly requested.
+The existing nine-round exploration/assault implementation remains operational
+until the replacement has its portal, UI, boss transition, and reward path. Preserve
+camp defense, towers, and all other legacy/future activity code unless explicitly
+requested.
 
 ## Gameplay Invariants
 
-### Run and Assault
+### Chapter Flow (Active Replacement)
+
+- `RunChapterFlowService` is the plain-C# authority for chapter progress,
+  escalation stages, Rift Collapse time, boss-instability stacks, and direct
+  boss/reward/completion phases. `RunChapterFlowRuntime` is its parallel Unity
+  adapter; do not remove or hybridize the active legacy flow before cutover.
+- `RunChapterProgressApplicationService` accepts immutable atomic progress batches
+  from kills, elites, quests, and activities. Stable event/source/participant ids
+  provide replay protection and future co-op attribution. Runtime sources are not
+  wired to it yet.
+- The prototype chapter definition uses progress `100`, thresholds
+  `0/30/60/85%`, a `120s` collapse, one stack per `20s`, and boss bonuses of
+  `+10%` health and `+5%` damage per stack, capped at six stacks.
+- At full progress, further exploration kills retain their ordinary rewards but do
+  not add progress. Manual portal entry snapshots current boss scaling; expiry
+  forces the same transition with the final snapshot.
+- A universal forward Dash is planned outside the five ability slots with a
+  five-second cooldown. It initially has no invulnerability, but its execution
+  contract must later support an authored evade window.
+
+### Legacy Run and Assault (Preserve Until Cutover)
 
 - Filling the meter locks it at maximum and creates a persistent manual portal.
   Further eligible exploration kills keep their ordinary rewards and add Rift

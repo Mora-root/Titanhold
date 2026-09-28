@@ -9,6 +9,7 @@ namespace Titanhold.Run
         [SerializeField] private RunChapterFlowDefinition definition;
 
         private RunChapterFlowService service;
+        private RunChapterProgressApplicationService progressApplication;
 
         public RunChapterFlowDefinition Definition => definition;
         public RunChapterFlowService Service
@@ -21,6 +22,14 @@ namespace Titanhold.Run
         }
 
         public RunChapterFlowState State => Service.State;
+        public RunChapterProgressApplicationService ProgressApplication
+        {
+            get
+            {
+                EnsureInitialized();
+                return progressApplication;
+            }
+        }
 
         public event Action<RunChapterFlowState> StateChanged;
 
@@ -75,6 +84,8 @@ namespace Titanhold.Run
             }
 
             service = new RunChapterFlowService(configuration);
+            progressApplication = new RunChapterProgressApplicationService(
+                service);
             service.StateChanged += HandleStateChanged;
         }
 
