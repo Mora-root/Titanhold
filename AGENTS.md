@@ -38,6 +38,10 @@ contains only technical state and working rules.
   state. Reading it never advances simulation time. UI must poll fresh snapshots
   for countdown display and must not infer game values from phase or recalculate
   boss scaling.
+- `RunChapterBossTransitionApplicationService` validates replay-safe manual portal
+  commands against the participant roster and publishes/stores one immutable manual
+  or forced request with the authoritative boss-scaling snapshot. It is not
+  Unity-wired yet.
 - Prototype configuration: progress `100`; thresholds `0/30/60/85%`; collapse
   `120s`; one instability stack per `20s`, capped at six; each stack adds `10%`
   boss health and `5%` boss damage.
