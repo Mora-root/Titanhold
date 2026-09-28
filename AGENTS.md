@@ -38,6 +38,12 @@ requested.
   temporarily reads the existing `EnemyRunContributionSource.ThreatAmount` as the
   enemy's chapter-progress value. Do not enable it alongside the legacy meter until
   the new portal/presentation path is ready for cutover.
+- `RunChapterFlowPresentationProjection` exposes an immutable, polling-friendly
+  snapshot of chapter progress, escalation, portal availability, collapse timing,
+  instability, authoritative boss scaling, and forced-transition state. Reading the
+  projection never advances simulation time; future UI must poll fresh snapshots
+  for countdown display instead of deriving values from phase or relying only on
+  `StateChanged`.
 - The prototype chapter definition uses progress `100`, thresholds
   `0/30/60/85%`, a `120s` collapse, one stack per `20s`, and boss bonuses of
   `+10%` health and `+5%` damage per stack, capped at six stacks.

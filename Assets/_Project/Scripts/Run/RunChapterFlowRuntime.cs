@@ -10,6 +10,7 @@ namespace Titanhold.Run
 
         private RunChapterFlowService service;
         private RunChapterProgressApplicationService progressApplication;
+        private RunChapterFlowPresentationProjection presentationProjection;
 
         public RunChapterFlowDefinition Definition => definition;
         public RunChapterFlowService Service
@@ -29,6 +30,12 @@ namespace Titanhold.Run
                 EnsureInitialized();
                 return progressApplication;
             }
+        }
+
+        public RunChapterFlowPresentationSnapshot CapturePresentationSnapshot()
+        {
+            EnsureInitialized();
+            return presentationProjection.Capture();
         }
 
         public event Action<RunChapterFlowState> StateChanged;
@@ -86,6 +93,8 @@ namespace Titanhold.Run
             service = new RunChapterFlowService(configuration);
             progressApplication = new RunChapterProgressApplicationService(
                 service);
+            presentationProjection =
+                new RunChapterFlowPresentationProjection(service.State);
             service.StateChanged += HandleStateChanged;
         }
 

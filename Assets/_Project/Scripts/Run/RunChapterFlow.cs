@@ -261,11 +261,17 @@ namespace Titanhold.Run
         public RunChapterPhase Phase { get; private set; }
         public float CurrentProgress { get; private set; }
         public float MaximumProgress => configuration.MaximumProgress;
-        public float NormalizedProgress => CurrentProgress / MaximumProgress;
+        public float NormalizedProgress => Math.Min(
+            1f,
+            Math.Max(0f, CurrentProgress / MaximumProgress));
         public bool IsProgressFull => CurrentProgress >= MaximumProgress;
         public int EscalationStage { get; private set; }
         public int EscalationStageCount =>
             configuration.EscalationThresholds.Count;
+        public double CollapseDurationSeconds =>
+            configuration.CollapseDurationSeconds;
+        public int MaximumInstabilityStacks =>
+            configuration.MaximumInstabilityStacks;
         public double LastSimulationTime { get; private set; }
         public double CollapseStartedAt { get; private set; }
         public double CollapseDeadline =>
