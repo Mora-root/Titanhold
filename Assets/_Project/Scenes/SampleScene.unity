@@ -24780,6 +24780,7 @@ GameObject:
   - component: {fileID: 1489734152}
   - component: {fileID: 1489734154}
   - component: {fileID: 1489734155}
+  - component: {fileID: 1489734156}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -25049,6 +25050,25 @@ MonoBehaviour:
   spawnDistance: 3
   navMeshSampleDistance: 3
   heightOffset: 0.05
+--- !u!114 &1489734156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b54f873d3d9b46a498533439eeabd428, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunChapterBossEncounterCoordinator
+  chapterFlowRuntime: {fileID: 1489734154}
+  arenaGatewaySource: {fileID: 1489734147}
+  targetRegistry: {fileID: 1489734149}
+  enemyDefinitions: {fileID: 11400000, guid: c8745ff01a4df7543aa5d8fe820423b9, type: 2}
+  bossPrefab: {fileID: 5185197498381238768, guid: cb00f739a93317a43a6d73f45f1b63fb, type: 3}
+  bossSpawnPoint: {fileID: 1235355711}
+  localPlayer: {fileID: 8744477821165718953}
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0

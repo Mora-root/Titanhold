@@ -41,8 +41,11 @@ contains only technical state and working rules.
 - `RunChapterFlowRuntime` owns the replay-safe chapter boss-transition application,
   advances collapse time, resolves registered scene participants, and publishes/
   stores one immutable manual or forced request with authoritative boss scaling.
-  `SampleScene` has a side-by-side chapter portal and polling prototype chapter HUD;
-  neither loads the boss nor enables the combat-progress adapter yet.
+  `SampleScene` has a side-by-side chapter portal and polling prototype chapter HUD.
+  `RunChapterBossEncounterCoordinator` moves the solo participant into the existing
+  arena, directly spawns `Skelet_Boss_Prototype` with the frozen chapter scaling,
+  and advances boss death to `Reward`; it does not invoke legacy waves. The reward
+  path and combat-progress adapter are not connected yet.
 - Prototype configuration: progress `100`; thresholds `0/30/60/85%`; collapse
   `120s`; one instability stack per `20s`, capped at six; each stack adds `10%`
   boss health and `5%` boss damage.
