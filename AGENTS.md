@@ -11,9 +11,10 @@ Active replacement loop:
 `continuous exploration/activities → chapter progress → Rift Collapse and manual
 boss portal → direct boss encounter → reward/completion`
 
-The existing nine-round exploration/assault flow must remain operational until the
-replacement has its portal, presentation, boss transition, and reward path and the
-user explicitly approves cutover. Do not create a hybrid flow.
+The user approved the chapter-flow cutover after validating its portal,
+presentation, boss transition, and reward path. The old nine-round flow remains in
+the project for compatibility and rollback, but its scene drivers must not run
+beside the active chapter loop. Do not create a hybrid flow.
 
 Private design documents outside the repository hold game-design decisions. Do not
 copy them into the repository or Git without explicit permission. `AGENTS.md`
@@ -30,8 +31,8 @@ contains only technical state and working rules.
   co-op attribution.
 - `RunChapterCombatProgressAdapter` converts participant-attributed multi-target
   combat reports into one progress event. It temporarily reads
-  `EnemyRunContributionSource.ThreatAmount` as chapter progress, is not scene-wired,
-  and must not run beside the legacy meter before cutover.
+  `EnemyRunContributionSource.ThreatAmount` as chapter progress and is the active
+  scene-wired exploration progress source in `SampleScene`.
 - `RunChapterFlowPresentationProjection` exposes an immutable polling-friendly
   snapshot containing chapter, progress, escalation, phase, boss/exit portal
   availability, collapse timing, instability, authoritative boss scaling, and
@@ -41,7 +42,8 @@ contains only technical state and working rules.
 - `RunChapterFlowRuntime` owns the replay-safe chapter boss-transition application,
   advances collapse time, resolves registered scene participants, and publishes/
   stores one immutable manual or forced request with authoritative boss scaling.
-  `SampleScene` has a side-by-side chapter portal and polling prototype chapter HUD.
+  `SampleScene` uses the chapter portal and a polling prototype chapter HUD in the
+  former legacy run-meter screen slot.
   `RunChapterBossEncounterCoordinator` moves the solo participant into the existing
   arena, directly spawns the chapter-only `Skelet_ChapterBoss_Prototype` variant
   with the frozen chapter scaling, and advances boss death to `Reward`; it does not
@@ -50,7 +52,7 @@ contains only technical state and working rules.
 - In `Reward`, a persistent exit portal opens a cancellable warning. Confirmation
   settles `1200` character XP and `60` account crystals once, completes the chapter,
   and opens a mandatory final view whose only action retries the Hub transition.
-  The combat-progress adapter remains intentionally disconnected until cutover.
+  The combat-progress adapter is connected after the approved cutover.
 - Prototype configuration: progress `100`; thresholds `0/30/60/85%`; collapse
   `120s`; one instability stack per `20s`, capped at six; each stack adds `10%`
   boss health and `5%` boss damage.
@@ -60,10 +62,15 @@ contains only technical state and working rules.
 - In the Editor or a Development Build, `F7` fills the active chapter progress
   through `RunChapterProgressApplicationService` for portal/collapse testing.
 
-## Legacy Boundaries — Preserve Until Cutover
+## Legacy Boundaries — Preserve After Cutover
 
 - Preserve the old Threat meter, nine regular rounds, boss round, assault arena,
-  reward chest, return portal, checkpoint/settlement path, camp defense, and towers.
+  reward chest, return portal, checkpoint/settlement path, camp defense, and towers
+  as rollback/reference assets until separate cleanup approval.
+- In `SampleScene`, the legacy combat-progress adapter, debug overlay, exploration
+  portal, assault transition/waves, return portal, and reward-chest spawner exist
+  disabled. Keep the shared `RunFlowRuntime`, arena gateway, target registries,
+  exploration spawning/balance dependencies, RunXP, pause, and defeat paths active.
 - Exploration enemies target explicitly registered participants through
   `ExplorationTargetRegistry`; targets remain mutable and are reselected when
   invalid or out of range. `EnemySensor` is only a bounded non-allocating fallback.

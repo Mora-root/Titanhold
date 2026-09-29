@@ -23,6 +23,18 @@ namespace Titanhold.Run
 
         public bool IsInitialized => ProgressApplication != null;
         public int SubscriptionCount => subscriptions.Count;
+        public RunChapterFlowRuntime ChapterFlowRuntime => chapterFlowRuntime;
+        public RunSceneSessionEntryPoint SessionEntryPoint => sessionEntryPoint;
+
+#if UNITY_EDITOR
+        public void ConfigureForEditor(
+            RunChapterFlowRuntime configuredRuntime,
+            RunSceneSessionEntryPoint configuredEntryPoint)
+        {
+            chapterFlowRuntime = configuredRuntime;
+            sessionEntryPoint = configuredEntryPoint;
+        }
+#endif
 
         private void Start()
         {

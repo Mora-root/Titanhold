@@ -27,6 +27,8 @@ namespace Titanhold.Run.Editor
             "Assets/_Project/Materials/Glow.mat";
         private const int InteractableLayer = 10;
         private const string InteractableLayerName = "Interactable";
+        private static readonly Vector2 CutoverHudPosition =
+            new(12f, -12f);
 
         [MenuItem(
             "Tools/Titanhold/Install Run Chapter Portal and HUD Wiring")]
@@ -83,6 +85,51 @@ namespace Titanhold.Run.Editor
             {
                 Debug.LogError(
                     "Run Chapter portal and HUD wiring validation failed: " +
+                    exception);
+            }
+        }
+
+        [MenuItem("Tools/Titanhold/Install Run Chapter Cutover Wiring")]
+        public static void InstallCutover()
+        {
+            try
+            {
+                RequireEditMode("chapter cutover installation");
+                Scene scene = RequireCleanSampleScene();
+                ConfigureCutover(scene);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                ValidateCutoverInternal(scene);
+                Debug.Log("Run Chapter cutover wiring installed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    "Run Chapter cutover wiring installation failed: " +
+                    exception);
+            }
+        }
+
+        [MenuItem("Tools/Titanhold/Validate Run Chapter Cutover Wiring")]
+        public static void ValidateCutover()
+        {
+            try
+            {
+                RequireEditMode("chapter cutover validation");
+                Scene scene = EditorSceneManager.GetActiveScene();
+                if (scene.path != ScenePath)
+                {
+                    throw new InvalidOperationException(
+                        $"Open {ScenePath} before validation.");
+                }
+
+                ValidateCutoverInternal(scene);
+                Debug.Log("Run Chapter cutover wiring validation passed.");
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(
+                    "Run Chapter cutover wiring validation failed: " +
                     exception);
             }
         }
@@ -486,6 +533,91 @@ namespace Titanhold.Run.Editor
                 throw new InvalidOperationException($"Could not save {ScenePath}.");
         }
 
+        private static void ConfigureCutover(Scene scene)
+        {
+            GameObject runtimeObject = FindRootObject(
+                scene,
+                RuntimeObjectName);
+            GameObject canvasObject = FindRootObject(scene, CanvasObjectName);
+            RunChapterFlowRuntime chapterRuntime =
+                runtimeObject != null
+                    ? runtimeObject.GetComponent<RunChapterFlowRuntime>()
+                    : null;
+            RunSceneSessionEntryPoint entryPoint =
+                FindSceneComponent<RunSceneSessionEntryPoint>(scene);
+            RunChapterFlowHudPresenter presenter =
+                canvasObject != null
+                    ? FindChildComponentByName<RunChapterFlowHudPresenter>(
+                        canvasObject.transform,
+                        "RunChapterFlowHUD")
+                    : null;
+            if (runtimeObject == null ||
+                chapterRuntime == null ||
+                entryPoint == null ||
+                presenter == null)
+            {
+                throw new InvalidOperationException(
+                    "Chapter runtime, session entry point, or HUD is missing.");
+            }
+
+            RunChapterCombatProgressAdapter chapterAdapter =
+                runtimeObject.GetComponent<RunChapterCombatProgressAdapter>();
+            if (chapterAdapter == null)
+            {
+                chapterAdapter =
+                    Undo.AddComponent<RunChapterCombatProgressAdapter>(
+                        runtimeObject);
+            }
+
+            Undo.RecordObject(chapterAdapter, "Configure Chapter Progress");
+            chapterAdapter.ConfigureForEditor(chapterRuntime, entryPoint);
+            chapterAdapter.enabled = true;
+            EditorUtility.SetDirty(chapterAdapter);
+
+            DisableLegacyComponent<ExplorationCombatExecutionAdapter>(
+                runtimeObject);
+            DisableLegacyComponent<RunFlowDebugOverlay>(runtimeObject);
+            DisableLegacyComponent<RunPortalSpawner>(runtimeObject);
+            DisableLegacyComponent<AssaultArenaTransitionController>(
+                runtimeObject);
+            DisableLegacyComponent<AssaultWaveSpawner>(runtimeObject);
+            DisableLegacyComponent<AssaultReturnPortalSpawner>(runtimeObject);
+            DisableLegacyComponent<AssaultRewardChestSpawner>(runtimeObject);
+
+            RectTransform hudRect = presenter.GetComponent<RectTransform>();
+            if (hudRect == null)
+            {
+                throw new InvalidOperationException(
+                    "Chapter HUD root has no RectTransform.");
+            }
+
+            Undo.RecordObject(hudRect, "Move Chapter HUD To Run Meter Slot");
+            hudRect.anchorMin = new Vector2(0f, 1f);
+            hudRect.anchorMax = new Vector2(0f, 1f);
+            hudRect.pivot = new Vector2(0f, 1f);
+            hudRect.anchoredPosition = CutoverHudPosition;
+            EditorUtility.SetDirty(hudRect);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new InvalidOperationException($"Could not save {ScenePath}.");
+        }
+
+        private static void DisableLegacyComponent<T>(GameObject runtimeObject)
+            where T : Behaviour
+        {
+            T component = runtimeObject.GetComponent<T>();
+            if (component == null)
+            {
+                throw new InvalidOperationException(
+                    $"Legacy component {typeof(T).Name} is missing.");
+            }
+
+            Undo.RecordObject(component, "Disable Legacy Run Flow Component");
+            component.enabled = false;
+            EditorUtility.SetDirty(component);
+        }
+
         private static RunChapterBossPortalInteractable
             ValidatePortalPrefab()
         {
@@ -606,6 +738,99 @@ namespace Titanhold.Run.Editor
             {
                 throw new InvalidOperationException(
                     "Legacy run flow or portal wiring was removed.");
+            }
+        }
+
+        private static void ValidateCutoverInternal(Scene scene)
+        {
+            GameObject runtimeObject = FindRootObject(
+                scene,
+                RuntimeObjectName);
+            GameObject canvasObject = FindRootObject(scene, CanvasObjectName);
+            RunChapterFlowRuntime chapterRuntime =
+                runtimeObject != null
+                    ? runtimeObject.GetComponent<RunChapterFlowRuntime>()
+                    : null;
+            RunSceneSessionEntryPoint entryPoint =
+                FindSceneComponent<RunSceneSessionEntryPoint>(scene);
+            RunChapterCombatProgressAdapter chapterAdapter =
+                runtimeObject != null
+                    ? runtimeObject.GetComponent<
+                        RunChapterCombatProgressAdapter>()
+                    : null;
+            if (chapterRuntime == null ||
+                !chapterRuntime.enabled ||
+                chapterAdapter == null ||
+                !chapterAdapter.enabled ||
+                chapterAdapter.ChapterFlowRuntime != chapterRuntime ||
+                chapterAdapter.SessionEntryPoint != entryPoint)
+            {
+                throw new InvalidOperationException(
+                    "Chapter combat progress wiring is incomplete.");
+            }
+
+            ValidateLegacyComponentDisabled<
+                ExplorationCombatExecutionAdapter>(runtimeObject);
+            ValidateLegacyComponentDisabled<RunFlowDebugOverlay>(runtimeObject);
+            ValidateLegacyComponentDisabled<RunPortalSpawner>(runtimeObject);
+            ValidateLegacyComponentDisabled<
+                AssaultArenaTransitionController>(runtimeObject);
+            ValidateLegacyComponentDisabled<AssaultWaveSpawner>(runtimeObject);
+            ValidateLegacyComponentDisabled<
+                AssaultReturnPortalSpawner>(runtimeObject);
+            ValidateLegacyComponentDisabled<
+                AssaultRewardChestSpawner>(runtimeObject);
+
+            RunFlowRuntime legacyRuntime =
+                runtimeObject.GetComponent<RunFlowRuntime>();
+            LocalAssaultArenaGateway arenaGateway =
+                runtimeObject.GetComponent<LocalAssaultArenaGateway>();
+            AssaultTargetRegistry targetRegistry =
+                runtimeObject.GetComponent<AssaultTargetRegistry>();
+            if (legacyRuntime == null ||
+                !legacyRuntime.enabled ||
+                arenaGateway == null ||
+                !arenaGateway.enabled ||
+                targetRegistry == null ||
+                !targetRegistry.enabled)
+            {
+                throw new InvalidOperationException(
+                    "Required shared legacy infrastructure was disabled or removed.");
+            }
+
+            RunChapterFlowHudPresenter presenter =
+                canvasObject != null
+                    ? FindChildComponentByName<RunChapterFlowHudPresenter>(
+                        canvasObject.transform,
+                        "RunChapterFlowHUD")
+                    : null;
+            RectTransform hudRect =
+                presenter != null
+                    ? presenter.GetComponent<RectTransform>()
+                    : null;
+            if (presenter == null ||
+                !presenter.gameObject.activeSelf ||
+                hudRect == null ||
+                hudRect.anchorMin != new Vector2(0f, 1f) ||
+                hudRect.anchorMax != new Vector2(0f, 1f) ||
+                hudRect.pivot != new Vector2(0f, 1f) ||
+                hudRect.anchoredPosition != CutoverHudPosition)
+            {
+                throw new InvalidOperationException(
+                    "Chapter HUD is not in the legacy run-meter slot.");
+            }
+        }
+
+        private static void ValidateLegacyComponentDisabled<T>(
+            GameObject runtimeObject)
+            where T : Behaviour
+        {
+            T component =
+                runtimeObject != null ? runtimeObject.GetComponent<T>() : null;
+            if (component == null || component.enabled)
+            {
+                throw new InvalidOperationException(
+                    $"Legacy component {typeof(T).Name} must exist disabled.");
             }
         }
 

@@ -24663,6 +24663,26 @@ PrefabInstance:
       propertyPath: chapterFlowRuntime
       value:
       objectReference: {fileID: 1489734154}
+    - target: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 5010646774299351750, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -12
+      objectReference: {fileID: 0}
     - target: {fileID: 9125371185946274362, guid: d759e89288449ad498dc5bbb9c40889b, type: 3}
       propertyPath: m_Name
       value: RunChapterFlowHUD
@@ -24932,6 +24952,7 @@ GameObject:
   - component: {fileID: 1489734156}
   - component: {fileID: 1489734158}
   - component: {fileID: 1489734157}
+  - component: {fileID: 1489734159}
   m_Layer: 0
   m_Name: RunFlowRuntime
   m_TagString: Untagged
@@ -24946,7 +24967,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d345299edb8243943b39672539bca949, type: 3}
   m_Name: 
@@ -24967,7 +24988,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4b025d9245ef51145aba6fb760365654, type: 3}
   m_Name: 
@@ -25020,7 +25041,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43d330b9c9dd58249980d7437ca1bf2c, type: 3}
   m_Name: 
@@ -25038,7 +25059,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df8866233cebeba4782992e3b5496118, type: 3}
   m_Name: 
@@ -25055,7 +25076,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bb56e9a2d8facf64aa7ffe8e5a202492, type: 3}
   m_Name: 
@@ -25115,7 +25136,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8fbae6a361bafa14086a9a794e51cf76, type: 3}
   m_Name: 
@@ -25132,7 +25153,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1489734139}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a87dd6c950116545bdb55dd383176ba, type: 3}
   m_Name: 
@@ -25253,6 +25274,20 @@ MonoBehaviour:
   chapterFlowRuntime: {fileID: 1489734154}
   sessionEntryPoint: {fileID: 407419260}
   rewardDefinition: {fileID: 11400000, guid: d6d17974cff4b7e448b674ae1e6b3f20, type: 2}
+--- !u!114 &1489734159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489734139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 849237c1fc478144a9fc6ddc8fdeb538, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Titanhold.Run.RunChapterCombatProgressAdapter
+  chapterFlowRuntime: {fileID: 1489734154}
+  sessionEntryPoint: {fileID: 407419260}
 --- !u!1 &1496272843
 GameObject:
   m_ObjectHideFlags: 0
