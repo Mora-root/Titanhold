@@ -254,6 +254,9 @@ namespace Titanhold.Run.Editor
                 $"The {context} presentation has the wrong phase.");
             Assert(snapshot.IsBossPortalAvailable == portalAvailable,
                 $"The {context} portal availability is incorrect.");
+            Assert(snapshot.IsExitPortalAvailable ==
+                   (phase == RunChapterPhase.Reward),
+                $"The {context} exit availability is incorrect.");
             Assert(snapshot.BossTransitionWasForced == forcedTransition,
                 $"The {context} forced-transition flag is incorrect.");
         }

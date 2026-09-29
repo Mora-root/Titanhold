@@ -499,7 +499,9 @@ namespace Titanhold.Session
                        settledRunResult.CharacterExperienceAwarded ==
                            result.CharacterExperienceAwarded &&
                        settledRunResult.CrystalsAwarded ==
-                           result.CrystalsAwarded;
+                           result.CrystalsAwarded &&
+                       settledRunResult.CompletedChapterNumber ==
+                           result.CompletedChapterNumber;
             }
 
             settledRunResult = result;

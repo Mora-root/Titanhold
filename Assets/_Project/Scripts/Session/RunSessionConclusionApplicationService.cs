@@ -47,7 +47,9 @@ namespace Titanhold.Session
             {
                 if (settledResult.Outcome != summary.Outcome ||
                     settledResult.CompletedRoundCount !=
-                        summary.CompletedRoundCount)
+                        summary.CompletedRoundCount ||
+                    settledResult.CompletedChapterNumber !=
+                        summary.CompletedChapterNumber)
                 {
                     return RunSessionConclusionResult.Failed(
                         RunSessionConclusionError.RewardSettlementFailed,

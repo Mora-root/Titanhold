@@ -33,19 +33,24 @@ contains only technical state and working rules.
   `EnemyRunContributionSource.ThreatAmount` as chapter progress, is not scene-wired,
   and must not run beside the legacy meter before cutover.
 - `RunChapterFlowPresentationProjection` exposes an immutable polling-friendly
-  snapshot containing chapter, progress, escalation, phase, portal availability,
-  collapse timing, instability, authoritative boss scaling, and forced-transition
-  state. Reading it never advances simulation time. UI must poll fresh snapshots
-  for countdown display and must not infer game values from phase or recalculate
-  boss scaling.
+  snapshot containing chapter, progress, escalation, phase, boss/exit portal
+  availability, collapse timing, instability, authoritative boss scaling, and
+  forced-transition state. Reading it never advances simulation time. UI must poll
+  fresh snapshots for countdown display and must not infer game values from phase
+  or recalculate boss scaling.
 - `RunChapterFlowRuntime` owns the replay-safe chapter boss-transition application,
   advances collapse time, resolves registered scene participants, and publishes/
   stores one immutable manual or forced request with authoritative boss scaling.
   `SampleScene` has a side-by-side chapter portal and polling prototype chapter HUD.
   `RunChapterBossEncounterCoordinator` moves the solo participant into the existing
-  arena, directly spawns `Skelet_Boss_Prototype` with the frozen chapter scaling,
-  and advances boss death to `Reward`; it does not invoke legacy waves. The reward
-  path and combat-progress adapter are not connected yet.
+  arena, directly spawns the chapter-only `Skelet_ChapterBoss_Prototype` variant
+  with the frozen chapter scaling, and advances boss death to `Reward`; it does not
+  invoke legacy waves. The variant reuses `EnemyLootTableDropper` with its own loot
+  table and leaves `Skelet_Boss_Prototype` unchanged.
+- In `Reward`, a persistent exit portal opens a cancellable warning. Confirmation
+  settles `1200` character XP and `60` account crystals once, completes the chapter,
+  and opens a mandatory final view whose only action retries the Hub transition.
+  The combat-progress adapter remains intentionally disconnected until cutover.
 - Prototype configuration: progress `100`; thresholds `0/30/60/85%`; collapse
   `120s`; one instability stack per `20s`, capped at six; each stack adds `10%`
   boss health and `5%` boss damage.

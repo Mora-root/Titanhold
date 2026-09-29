@@ -61,9 +61,12 @@ namespace Titanhold.Session
             RunResultSummary result = session.State.LastRunResult;
             if (result != null)
             {
+                string progress = result.CompletedChapterNumber > 0
+                    ? $"CHAPTER: {result.CompletedChapterNumber}"
+                    : $"ROUNDS: {result.CompletedRoundCount}";
                 view?.SetStatus(
                     $"{result.Outcome.ToString().ToUpperInvariant()} • " +
-                    $"ROUNDS: {result.CompletedRoundCount} • " +
+                    $"{progress} • " +
                     $"XP +{result.CharacterExperienceAwarded} • " +
                     $"CRYSTALS +{result.CrystalsAwarded}");
             }

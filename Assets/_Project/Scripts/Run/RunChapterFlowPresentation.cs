@@ -13,6 +13,7 @@ namespace Titanhold.Run
             int escalationStageCount,
             RunChapterPhase phase,
             bool isBossPortalAvailable,
+            bool isExitPortalAvailable,
             double collapseDurationSeconds,
             double collapseTimeRemainingSeconds,
             int currentInstabilityStacks,
@@ -29,6 +30,7 @@ namespace Titanhold.Run
             EscalationStageCount = escalationStageCount;
             Phase = phase;
             IsBossPortalAvailable = isBossPortalAvailable;
+            IsExitPortalAvailable = isExitPortalAvailable;
             CollapseDurationSeconds = collapseDurationSeconds;
             CollapseTimeRemainingSeconds = collapseTimeRemainingSeconds;
             CurrentInstabilityStacks = currentInstabilityStacks;
@@ -46,6 +48,7 @@ namespace Titanhold.Run
         public int EscalationStageCount { get; }
         public RunChapterPhase Phase { get; }
         public bool IsBossPortalAvailable { get; }
+        public bool IsExitPortalAvailable { get; }
         public double CollapseDurationSeconds { get; }
         public double CollapseTimeRemainingSeconds { get; }
         public int CurrentInstabilityStacks { get; }
@@ -78,6 +81,7 @@ namespace Titanhold.Run
                 state.EscalationStageCount,
                 state.Phase,
                 state.Phase == RunChapterPhase.RiftCollapse,
+                state.Phase == RunChapterPhase.Reward,
                 state.CollapseDurationSeconds,
                 state.CollapseTimeRemaining,
                 state.InstabilityStacks,

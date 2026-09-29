@@ -16,7 +16,8 @@ namespace Titanhold.Run.Editor
         private const string SpawnPointsObjectName = "EnemySpawnPoints";
         private const string BossSpawnPointName = "SpawnPoint_01";
         private const string BossPrefabPath =
-            "Assets/_Project/Prefabs/Enemy/Skelet_Boss_Prototype.prefab";
+            "Assets/_Project/Prefabs/Enemy/" +
+            "Skelet_ChapterBoss_Prototype.prefab";
 
         [MenuItem(
             "Tools/Titanhold/Install Run Chapter Boss Encounter Wiring")]
