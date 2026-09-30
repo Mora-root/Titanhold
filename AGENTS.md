@@ -71,6 +71,9 @@ contains only technical state and working rules.
   portal, assault transition/waves, return portal, and reward-chest spawner exist
   disabled. Keep the shared `RunFlowRuntime`, arena gateway, target registries,
   exploration spawning/balance dependencies, RunXP, pause, and defeat paths active.
+- Legacy run-flow installers and the legacy Play Mode smoke live under
+  `Tools/Titanhold/Legacy` and reject execution while the chapter cutover is
+  active. Rollback must disable the chapter flow explicitly before using them.
 - Exploration enemies target explicitly registered participants through
   `ExplorationTargetRegistry`; targets remain mutable and are reselected when
   invalid or out of range. `EnemySensor` is only a bounded non-allocating fallback.

@@ -14,7 +14,8 @@ namespace Titanhold.Run.Editor
         private const string WavePrefabPath = "Assets/_Project/Prefabs/Enemy/Skelet_Wave.prefab";
         private const string RuntimeObjectName = "RunFlowRuntime";
 
-        [MenuItem("Tools/Titanhold/Install Run Flow Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Install Run Flow Vertical Slice Wiring")]
         public static void Install()
         {
             try
@@ -32,6 +33,9 @@ namespace Titanhold.Run.Editor
                         "The active scene has unrelated unsaved changes. Save or revert them first.");
                 }
 
+                LegacyRunFlowEditorGuard.RequireChapterCutoverInactive(
+                    "install legacy Run Flow wiring");
+
                 ConfigureEnemyPrefab(SkeletonPrefabPath, 10f, 1);
                 ConfigureEnemyPrefab(WarriorPrefabPath, 10f, 1);
                 ConfigureRuntimeSceneObject(scene);
@@ -46,7 +50,8 @@ namespace Titanhold.Run.Editor
             }
         }
 
-        [MenuItem("Tools/Titanhold/Validate Run Flow Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Validate Run Flow Vertical Slice Wiring")]
         public static void Validate()
         {
             try

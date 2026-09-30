@@ -10,7 +10,8 @@ namespace Titanhold.Run.Editor
 {
     public static class RunFlowPlayModeSmokeRunner
     {
-        private const string MenuPath = "Tools/Titanhold/Run Run Flow Play Mode Smoke Test";
+        private const string MenuPath =
+            "Tools/Titanhold/Legacy/Run Legacy Run Flow Play Mode Smoke Test";
         private const string SessionKey = "Titanhold.RunFlow.PlayModeSmokePending";
 
         [InitializeOnLoadMethod]
@@ -25,6 +26,15 @@ namespace Titanhold.Run.Editor
         [MenuItem(MenuPath)]
         public static void StartSmokeTest()
         {
+            if (LegacyRunFlowEditorGuard.IsChapterCutoverActive())
+            {
+                Debug.LogError(
+                    "The legacy Run Flow Play Mode smoke test cannot run while " +
+                    "the chapter cutover is active. Disable the chapter flow " +
+                    "explicitly as part of a rollback before running this test.");
+                return;
+            }
+
             if (EditorApplication.isPlaying)
             {
                 SessionState.SetBool(SessionKey, true);

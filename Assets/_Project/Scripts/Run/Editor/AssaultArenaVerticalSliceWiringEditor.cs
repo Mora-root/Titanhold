@@ -38,13 +38,16 @@ namespace Titanhold.Run.Editor
         private const int GroundLayer = 9;
         private const int InteractableLayer = 10;
 
-        [MenuItem("Tools/Titanhold/Install Assault Arena Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Install Assault Arena Vertical Slice Wiring")]
         public static void Install()
         {
             try
             {
                 RequireEditMode("installation");
                 Scene scene = RequireCleanSampleScene();
+                LegacyRunFlowEditorGuard.RequireChapterCutoverInactive(
+                    "install the legacy assault arena drivers");
                 GameObject enemyPrefab = CreateOrUpdateAssaultEnemyPrefab();
                 AssaultReturnPortalInteractable returnPortalPrefab =
                     CreateOrUpdateReturnPortalPrefab();
@@ -62,7 +65,8 @@ namespace Titanhold.Run.Editor
             }
         }
 
-        [MenuItem("Tools/Titanhold/Validate Assault Arena Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Validate Assault Arena Vertical Slice Wiring")]
         public static void Validate()
         {
             try

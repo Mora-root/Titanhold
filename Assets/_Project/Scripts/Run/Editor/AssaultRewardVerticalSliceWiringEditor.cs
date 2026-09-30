@@ -28,13 +28,16 @@ namespace Titanhold.Run.Editor
         private const int InteractableLayer = 10;
         private const int GroundLayer = 9;
 
-        [MenuItem("Tools/Titanhold/Install Assault Reward Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Install Assault Reward Vertical Slice Wiring")]
         public static void Install()
         {
             try
             {
                 RequireEditMode("installation");
                 Scene scene = RequireCleanSampleScene();
+                LegacyRunFlowEditorGuard.RequireChapterCutoverInactive(
+                    "install the legacy assault reward driver");
                 LootTable rewardTable = CreateOrUpdateRewardTable();
                 AssaultRewardChestInteractable chestPrefab =
                     CreateOrUpdateRewardChestPrefab();
@@ -50,7 +53,8 @@ namespace Titanhold.Run.Editor
             }
         }
 
-        [MenuItem("Tools/Titanhold/Validate Assault Reward Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Validate Assault Reward Vertical Slice Wiring")]
         public static void Validate()
         {
             try

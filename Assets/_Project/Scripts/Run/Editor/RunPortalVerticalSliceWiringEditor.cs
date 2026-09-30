@@ -19,13 +19,16 @@ namespace Titanhold.Run.Editor
         private const int InteractableLayer = 10;
         private const string InteractableLayerName = "Interactable";
 
-        [MenuItem("Tools/Titanhold/Install Run Portal Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Install Run Portal Vertical Slice Wiring")]
         public static void Install()
         {
             try
             {
                 RequireEditMode("installation");
                 Scene scene = RequireCleanSampleScene();
+                LegacyRunFlowEditorGuard.RequireChapterCutoverInactive(
+                    "install the legacy exploration portal wiring");
                 ConfigureInteractableLayer();
                 RunPortalInteractable portalPrefab = CreateOrValidatePortalPrefab();
                 ConfigureScene(scene, portalPrefab);
@@ -39,7 +42,8 @@ namespace Titanhold.Run.Editor
             }
         }
 
-        [MenuItem("Tools/Titanhold/Validate Run Portal Vertical Slice Wiring")]
+        [MenuItem(
+            "Tools/Titanhold/Legacy/Validate Run Portal Vertical Slice Wiring")]
         public static void Validate()
         {
             try
